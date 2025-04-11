@@ -1,6 +1,6 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
-import 'openstreetmap.dart';
+import 'map_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,7 +34,7 @@ class _HomeNavigationState extends State<HomeNavigation> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-    OpenstreetmapScreen(),
+    MapScreen(),
     PlaceholderScreen(title: 'Profile'),
     PlaceholderScreen(title: 'Settings'),
   ];
