@@ -147,10 +147,29 @@ class _MapScreenState extends State<MapScreen> {
                       point: _currentLocation!,
                       width: 40,
                       height: 40,
-                      child: const Icon(
-                        Icons.my_location,
-                        color: Colors.blue,
-                        size: 30,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Outer glow circle (accuracy-like effect)
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.2),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          // Inner blue dot
+                          Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
