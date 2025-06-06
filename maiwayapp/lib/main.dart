@@ -38,19 +38,22 @@ class _HomeNavigationState extends State<HomeNavigation> {
   final List<Widget> _pages = const [
     MapScreen(),
     PlaceholderScreen(title: 'Travel Preferences'),
-    SettingsScreen(),
     ProfileScreen(),
+    SettingsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: _pages[_currentIndex],
-      bottomNavigationBar: ClipRRect(
+      bottomNavigationBar: Material(
+        elevation: 8,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
+        clipBehavior: Clip.antiAlias,
         child: NavigationBar(
           backgroundColor: const Color(0xFF6699CC),
           selectedIndex: _currentIndex,
@@ -66,14 +69,14 @@ class _HomeNavigationState extends State<HomeNavigation> {
               label: 'Map',
             ),
             NavigationDestination(
-              icon: Icon(Icons.location_on_outlined),
-              selectedIcon: Icon(Icons.location_on),
+              icon: Icon(Icons.place_outlined),
+              selectedIcon: Icon(Icons.place_rounded),
               label: 'Travel Preferences',
             ),
             NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Settings',
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Profile',
             ),
           ],
         ),

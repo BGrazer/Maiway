@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'change_pass.dart';
+import 'user_report_page.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -16,9 +18,16 @@ class ProfileScreen extends StatelessWidget {
             onTap: () {},
           ),
           _buildSettingsTile(
-            icon: Icons.not_listed_location,
-            title: 'User Travel Preference',
-            onTap: () {},
+            icon: Icons.lock,
+            title: 'Change Password',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChangePasswordScreen(),
+                ),
+              );
+            },
           ),
           _buildSettingsTile(
             icon: Icons.notifications,
@@ -33,11 +42,35 @@ class ProfileScreen extends StatelessWidget {
           _buildSettingsTile(
             icon: Icons.outlined_flag,
             title: 'Report History',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddReportScreen(),
+                ),
+              );
+            },
           ),
           _buildSettingsTile(
             icon: Icons.admin_panel_settings,
             title: 'Admin Mode (Not Accessible by Normal User/Guest)',
+            onTap: () {},
+          ),
+
+          const SectionHeader(title: 'About'),
+          _buildSettingsTile(
+            icon: Icons.description,
+            title: 'Legalities of transportations',
+            onTap: () {},
+          ),
+          _buildSettingsTile(
+            icon: Icons.help_outline,
+            title: 'Policies of transportations',
+            onTap: () {},
+          ),
+          _buildSettingsTile(
+            icon: Icons.info_outline,
+            title: 'Terms and Policies of developers',
             onTap: () {},
           ),
         ],
