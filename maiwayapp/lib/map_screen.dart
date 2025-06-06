@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,9 +18,10 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
   LatLng? _currentLocation;
+  double _heading = 0.0;
+  StreamSubscription<CompassEvent>? _compassSubscription;
 
   late final List<LatLng> _manilaBoundary;
-
   final TextEditingController originController = TextEditingController();
   final TextEditingController destinationController = TextEditingController();
 
@@ -27,12 +30,21 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     _getCurrentLocation();
     _manilaBoundary = getManilaBoundary();
+
+    _compassSubscription = FlutterCompass.events?.listen((event) {
+      if (event.heading != null) {
+        setState(() {
+          _heading = event.heading!;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     originController.dispose();
     destinationController.dispose();
+    _compassSubscription?.cancel();
     super.dispose();
   }
 
@@ -75,7 +87,6 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  /// Opens the search sheet for origin and destination input.
   void _openSearchSheet() {
     showModalBottomSheet(
       context: context,
@@ -145,12 +156,43 @@ class _MapScreenState extends State<MapScreen> {
                   markers: [
                     Marker(
                       point: _currentLocation!,
-                      width: 40,
-                      height: 40,
-                      child: const Icon(
-                        Icons.my_location,
-                        color: Colors.blue,
-                        size: 30,
+                      width: 60,
+                      height: 60,
+                      child: Transform.rotate(
+                        angle:
+                            _heading * (3.1415927 / 180), // degrees to radians
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Outer transparent blue circle
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.blue,
+                              ),
+                            ),
+                            // Inner solid blue dot
+                            Container(
+                              width: 15,
+                              height: 15,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.blue,
+                              ),
+                            ),
+                            // Directional arrow
+                            const Positioned(
+                              top: 6,
+                              child: Icon(
+                                Icons.arrow_drop_up,
+                                size: 24,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -173,7 +215,7 @@ class _MapScreenState extends State<MapScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 6,
@@ -192,7 +234,7 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Buttons for user location and camera orientation
+          // Location button
           Positioned(
             bottom: 90,
             right: 20,
@@ -202,6 +244,8 @@ class _MapScreenState extends State<MapScreen> {
               child: const Icon(Icons.my_location),
             ),
           ),
+
+          // Orientation reset button
           Positioned(
             bottom: 150,
             right: 20,
