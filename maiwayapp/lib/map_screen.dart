@@ -3,6 +3,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maiwayapp/city_boundary.dart';
+import 'package:maiwayapp/search_sheet.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -17,6 +19,9 @@ class _MapScreenState extends State<MapScreen> {
 
   late final List<LatLng> _manilaBoundary;
 
+  final TextEditingController originController = TextEditingController();
+  final TextEditingController destinationController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -24,28 +29,25 @@ class _MapScreenState extends State<MapScreen> {
     _manilaBoundary = getManilaBoundary();
   }
 
+  @override
+  void dispose() {
+    originController.dispose();
+    destinationController.dispose();
+    super.dispose();
+  }
+
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Location services are not enabled, request the user to enable them.
-      return;
-    }
+    if (!serviceEnabled) return;
 
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // Permissions are denied, handle appropriately.
-        return;
-      }
+      if (permission == LocationPermission.denied) return;
     }
 
-    if (permission == LocationPermission.deniedForever) {
-      // Permissions are permanently denied, handle appropriately.
-      return;
-    }
+    if (permission == LocationPermission.deniedForever) return;
 
-    // Get the current location.
     Position position = await Geolocator.getCurrentPosition();
     setState(() {
       _currentLocation = LatLng(position.latitude, position.longitude);
@@ -55,7 +57,7 @@ class _MapScreenState extends State<MapScreen> {
   void _centerOnUserLocation() {
     if (_currentLocation != null) {
       _mapController.move(_currentLocation!, 15.0);
-      _mapController.rotate(0); // Zoom level 15.0
+      _mapController.rotate(0);
     } else {
       ScaffoldMessenger.of(
         context,
@@ -65,7 +67,7 @@ class _MapScreenState extends State<MapScreen> {
 
   void _resetCameraOrientation() {
     if (_currentLocation != null) {
-      _mapController.rotate(0); // Zoom level 15.0
+      _mapController.rotate(0);
     } else {
       ScaffoldMessenger.of(
         context,
@@ -73,18 +75,48 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  /// Opens the search sheet for origin and destination input.
+  void _openSearchSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder:
+          (context) => SearchSheet(
+            originController: originController,
+            destinationController: destinationController,
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MaiWay', style: TextStyle(fontSize: 22)),
+        title: RichText(
+          text: TextSpan(
+            style: GoogleFonts.notoSerifDevanagari(
+              fontSize: 22,
+              color: Colors.black,
+            ),
+            children: const [
+              TextSpan(text: 'M'),
+              TextSpan(text: 'AI', style: TextStyle(fontSize: 27)),
+              TextSpan(text: 'WAY'),
+            ],
+          ),
+        ),
+        backgroundColor: const Color(0xFF6699CC),
       ),
       body: Stack(
         children: [
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: LatLng(14.5995, 120.9842), // Manila coordinates
+              initialCenter: LatLng(14.5995, 120.9842),
               initialZoom: 13.5,
               interactionOptions: const InteractionOptions(
                 flags: ~InteractiveFlag.doubleTapDragZoom,
@@ -97,13 +129,7 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
             children: [
-              // OpenStreetMap tile layer
               openStreetMapTileLayer,
-
-              // dark overlay
-              // Container(color: Colors.black.withOpacity(0.6)),
-
-              // Manila city boundary
               PolygonLayer(
                 polygons: [
                   Polygon(
@@ -129,54 +155,58 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                   ],
                 ),
+            ],
+          ),
 
-              if (_currentLocation != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _currentLocation!,
-                      width: 50,
-                      height: 50,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          Container(
-                            width: 15,
-                            height: 15,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ],
-                      ),
+          // Search Bar
+          Positioned(
+            top: 7,
+            left: 7,
+            right: 7,
+            child: GestureDetector(
+              onTap: _openSearchSheet,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(0, 3),
                     ),
                   ],
                 ),
-            ],
+                child: Row(
+                  children: const [
+                    Icon(Icons.search, color: Colors.grey),
+                    SizedBox(width: 10),
+                    Text("Where to?", style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ),
           ),
-          // button for center on user location
+
+          // Buttons for user location and camera orientation
           Positioned(
-            bottom: 20,
+            bottom: 90,
             right: 20,
             child: FloatingActionButton(
+              elevation: 4,
               onPressed: _centerOnUserLocation,
               child: const Icon(Icons.my_location),
             ),
           ),
-          // button for reset camera orientation
           Positioned(
-            bottom: 85,
+            bottom: 150,
             right: 20,
             child: FloatingActionButton(
+              elevation: 4,
               onPressed: _resetCameraOrientation,
               child: const Icon(Icons.explore),
             ),
