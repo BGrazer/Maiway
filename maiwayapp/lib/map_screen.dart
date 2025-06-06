@@ -3,12 +3,33 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maiwayapp/city_boundary.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
   @override
   State<MapScreen> createState() => _MapScreenState();
+}
+
+class OriginDestinationSheet extends StatelessWidget {
+  const OriginDestinationSheet({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.all(20),
+      child: SizedBox(
+        height: 150,
+        child: Center(
+          child: Text(
+            'Origin & Destination Inputs Placeholder',
+            style: TextStyle(fontSize: 18),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _MapScreenState extends State<MapScreen> {
@@ -77,7 +98,23 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MaiWay', style: TextStyle(fontSize: 22)),
+        title: RichText(
+          text: TextSpan(
+            style: GoogleFonts.notoSerifDevanagari(
+              fontSize: 22,
+              color: Colors.black, // AppBar title is usually white
+            ),
+            children: const [
+              TextSpan(text: 'M'),
+              TextSpan(
+                text: 'AI',
+                style: TextStyle(fontSize: 27), // Slightly bigger
+              ),
+              TextSpan(text: 'WAY'),
+            ],
+          ),
+        ),
+        backgroundColor: const Color(0xFF6699CC),
       ),
       body: Stack(
         children: [
@@ -163,6 +200,50 @@ class _MapScreenState extends State<MapScreen> {
                 ),
             ],
           ),
+          Positioned(
+            top: 20,
+            left: 20,
+            right: 20,
+            child: GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  builder: (context) => const OriginDestinationSheet(),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 5,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.search, color: Colors.grey),
+                    SizedBox(width: 10),
+                    Text("Where to?", style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
           // button for center on user location
           Positioned(
             bottom: 20,

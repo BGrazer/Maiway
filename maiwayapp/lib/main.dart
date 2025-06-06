@@ -1,5 +1,7 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:maiwayapp/profile_screen.dart';
+import 'package:maiwayapp/settings_screen.dart';
 import 'map_screen.dart';
 
 void main() {
@@ -35,38 +37,46 @@ class _HomeNavigationState extends State<HomeNavigation> {
 
   final List<Widget> _pages = const [
     MapScreen(),
-    PlaceholderScreen(title: 'Profile'),
-    PlaceholderScreen(title: 'Settings'),
+    PlaceholderScreen(title: 'Travel Preferences'),
+    SettingsScreen(),
+    ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
-            label: 'Map',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+      bottomNavigationBar: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+        child: NavigationBar(
+          backgroundColor: const Color(0xFF6699CC),
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (int index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.map_outlined),
+              selectedIcon: Icon(Icons.map),
+              label: 'Map',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.location_on_outlined),
+              selectedIcon: Icon(Icons.location_on),
+              label: 'Travel Preferences',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+        ),
       ),
     );
   }
