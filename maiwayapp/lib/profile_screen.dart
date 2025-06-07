@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'change_pass.dart';
 import 'user_report_page.dart';
+import 'travel_history_screen.dart';
+import 'admin.dart';
+
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -37,7 +40,15 @@ class ProfileScreen extends StatelessWidget {
           _buildSettingsTile(
             icon: Icons.place,
             title: 'Travel History',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TravelHistoryScreen()
+                  
+              ),
+              );
+            },
           ),
           _buildSettingsTile(
             icon: Icons.outlined_flag,
@@ -51,11 +62,20 @@ class ProfileScreen extends StatelessWidget {
               );
             },
           ),
-          _buildSettingsTile(
-            icon: Icons.admin_panel_settings,
-            title: 'Admin Mode (Not Accessible by Normal User/Guest)',
-            onTap: () {},
-          ),
+         _buildSettingsTile(
+  icon: Icons.admin_panel_settings,
+  title: 'Admin Mode (Not Accessible by Normal User/Guest)',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AdminScreen(),
+      ),
+    );
+  },
+),
+
+
 
           const SectionHeader(title: 'About'),
           _buildSettingsTile(
