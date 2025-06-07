@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'loginpage.dart';
 import 'change_pass.dart';
-import 'user_report_page.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -11,6 +11,7 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
         children: [
+          //ACCOUNT
           const SectionHeader(title: 'Account'),
           _buildSettingsTile(
             icon: Icons.person,
@@ -42,36 +43,48 @@ class ProfileScreen extends StatelessWidget {
           _buildSettingsTile(
             icon: Icons.outlined_flag,
             title: 'Report History',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddReportScreen(),
-                ),
-              );
-            },
-          ),
-          _buildSettingsTile(
-            icon: Icons.admin_panel_settings,
-            title: 'Admin Mode (Not Accessible by Normal User/Guest)',
             onTap: () {},
           ),
-
+          //ABOUT
           const SectionHeader(title: 'About'),
           _buildSettingsTile(
             icon: Icons.description,
-            title: 'Legalities of transportations',
+            title: 'Legalities of Transportation',
             onTap: () {},
           ),
           _buildSettingsTile(
             icon: Icons.help_outline,
-            title: 'Policies of transportations',
+            title: 'Policies of all Transportations',
             onTap: () {},
           ),
           _buildSettingsTile(
             icon: Icons.info_outline,
-            title: 'Terms and Policies of developers',
+            title: 'Terms and Policies of Developers',
             onTap: () {},
+          ),
+          //ADMIN
+          const SectionHeader(title: ''),
+          Container(
+            color: Colors.grey[200],
+            child: _buildSettingsTile(
+              icon: Icons.admin_panel_settings,
+              title: 'Admin Mode',
+              onTap: () {},
+            ),
+          ),
+          Container(
+            color: Colors.grey[200],
+            child: _buildSettingsTile(
+              icon: Icons.logout,
+              title: 'Logout',
+              onTap: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => LoginPage()),
+                  (route) => false,
+                );
+              },
+            ),
           ),
         ],
       ),
