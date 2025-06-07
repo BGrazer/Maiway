@@ -64,27 +64,23 @@ class ProfileScreen extends StatelessWidget {
           ),
           //ADMIN
           const SectionHeader(title: ''),
-          Container(
-            color: Colors.grey[200],
-            child: _buildSettingsTile(
-              icon: Icons.admin_panel_settings,
-              title: 'Admin Mode',
-              onTap: () {},
-            ),
+
+          _buildSettingsTile(
+            icon: Icons.admin_panel_settings,
+            title: 'Admin Mode',
+            onTap: () {},
           ),
-          Container(
-            color: Colors.grey[200],
-            child: _buildSettingsTile(
-              icon: Icons.logout,
-              title: 'Logout',
-              onTap: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => LoginPage()),
-                  (route) => false,
-                );
-              },
-            ),
+
+          _buildSettingsTile(
+            icon: Icons.logout,
+            title: 'Logout',
+            onTap: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => LoginPage()),
+                (route) => false,
+              );
+            },
           ),
         ],
       ),
