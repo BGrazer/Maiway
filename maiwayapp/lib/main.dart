@@ -1,7 +1,7 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'loginpage.dart';
 import 'package:maiwayapp/profile_screen.dart';
-import 'package:maiwayapp/settings_screen.dart';
 import 'map_screen.dart';
 
 void main() {
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const HomeNavigation(),
+      home: LoginPage(),
     );
   }
 }
@@ -39,21 +39,17 @@ class _HomeNavigationState extends State<HomeNavigation> {
     MapScreen(),
     PlaceholderScreen(title: 'Travel Preferences'),
     ProfileScreen(),
-    SettingsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
       body: _pages[_currentIndex],
-      bottomNavigationBar: Material(
-        elevation: 8,
+      bottomNavigationBar: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
-        clipBehavior: Clip.antiAlias,
         child: NavigationBar(
           backgroundColor: const Color(0xFF6699CC),
           selectedIndex: _currentIndex,
@@ -69,12 +65,12 @@ class _HomeNavigationState extends State<HomeNavigation> {
               label: 'Map',
             ),
             NavigationDestination(
-              icon: Icon(Icons.place_outlined),
-              selectedIcon: Icon(Icons.place_rounded),
+              icon: Icon(Icons.location_on_outlined),
+              selectedIcon: Icon(Icons.location_on),
               label: 'Travel Preferences',
             ),
             NavigationDestination(
-              icon: Icon(Icons.person_outline),
+              icon: Icon(Icons.person),
               selectedIcon: Icon(Icons.person),
               label: 'Profile',
             ),
