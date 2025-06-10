@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
-import 'signup.dart';
-import 'main.dart';
-import 'forgot_password_page.dart';
-class LoginPage extends StatelessWidget {
+
+class ForgotPasswordPage extends StatelessWidget {
   final Color backgroundColor = Color(0xFF3F7399);
   final Color textBoxColor = Color(0xFF292929);
   final Color buttonColor = Color(0xFFBFCBCE);
@@ -19,53 +16,34 @@ class LoginPage extends StatelessWidget {
             children: [
               SizedBox(height: 80),
               Text(
-                'MAIWAY',
+                'Forgot Password',
                 style: TextStyle(
-                  fontSize: 40,
+                  fontSize: 34,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: 10),
               Text(
-                'Please Login To Your Account',
-                style: TextStyle(fontSize: 16, color: Colors.white),
+                'Enter your email to receive reset instructions',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.white70),
               ),
               Spacer(),
-              //Enter Email
+              // Email Input Field
               _customTextField(label: 'Enter Your Email', icon: Icons.email),
-              SizedBox(height: 16),
-              //Enter Password
-              _customTextField(
-                label: 'Enter Your Password',
-                icon: Icons.lock,
-                obscure: true,
-              ),
-              //Alignment for Forgot Pass
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                  Navigator.push(
-                   context,
-                    MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
-                      );
-                     },
-                  child: Text(
-                    'Forgot Password?',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ),
-              ),
-              // Redirect to home screen of app
+              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => HomeNavigation()),
+                  // Add your reset logic here
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Reset link sent to your email'),
+                      backgroundColor: Colors.green,
+                    ),
                   );
                 },
-                child: Text('Login'),
+                child: Text('Send Reset Link'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: buttonColor,
                   foregroundColor: Colors.black,
@@ -73,25 +51,13 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20),
-              // Sign Up
-              RichText(
-                text: TextSpan(
-                  text: "Don't have an account? ",
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  'Back to Login',
                   style: TextStyle(color: Colors.white),
-                  children: [
-                    TextSpan(
-                      text: 'Sign Up',
-                      style: TextStyle(color: Colors.blue),
-                      recognizer:
-                          TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => SignupPage()),
-                              );
-                            },
-                    ),
-                  ],
                 ),
               ),
               SizedBox(height: 40),
@@ -102,7 +68,6 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  //For the texts
   Widget _customTextField({
     required String label,
     required IconData icon,
