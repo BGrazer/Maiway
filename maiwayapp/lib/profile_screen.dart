@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'change_pass.dart';
 import 'user_report_page.dart';
+import 'edit_profile.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -15,7 +16,14 @@ class ProfileScreen extends StatelessWidget {
           _buildSettingsTile(
             icon: Icons.person,
             title: 'Edit Profile',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileScreen(),
+                ),
+              );
+            },
           ),
           _buildSettingsTile(
             icon: Icons.lock,
