@@ -1,7 +1,7 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:maiwayapp/loginpage.dart';
 import 'package:maiwayapp/profile_screen.dart';
-import 'package:maiwayapp/settings_screen.dart';
 import 'map_screen.dart';
 
 void main() {
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const HomeNavigation(),
+      home: LoginPage(),
     );
   }
 }
@@ -39,7 +39,6 @@ class _HomeNavigationState extends State<HomeNavigation> {
     MapScreen(),
     PlaceholderScreen(title: 'Travel Preferences'),
     ProfileScreen(),
-    SettingsScreen(),
   ];
 
   @override
