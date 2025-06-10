@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'change_pass.dart';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import 'user_report_page.dart';
 import 'travel_history_screen.dart';
 import 'admin.dart';
 =======
+=======
+>>>>>>> Stashed changes
 import 'travel_history_screen.dart';
 import 'admin.dart';
 import 'user_report_history_page.dart';
@@ -12,6 +15,9 @@ import 'edit_profile.dart';
 import 'legalities_page.dart';
 import 'transport_policies_page.dart';
 import 'developer_policies_page.dart';
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 
@@ -25,6 +31,7 @@ class ProfileScreen extends StatelessWidget {
       body: ListView(
         children: [
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
           const SectionHeader(title: 'Account'),
           _buildSettingsTile(
             icon: Icons.person,
@@ -32,6 +39,8 @@ class ProfileScreen extends StatelessWidget {
             onTap: () {},
           ),
 =======
+=======
+>>>>>>> Stashed changes
           //ACCOUNT
 const SectionHeader(title: 'Account'),
 _buildSettingsTile(
@@ -45,6 +54,9 @@ _buildSettingsTile(
   },
 ),
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
           _buildSettingsTile(
             icon: Icons.lock,
@@ -63,6 +75,7 @@ _buildSettingsTile(
             title: 'Notifications',
             onTap: () {},
           ),
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
           _buildSettingsTile(
             icon: Icons.place,
@@ -91,6 +104,8 @@ _buildSettingsTile(
           ),
          _buildSettingsTile(
 =======
+=======
+>>>>>>> Stashed changes
 _buildSettingsTile(
   icon: Icons.place,
   title: 'Travel History',
@@ -150,6 +165,9 @@ const SectionHeader(title: ''),
 
 
 _buildSettingsTile(
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   icon: Icons.admin_panel_settings,
   title: 'Admin Mode (Not Accessible by Normal User/Guest)',
@@ -158,7 +176,12 @@ _buildSettingsTile(
       context,
       MaterialPageRoute(
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         builder: (context) => const AdminScreen(),
+=======
+       builder: (context) => AdminScreen(), // removed `const`
+
+>>>>>>> Stashed changes
 =======
        builder: (context) => AdminScreen(), // removed `const`
 
@@ -167,6 +190,7 @@ _buildSettingsTile(
     );
   },
 ),
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 
 
@@ -187,6 +211,8 @@ _buildSettingsTile(
             title: 'Terms and Policies of developers',
             onTap: () {},
 =======
+=======
+>>>>>>> Stashed changes
           _buildSettingsTile(
             icon: Icons.logout,
             title: 'Logout',

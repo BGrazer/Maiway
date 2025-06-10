@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import 'user_report_page.dart'; 
+=======
+import 'user_report_page.dart';
+>>>>>>> Stashed changes
 =======
 import 'user_report_page.dart';
 >>>>>>> Stashed changes
@@ -9,7 +13,11 @@ class TravelHistoryScreen extends StatelessWidget {
   const TravelHistoryScreen({super.key});
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   final List<Map<String, dynamic>> travelLogs = const [
+=======
+  static const List<Map<String, dynamic>> travelLogs = [
+>>>>>>> Stashed changes
 =======
   static const List<Map<String, dynamic>> travelLogs = [
 >>>>>>> Stashed changes
@@ -46,7 +54,11 @@ class TravelHistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     Map<String, List<Map<String, dynamic>>> groupedLogs = {};
+=======
+    final Map<String, List<Map<String, dynamic>>> groupedLogs = {};
+>>>>>>> Stashed changes
 =======
     final Map<String, List<Map<String, dynamic>>> groupedLogs = {};
 >>>>>>> Stashed changes
@@ -101,7 +113,11 @@ class TravelHistoryScreen extends StatelessWidget {
                             horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                           color: const Color.fromARGB(25, 255, 255, 255),
+=======
+                          color: const Color.fromARGB(50, 255, 255, 255),
+>>>>>>> Stashed changes
 =======
                           color: const Color.fromARGB(50, 255, 255, 255),
 >>>>>>> Stashed changes
@@ -112,11 +128,14 @@ class TravelHistoryScreen extends StatelessWidget {
                           children: [
                             Expanded(
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                               child: Text(
                                 trip['route'],
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
 =======
+=======
+>>>>>>> Stashed changes
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -137,6 +156,9 @@ class TravelHistoryScreen extends StatelessWidget {
                                         color: Colors.white60, fontSize: 13),
                                   ),
                                 ],
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                               ),
                             ),
