@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 
 void main() {
+<<<<<<< Updated upstream
   runApp(const MaterialApp(
     home: AdminScreen(),
+=======
+  runApp(MaterialApp(
+    home: Builder(
+      builder: (context) => AdminScreen(),
+    ),
+>>>>>>> Stashed changes
   ));
 }
 
@@ -99,7 +106,11 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
       body: TabBarView(
         controller: _tabController,
         children: [
+<<<<<<< Updated upstream
          
+=======
+          // Reports Tab
+>>>>>>> Stashed changes
           Column(
             children: [
               Padding(
