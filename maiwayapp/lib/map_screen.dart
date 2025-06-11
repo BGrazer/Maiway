@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -140,21 +141,7 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ],
               ),
-              if (_currentLocation != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _currentLocation!,
-                      width: 40,
-                      height: 40,
-                      child: const Icon(
-                        Icons.my_location,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                  ],
-                ),
+              CurrentLocationLayer(),
             ],
           ),
 
