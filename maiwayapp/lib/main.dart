@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:maiwayapp/loginpage.dart';
 import 'package:maiwayapp/profile_screen.dart';
 import 'map_screen.dart';
+import 'travel_preference_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,7 +38,7 @@ class _HomeNavigationState extends State<HomeNavigation> {
 
   final List<Widget> _pages = const [
     MapScreen(),
-    PlaceholderScreen(title: 'Travel Preferences'),
+    TravelPreferenceScreen(),
     ProfileScreen(),
   ];
 
