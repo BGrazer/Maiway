@@ -10,82 +10,94 @@ class SignupPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: backgroundColor,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28.0),
-          child: Column(
-            children: [
-              SizedBox(height: 80),
-              Text(
-                'MAIWAY',
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Please Sign Up Your Account',
-                style: TextStyle(fontSize: 16, color: Colors.white),
-              ),
-              Spacer(),
-              //Enter Name
-              _customTextField(label: 'Enter Your Name', icon: Icons.person),
-              SizedBox(height: 16),
-              //Enter Email
-              _customTextField(label: 'Enter Your Email', icon: Icons.email),
-              SizedBox(height: 16),
-              //Enter Password
-              _customTextField(
-                label: 'Enter Your Password',
-                icon: Icons.lock,
-                obscure: true,
-              ),
-              SizedBox(height: 16),
-              //Confirm Password
-              _customTextField(
-                label: 'Confirm Password',
-                icon: Icons.lock,
-                obscure: true,
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => MyApp()),
-                  );
-                },
-                child: Text('Create Account'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: buttonColor,
-                  foregroundColor: Colors.black,
-                  minimumSize: Size(double.infinity, 50),
-                ),
-              ),
-              SizedBox(height: 20),
-              // Redirect to Login
-              RichText(
-                text: TextSpan(
-                  text: "Already have an account? ",
-                  style: TextStyle(color: Colors.white),
-                  children: [
-                    TextSpan(
-                      text: 'Login',
-                      style: TextStyle(color: Colors.blue),
-                      recognizer:
-                          TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.pop(context);
-                            },
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 80),
+                  Text(
+                    'MAIWAY',
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Please Sign Up Your Account',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                  const SizedBox(height: 40),
+                  //Enter Name
+                  _customTextField(
+                    label: 'Enter Your Name',
+                    icon: Icons.person,
+                  ),
+                  SizedBox(height: 16),
+                  //Enter Email
+                  _customTextField(
+                    label: 'Enter Your Email',
+                    icon: Icons.email,
+                  ),
+                  SizedBox(height: 16),
+                  //Enter Password
+                  _customTextField(
+                    label: 'Enter Your Password',
+                    icon: Icons.lock,
+                    obscure: true,
+                  ),
+                  SizedBox(height: 16),
+                  //Confirm Password
+                  _customTextField(
+                    label: 'Confirm Password',
+                    icon: Icons.lock,
+                    obscure: true,
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => MyApp()),
+                      );
+                    },
+                    child: Text('Create Account'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: buttonColor,
+                      foregroundColor: Colors.black,
+                      minimumSize: Size(double.infinity, 50),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  // Redirect to Login
+                  RichText(
+                    text: TextSpan(
+                      text: "Already have an account? ",
+                      style: TextStyle(color: Colors.white),
+                      children: [
+                        TextSpan(
+                          text: 'Login',
+                          style: TextStyle(color: Colors.blue),
+                          recognizer:
+                              TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.pop(context);
+                                },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 40),
+                ],
               ),
-              SizedBox(height: 40),
-            ],
+            ),
           ),
         ),
       ),

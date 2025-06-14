@@ -12,12 +12,10 @@ class SearchSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FractionallySizedBox(
-      heightFactor: 0.6, // 60% of screen height (change to 0.3, 0.8, etc.)
-      child: Padding(
-        padding: MediaQuery.of(
-          context,
-        ).viewInsets.add(const EdgeInsets.all(20)),
+    return Padding(
+      padding: MediaQuery.of(context).viewInsets,
+      child: Container(
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
