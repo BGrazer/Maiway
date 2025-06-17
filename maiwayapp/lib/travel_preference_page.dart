@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class TravelPreferenceScreen extends StatefulWidget {
-  const TravelPreferenceScreen({super.key});
+  final void Function(String preference, List<String> modes, String passengerType) onPreferencesSaved;
+
+  const TravelPreferenceScreen({
+    super.key,
+    required this.onPreferencesSaved,
+  });
 
   @override
   State<TravelPreferenceScreen> createState() => _TravelPreferenceScreenState();
@@ -21,6 +26,8 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
     'Tricycle': false,
     'E-Tricycle': false,
   };
+
+  String _passengerType = 'Regular'; // Only "Regular" or "Discounted"
 
   void _selectOnlyOne(String selected) {
     setState(() {
@@ -81,11 +88,43 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
             );
           }).toList(),
 
+          const _SectionHeader(title: 'Passenger Type'),
+          Column(
+            children: ['Regular', 'Discounted'].map((type) {
+              return RadioListTile<String>(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+                title: Text(type, style: const TextStyle(fontSize: 13)),
+                value: type,
+                groupValue: _passengerType,
+                onChanged: (String? value) {
+                  setState(() {
+                    _passengerType = value!;
+                  });
+                },
+              );
+            }).toList(),
+          ),
+
           const SizedBox(height: 20),
           Center(
             child: ElevatedButton.icon(
               onPressed: () {
-                // Keep on the page, you can handle data transmission elsewhere
+                final selectedPreference = _preferences.entries.firstWhere((e) => e.value).key;
+                final selectedModes = _modes.entries
+                    .where((e) => e.value)
+                    .map((e) => e.key)
+                    .toList();
+
+                widget.onPreferencesSaved(
+                  selectedPreference,
+                  selectedModes,
+                  _passengerType,
+                );
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Preferences saved.")),
+                );
               },
               icon: const Icon(Icons.check),
               label: const Text("Apply Preferences"),
@@ -103,6 +142,7 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
 
 class _SectionHeader extends StatelessWidget {
   final String title;
+
   const _SectionHeader({required this.title});
 
   @override

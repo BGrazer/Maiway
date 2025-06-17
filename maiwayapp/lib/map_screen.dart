@@ -8,17 +8,24 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final String selectedPreference;
+  final List<String> selectedModes;
+  final String passengerType;
+
+  const MapScreen({
+    super.key,
+    required this.selectedPreference,
+    required this.selectedModes,
+    required this.passengerType,
+  });
 
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen>
-    with AutomaticKeepAliveClientMixin {
+class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixin {
   final MapController _mapController = MapController();
   LatLng? _currentLocation;
-
   late final List<LatLng> _manilaBoundary;
 
   final TextEditingController originController = TextEditingController();
@@ -29,6 +36,11 @@ class _MapScreenState extends State<MapScreen>
     super.initState();
     _getCurrentLocation();
     _manilaBoundary = getManilaBoundary();
+
+    // ✅ You can use the passed data here
+    print("Selected Preference: ${widget.selectedPreference}");
+    print("Selected Modes: ${widget.selectedModes}");
+    print("Passenger Type: ${widget.passengerType}");
   }
 
   @override
@@ -73,9 +85,9 @@ class _MapScreenState extends State<MapScreen>
         _currentLocation = LatLng(position.latitude, position.longitude);
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error getting location: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error getting location: $e')),
+      );
     }
   }
 
@@ -84,9 +96,9 @@ class _MapScreenState extends State<MapScreen>
       _mapController.move(_currentLocation!, 15.0);
       _mapController.rotate(0);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Unable to fetch location')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to fetch location')),
+      );
     }
   }
 
@@ -94,13 +106,12 @@ class _MapScreenState extends State<MapScreen>
     if (_currentLocation != null) {
       _mapController.rotate(0);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Unable to fetch location')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to fetch location')),
+      );
     }
   }
 
-  /// Opens the search sheet for origin and destination input.
   void _openSearchSheet() {
     showModalBottomSheet(
       context: context,
@@ -109,11 +120,10 @@ class _MapScreenState extends State<MapScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
-      builder:
-          (context) => SearchSheet(
-            originController: originController,
-            destinationController: destinationController,
-          ),
+      builder: (context) => SearchSheet(
+        originController: originController,
+        destinationController: destinationController,
+      ),
     );
   }
 
@@ -169,7 +179,7 @@ class _MapScreenState extends State<MapScreen>
                   ),
                 ],
               ),
-              CurrentLocationLayer(),
+              const CurrentLocationLayer(),
             ],
           ),
 
@@ -181,14 +191,11 @@ class _MapScreenState extends State<MapScreen>
             child: GestureDetector(
               onTap: _openSearchSheet,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 6,
@@ -196,8 +203,8 @@ class _MapScreenState extends State<MapScreen>
                     ),
                   ],
                 ),
-                child: Row(
-                  children: const [
+                child: const Row(
+                  children: [
                     Icon(Icons.search, color: Colors.grey),
                     SizedBox(width: 10),
                     Text("Where to?", style: TextStyle(color: Colors.grey)),
@@ -207,7 +214,7 @@ class _MapScreenState extends State<MapScreen>
             ),
           ),
 
-          // Buttons for user location and camera orientation
+          // Floating Buttons
           Positioned(
             bottom: 90,
             right: 20,
@@ -234,7 +241,7 @@ class _MapScreenState extends State<MapScreen>
   }
 
   TileLayer get openStreetMapTileLayer => TileLayer(
-    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    userAgentPackageName: 'com.example.maiway',
-  );
+        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        userAgentPackageName: 'com.example.maiway',
+      );
 }

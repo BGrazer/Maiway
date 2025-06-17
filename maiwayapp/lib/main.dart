@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:maiwayapp/loginpage.dart';
 import 'package:maiwayapp/profile_screen.dart';
-import 'map_screen.dart';
-import 'travel_preference_page.dart';
+import 'package:maiwayapp/map_screen.dart';
+import 'package:maiwayapp/travel_preference_page.dart'; // make sure filename matches
 
 void main() {
   runApp(const MyApp());
@@ -36,17 +36,36 @@ class HomeNavigation extends StatefulWidget {
 class _HomeNavigationState extends State<HomeNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    MapScreen(),
-    TravelPreferenceScreen(),
-    ProfileScreen(),
-  ];
+  // Store preferences for future use
+  String _selectedPreference = 'Fastest';
+  List<String> _selectedModes = [];
+  String _passengerType = 'Regular';
+
+  List<Widget> _buildPages() {
+    return [
+      MapScreen(
+        selectedPreference: _selectedPreference,
+        selectedModes: _selectedModes,
+        passengerType: _passengerType,
+      ),
+      TravelPreferenceScreen(
+        onPreferencesSaved: (preference, modes, type) {
+          setState(() {
+            _selectedPreference = preference;
+            _selectedModes = modes;
+            _passengerType = type;
+          });
+        },
+      ),
+      const ProfileScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: _pages[_currentIndex],
+      body: _buildPages()[_currentIndex],
       bottomNavigationBar: Material(
         elevation: 8,
         borderRadius: const BorderRadius.only(
@@ -82,15 +101,5 @@ class _HomeNavigationState extends State<HomeNavigation> {
         ),
       ),
     );
-  }
-}
-
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const PlaceholderScreen({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text(title, style: const TextStyle(fontSize: 28)));
   }
 }
