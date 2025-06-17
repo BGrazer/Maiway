@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:maiwayapp/loginpage.dart';
 import 'package:maiwayapp/profile_screen.dart';
-import 'package:maiwayapp/map_screen.dart';
-import 'package:maiwayapp/travel_preference.dart'; // 
+import 'map_screen.dart';
+import 'travel_preference_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,7 +38,7 @@ class _HomeNavigationState extends State<HomeNavigation> {
 
   final List<Widget> _pages = const [
     MapScreen(),
-    TravelPreferenceScreen(), // 
+    TravelPreferenceScreen(),
     ProfileScreen(),
   ];
 
@@ -82,5 +82,15 @@ class _HomeNavigationState extends State<HomeNavigation> {
         ),
       ),
     );
+  }
+}
+
+class PlaceholderScreen extends StatelessWidget {
+  final String title;
+  const PlaceholderScreen({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text(title, style: const TextStyle(fontSize: 28)));
   }
 }

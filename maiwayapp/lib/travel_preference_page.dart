@@ -1,4 +1,3 @@
-// lib/travel_preference.dart
 import 'package:flutter/material.dart';
 
 class TravelPreferenceScreen extends StatefulWidget {
@@ -46,10 +45,7 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
               title: Align(
                 alignment: Alignment.centerLeft,
-                child: Text(
-                  entry.key,
-                  style: const TextStyle(fontSize: 13),
-                ),
+                child: Text(entry.key, style: const TextStyle(fontSize: 13)),
               ),
               trailing: Switch(
                 value: entry.value,
@@ -69,10 +65,7 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
               title: Align(
                 alignment: Alignment.centerLeft,
-                child: Text(
-                  entry.key,
-                  style: const TextStyle(fontSize: 13),
-                ),
+                child: Text(entry.key, style: const TextStyle(fontSize: 13)),
               ),
               value: entry.value,
               onChanged: (bool? value) {

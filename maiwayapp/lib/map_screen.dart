@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -13,7 +14,8 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreenState extends State<MapScreen>
+    with AutomaticKeepAliveClientMixin {
   final MapController _mapController = MapController();
   LatLng? _currentLocation;
 
@@ -37,21 +39,44 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location services are disabled')),
+        );
+        return;
+      }
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permissions are denied')),
+          );
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permissions are permanently denied'),
+          ),
+        );
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _currentLocation = LatLng(position.latitude, position.longitude);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error getting location: $e')));
     }
-
-    if (permission == LocationPermission.deniedForever) return;
-
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _currentLocation = LatLng(position.latitude, position.longitude);
-    });
   }
 
   void _centerOnUserLocation() {
@@ -93,7 +118,11 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         title: RichText(
@@ -140,21 +169,7 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ],
               ),
-              if (_currentLocation != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _currentLocation!,
-                      width: 40,
-                      height: 40,
-                      child: const Icon(
-                        Icons.my_location,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                  ],
-                ),
+              CurrentLocationLayer(),
             ],
           ),
 
@@ -197,6 +212,7 @@ class _MapScreenState extends State<MapScreen> {
             bottom: 90,
             right: 20,
             child: FloatingActionButton(
+              heroTag: 'user_location_button',
               elevation: 4,
               onPressed: _centerOnUserLocation,
               child: const Icon(Icons.my_location),
@@ -206,6 +222,7 @@ class _MapScreenState extends State<MapScreen> {
             bottom: 150,
             right: 20,
             child: FloatingActionButton(
+              heroTag: 'reset_orientation_button',
               elevation: 4,
               onPressed: _resetCameraOrientation,
               child: const Icon(Icons.explore),

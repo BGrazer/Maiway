@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'signup.dart';
 import 'main.dart';
 import 'forgot_password_page.dart';
+
 class LoginPage extends StatelessWidget {
   final Color backgroundColor = Color(0xFF3F7399);
   final Color textBoxColor = Color(0xFF292929);
@@ -12,6 +13,7 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28.0),
@@ -46,11 +48,13 @@ class LoginPage extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                  Navigator.push(
-                   context,
-                    MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
-                      );
-                     },
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ForgotPasswordPage(),
+                      ),
+                    );
+                  },
                   child: Text(
                     'Forgot Password?',
                     style: TextStyle(color: Colors.white70),
