@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MaterialApp(
-    home: AdminScreen(),
-  ));
+  runApp(const MaterialApp(home: AdminScreen()));
 }
 
 class AdminScreen extends StatefulWidget {
@@ -13,7 +11,8 @@ class AdminScreen extends StatefulWidget {
   State<AdminScreen> createState() => _AdminScreenState();
 }
 
-class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStateMixin {
+class _AdminScreenState extends State<AdminScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   List<Map<String, String>> users = [
@@ -33,21 +32,21 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
       "participant": "Alice Johnson",
       "anomalyScore": 0.92,
       "details": "High deviation in answers for question 4 and 7",
-      "date": "June 5, 2025"
+      "date": "June 5, 2025",
     },
     {
       "id": "S002",
       "participant": "Bob Smith",
       "anomalyScore": 0.88,
       "details": "Inconsistent response pattern detected",
-      "date": "June 6, 2025"
+      "date": "June 6, 2025",
     },
     {
       "id": "S003",
       "participant": "Charlie Lee",
       "anomalyScore": 0.95,
       "details": "Unusual response timing and pattern",
-      "date": "June 6, 2025"
+      "date": "June 6, 2025",
     },
   ];
 
@@ -70,19 +69,23 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final filteredUsers = users.where((user) {
-      final matchesSearch =
-          user['name']!.toLowerCase().contains(searchQueryReports.toLowerCase());
-      final matchesFilter =
-          statusFilterReports == null || user['status'] == statusFilterReports;
-      return matchesSearch && matchesFilter;
-    }).toList();
+    final filteredUsers =
+        users.where((user) {
+          final matchesSearch = user['name']!.toLowerCase().contains(
+            searchQueryReports.toLowerCase(),
+          );
+          final matchesFilter =
+              statusFilterReports == null ||
+              user['status'] == statusFilterReports;
+          return matchesSearch && matchesFilter;
+        }).toList();
 
-    final filteredSurveys = surveyAnomalies.where((survey) {
-      return survey['participant']
-          .toLowerCase()
-          .contains(searchQuerySurveys.toLowerCase());
-    }).toList();
+    final filteredSurveys =
+        surveyAnomalies.where((survey) {
+          return survey['participant'].toLowerCase().contains(
+            searchQuerySurveys.toLowerCase(),
+          );
+        }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -90,16 +93,12 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
         backgroundColor: const Color(0xFF6699CC),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: "Reports"),
-            Tab(text: "Surveys"),
-          ],
+          tabs: const [Tab(text: "Reports"), Tab(text: "Surveys")],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-         
           Column(
             children: [
               Padding(
@@ -115,14 +114,26 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                           statusFilterReports = value == 'All' ? null : value;
                         });
                       },
-                      itemBuilder: (context) => const [
-                        PopupMenuItem(value: 'All', child: Text('All')),
-                        PopupMenuItem(value: 'Pending', child: Text('Pending')),
-                        PopupMenuItem(value: 'Under Review', child: Text('Under Review')),
-                        PopupMenuItem(value: 'Submitted', child: Text('Submitted')),
-                      ],
+                      itemBuilder:
+                          (context) => const [
+                            PopupMenuItem(value: 'All', child: Text('All')),
+                            PopupMenuItem(
+                              value: 'Pending',
+                              child: Text('Pending'),
+                            ),
+                            PopupMenuItem(
+                              value: 'Under Review',
+                              child: Text('Under Review'),
+                            ),
+                            PopupMenuItem(
+                              value: 'Submitted',
+                              child: Text('Submitted'),
+                            ),
+                          ],
                     ),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   onChanged: (value) {
                     setState(() {
@@ -159,12 +170,26 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                     }
 
                     return ListTile(
-                      leading: const CircleAvatar(
-                        backgroundImage: AssetImage('assets/user_placeholder.png'),
+                      leading: CircleAvatar(
+                        backgroundColor: const Color(0xFF6699CC),
+                        child: Text(
+                          user['name']!
+                              .split(' ')
+                              .map((e) => e[0])
+                              .take(2)
+                              .join(''),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                       title: Text(user['name']!),
                       subtitle: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: bgColor,
                           borderRadius: BorderRadius.circular(8),
@@ -196,7 +221,9 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                   decoration: InputDecoration(
                     hintText: 'Search survey participant',
                     prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   onChanged: (value) {
                     setState(() {
@@ -219,7 +246,8 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                       ),
                       title: Text(survey['participant']),
                       subtitle: Text(
-                          "Anomaly Score: ${survey['anomalyScore'].toStringAsFixed(2)}"),
+                        "Anomaly Score: ${survey['anomalyScore'].toStringAsFixed(2)}",
+                      ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => _showSurveyDetails(context, survey),
                     );
@@ -251,24 +279,30 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                 const SizedBox(height: 20),
                 const Align(
                   alignment: Alignment.centerLeft,
-                  child: Text("Change Status:", style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    "Change Status:",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(height: 5),
                 Column(
-                  children: ['Pending', 'Under Review', 'Submitted'].map((statusOption) {
-                    return RadioListTile<String>(
-                      title: Text(statusOption),
-                      value: statusOption,
-                      groupValue: selectedStatus,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedStatus = value!;
-                          user['status'] = value;
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    );
-                  }).toList(),
+                  children:
+                      ['Pending', 'Under Review', 'Submitted'].map((
+                        statusOption,
+                      ) {
+                        return RadioListTile<String>(
+                          title: Text(statusOption),
+                          value: statusOption,
+                          groupValue: selectedStatus,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedStatus = value!;
+                              user['status'] = value;
+                            });
+                            Navigator.of(context).pop();
+                          },
+                        );
+                      }).toList(),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(
@@ -278,7 +312,9 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("Export feature is not yet connected to the database."),
+                        content: Text(
+                          "Export feature is not yet connected to the database.",
+                        ),
                         duration: Duration(seconds: 3),
                       ),
                     );
@@ -286,7 +322,9 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                 ),
               ],
             ),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             actionsAlignment: MainAxisAlignment.center,
           ),
         );
@@ -309,7 +347,9 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                 const SizedBox(height: 10),
                 Text("Date: ${survey['date']}"),
                 const SizedBox(height: 10),
-                Text("Anomaly Score: ${survey['anomalyScore'].toStringAsFixed(2)}"),
+                Text(
+                  "Anomaly Score: ${survey['anomalyScore'].toStringAsFixed(2)}",
+                ),
                 const SizedBox(height: 10),
                 Text("Details:"),
                 Text(survey['details']),
@@ -321,7 +361,9 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("Export feature is not yet connected to the database."),
+                        content: Text(
+                          "Export feature is not yet connected to the database.",
+                        ),
                         duration: Duration(seconds: 3),
                       ),
                     );
@@ -329,7 +371,9 @@ class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStat
                 ),
               ],
             ),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             actionsAlignment: MainAxisAlignment.center,
           ),
         );

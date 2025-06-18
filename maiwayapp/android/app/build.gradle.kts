@@ -34,22 +34,31 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             signingConfig = signingConfigs.getByName("debug")
-            
-            // Add this configuration
-            applicationVariants.all {
-                val variant = this
-                outputs.all {
-                    val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-                    output.outputFileName = "MAIWAY-v${variant.versionName}.apk"
-                }
-            }
+        }
+    }
+
+    applicationVariants.all {
+        val variant = this
+        outputs.all {
+            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            output.outputFileName = "MAIWAY-${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    sourceCompatibility = "11"
+    targetCompatibility = "11"
+    options.compilerArgs.addAll(listOf("-Xlint:-options"))
 }
