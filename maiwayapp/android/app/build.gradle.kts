@@ -6,8 +6,8 @@ plugins {
 }
 
 android {
-    namespace = "com.example.maiwayapp"
-    compileSdk = flutter.compileSdkVersion
+    namespace = "com.techiteasy.maiwayapp"
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -21,13 +21,13 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.maiwayapp"
+        applicationId = "com.techiteasy.maiwayapp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        minSdk = 23
+        targetSdk = 35
+        versionCode = 2
+        versionName = "0.1.0"
     }
 
     ndkVersion = "27.0.12077973"
@@ -37,6 +37,15 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            
+            // Add this configuration
+            applicationVariants.all {
+                val variant = this
+                outputs.all {
+                    val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+                    output.outputFileName = "MAIWAY-v${variant.versionName}.apk"
+                }
+            }
         }
     }
 }
