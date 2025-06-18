@@ -6,6 +6,7 @@ import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:maiwayapp/survey_page.dart'; // <-- Import SurveyPage
 
 class MapScreen extends StatefulWidget {
   final String selectedPreference;
@@ -36,11 +37,6 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
     super.initState();
     _getCurrentLocation();
     _manilaBoundary = getManilaBoundary();
-
-    // ✅ You can use the passed data here
-    print("Selected Preference: ${widget.selectedPreference}");
-    print("Selected Modes: ${widget.selectedModes}");
-    print("Passenger Type: ${widget.passengerType}");
   }
 
   @override
@@ -73,9 +69,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
 
       if (permission == LocationPermission.deniedForever) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Location permissions are permanently denied'),
-          ),
+          const SnackBar(content: Text('Location permissions are permanently denied')),
         );
         return;
       }
@@ -216,13 +210,27 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
 
           // Floating Buttons
           Positioned(
-            bottom: 90,
+            bottom: 210,
             right: 20,
             child: FloatingActionButton(
-              heroTag: 'user_location_button',
-              elevation: 4,
-              onPressed: _centerOnUserLocation,
-              child: const Icon(Icons.my_location),
+              heroTag: 'survey_button',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SurveyPage(
+                      distanceKm: 5.0,
+                      transportMode: widget.selectedModes.isNotEmpty
+                          ? widget.selectedModes.first
+                          : 'Jeepney',
+                      passengerType: widget.passengerType,
+                      selectedPreference: widget.selectedPreference,
+                    ),
+                  ),
+                );
+              },
+              tooltip: 'Open Survey Page',
+              child: const Icon(Icons.feedback),
             ),
           ),
           Positioned(
@@ -230,9 +238,19 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
             right: 20,
             child: FloatingActionButton(
               heroTag: 'reset_orientation_button',
-              elevation: 4,
               onPressed: _resetCameraOrientation,
+              tooltip: 'Reset Orientation',
               child: const Icon(Icons.explore),
+            ),
+          ),
+          Positioned(
+            bottom: 90,
+            right: 20,
+            child: FloatingActionButton(
+              heroTag: 'user_location_button',
+              onPressed: _centerOnUserLocation,
+              tooltip: 'My Location',
+              child: const Icon(Icons.my_location),
             ),
           ),
         ],
