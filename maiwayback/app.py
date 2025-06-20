@@ -1,0 +1,115 @@
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
+
+
+# --------------------------
+# 1. Load CSV Fare Matrices
+# --------------------------
+
+# Jeep CSV: should have 'Distance (km)', 'Regular Fare (₱)', 'Discounted Fare (₱)'
+df_jeep = pd.read_csv(r"C:\Users\wonderboy\Documents\Wayne IT\Maiway\maiwayback\jeep_fare.csv")
+
+# LRT1 CSV: uses 'Distance_km' and 'Fare_PHP' only
+df_lrt1 = pd.read_csv(r"C:\Users\wonderboy\Documents\Wayne IT\Maiway\maiwayback\lrt1_fare.csv")
+
+# --------------------------
+# 2. Train Random Forest Models
+# --------------------------
+
+models = {
+    'Jeep': {
+        'Regular': RandomForestRegressor(n_estimators=100, random_state=42),
+        'Discounted': RandomForestRegressor(n_estimators=100, random_state=42),
+    },
+    'LRT 1': {
+        'Regular': RandomForestRegressor(n_estimators=100, random_state=42),
+        'Discounted': RandomForestRegressor(n_estimators=100, random_state=42),
+    }
+}
+
+# Jeep
+X_jeep = df_jeep[['Distance (km)']].values
+y_jeep_regular = df_jeep['Regular Fare (₱)'].values
+y_jeep_discounted = df_jeep['Discounted Fare (₱)'].values
+
+models['Jeep']['Regular'].fit(X_jeep, y_jeep_regular)
+models['Jeep']['Discounted'].fit(X_jeep, y_jeep_discounted)
+
+# LRT 1 (uses only one fare column for both)
+X_lrt1 = df_lrt1[['Distance_km']].values
+y_lrt1 = df_lrt1['Fare_PHP'].values
+
+models['LRT 1']['Regular'].fit(X_lrt1, y_lrt1)
+models['LRT 1']['Discounted'].fit(X_lrt1, y_lrt1)
+
+# --------------------------
+# 3. Calculate Anomaly Thresholds
+# --------------------------
+
+def calculate_threshold(model, X, y):
+    predictions = model.predict(X)
+    errors = abs(y - predictions)
+    return np.mean(errors) + 3 * np.std(errors)
+
+thresholds = {
+    'Jeep': {
+        'Regular': calculate_threshold(models['Jeep']['Regular'], X_jeep, y_jeep_regular),
+        'Discounted': calculate_threshold(models['Jeep']['Discounted'], X_jeep, y_jeep_discounted),
+    },
+    'LRT 1': {
+        'Regular': calculate_threshold(models['LRT 1']['Regular'], X_lrt1, y_lrt1),
+        'Discounted': calculate_threshold(models['LRT 1']['Discounted'], X_lrt1, y_lrt1),
+    }
+}
+
+# --------------------------
+# 4. Fare Anomaly Checker
+# --------------------------
+
+def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
+    fare_type = 'Discounted' if discounted else 'Regular'
+    model = models[vehicle_type][fare_type]
+    threshold = thresholds[vehicle_type][fare_type]
+
+    predicted_fare = model.predict([[distance_km]])[0]
+    difference = abs(charged_fare - predicted_fare)
+    is_anomalous = difference > threshold
+
+    return {
+        'vehicle_type': str(vehicle_type),
+        'fare_type': str(fare_type),
+        'predicted_fare': float(round(predicted_fare, 2)),
+        'charged_fare': float(round(charged_fare, 2)),
+        'difference': float(round(difference, 2)),
+        'is_anomalous': bool(is_anomalous),
+        'threshold': float(round(threshold, 2))
+    }
+
+
+# --------------------------
+# 5. Flask API Endpoint
+# --------------------------
+
+@app.route('/predict_fare', methods=['POST'])
+def predict_fare():
+    data = request.json
+    vehicle_type = data['vehicle_type']
+    distance_km = float(data['distance_km'])
+    charged_fare = float(data['charged_fare'])
+    discounted = bool(data['discounted'])
+
+    result = check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted)
+    return jsonify(result)
+
+# --------------------------
+# 6. Start the Server
+# --------------------------
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=49945, debug=True)

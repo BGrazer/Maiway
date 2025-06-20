@@ -241,7 +241,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                       distanceKm: 5.0,
                       transportMode: widget.selectedModes.isNotEmpty
                           ? widget.selectedModes.first
-                          : 'Jeepney',
+                          : 'Jeep',
                       passengerType: widget.passengerType,
                       selectedPreference: widget.selectedPreferences.isNotEmpty
                           ? widget.selectedPreferences.first

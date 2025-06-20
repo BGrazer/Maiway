@@ -30,6 +30,18 @@ class _SurveyPageState extends State<SurveyPage> {
     super.dispose();
   }
 
+  // ✅ FIXED: Maps frontend value to backend expected label
+  String mapVehicleType(String frontendType) {
+    switch (frontendType) {
+      case "Jeepney":
+        return "Jeep";
+      case "LRT1":
+        return "LRT 1";
+      default:
+        return frontendType;
+    }
+  }
+
   Future<void> _submitSurvey() async {
     if (_fareFeedback == 'yes') {
       _showDialog("Nice!", "Thank you and have a safe trip.");
@@ -46,7 +58,7 @@ class _SurveyPageState extends State<SurveyPage> {
       }
 
       final result = await _validateFareWithBackend(
-        vehicleType: widget.transportMode,
+        vehicleType: mapVehicleType(widget.transportMode), // ✅ FIX APPLIED HERE
         distanceKm: widget.distanceKm,
         chargedFare: chargedFare,
         isDiscounted: widget.passengerType == 'Discounted',
@@ -79,7 +91,7 @@ class _SurveyPageState extends State<SurveyPage> {
     required double chargedFare,
     required bool isDiscounted,
   }) async {
-    const String backendUrl = 'http://172.20.91.139'; // 🔁 Replace if using phone/emulator
+    const String backendUrl = 'http://localhost:49945/predict_fare';
 
     try {
       final response = await http.post(
@@ -96,6 +108,7 @@ class _SurveyPageState extends State<SurveyPage> {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
+        print('Backend error: ${response.statusCode} ${response.body}');
         return null;
       }
     } catch (e) {
