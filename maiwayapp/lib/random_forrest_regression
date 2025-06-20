@@ -1,0 +1,138 @@
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from flask import Flask, request, jsonify
+app = Flask(__name__)
+
+
+
+@app.route('/predict_fare', methods=['POST'])
+def predict_fare():
+    data = request.json
+    vehicle_type = data['vehicle_type']
+    distance_km = data['distance_km']
+    charged_fare = data['charged_fare']
+    discounted = data['discounted']
+
+    result = check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted)
+    return jsonify(result)
+
+# Start your Flask server
+# app.run(host="0.0.0.0", port=5000, debug=True)
+
+
+# --------------------------
+# 1. Load CSV Fare Matrix
+# -------------------------
+
+# Load Jeep fare matrix CSV
+df_jeep = pd.read_csv(r"C:\Users\wonderboy\Documents\Wayne IT\MaiWay\maiwayapp\lib\jeep_fare.csv")
+
+# Load LRT1 fare matrix CSV
+df_lrt1 = pd.read_csv(r"C:\Users\wonderboy\Documents\Wayne IT\MaiWay\maiwayapp\lib\lrt1_fare.csv")
+
+# -----------------------------------
+# 2. Train Random Forest Models
+#    for each vehicle and fare type
+# -----------------------------------
+
+# Create a dictionary to store all models
+models = {
+    'Jeep': {
+        'Regular': RandomForestRegressor(n_estimators=100, random_state=42),
+        'Discounted': RandomForestRegressor(n_estimators=100, random_state=42),
+    },
+    'LRT 1': {
+        'Regular': RandomForestRegressor(n_estimators=100, random_state=42),
+        'Discounted': RandomForestRegressor(n_estimators=100, random_state=42),
+    }
+}
+
+# Train models for Jeep
+X_jeep = df_jeep[['Distance (km)']].values
+y_jeep_regular = df_jeep['Regular Fare (₱)'].values
+y_jeep_discounted = df_jeep['Discounted Fare (₱)'].values
+
+models['Jeep']['Regular'].fit(X_jeep, y_jeep_regular)
+models['Jeep']['Discounted'].fit(X_jeep, y_jeep_discounted)
+
+# Train models for LRT 1
+X_lrt1 = df_lrt1[['Distance (km)']].values
+y_lrt1_regular = df_lrt1['Regular Fare (₱)'].values
+y_lrt1_discounted = df_lrt1['Discounted Fare (₱)'].values
+
+models['LRT 1']['Regular'].fit(X_lrt1, y_lrt1_regular)
+models['LRT 1']['Discounted'].fit(X_lrt1, y_lrt1_discounted)
+
+# --------------------------------------
+# 3. Calculate Anomaly Detection Threshold
+#    (Mean error + 3 standard deviations)
+# --------------------------------------
+
+def calculate_threshold(model, X, y):
+    """
+    Calculates a threshold to detect fare anomalies using model error.
+    """
+    predictions = model.predict(X)
+    errors = abs(y - predictions)
+    return np.mean(errors) + 3 * np.std(errors)
+
+# Store thresholds per vehicle and fare type
+thresholds = {
+    'Jeep': {
+        'Regular': calculate_threshold(models['Jeep']['Regular'], X_jeep, y_jeep_regular),
+        'Discounted': calculate_threshold(models['Jeep']['Discounted'], X_jeep, y_jeep_discounted)
+    },
+    'LRT 1': {
+        'Regular': calculate_threshold(models['LRT 1']['Regular'], X_lrt1, y_lrt1_regular),
+        'Discounted': calculate_threshold(models['LRT 1']['Discounted'], X_lrt1, y_lrt1_discounted)
+    }
+}
+
+# ----------------------------------
+# 4. Function to Check Fare Anomaly
+# ----------------------------------
+
+def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
+    """
+    Checks if the given fare is anomalous for the selected vehicle.
+    
+    Parameters:
+        vehicle_type (str): e.g., 'Jeep' or 'LRT 1'
+        distance_km (float): Distance of the trip
+        charged_fare (float): Fare that was charged by the driver
+        discounted (bool): Whether the passenger is discounted
+    
+    Returns:
+        dict: Details about prediction, error, and anomaly status
+    """
+    fare_type = 'Discounted' if discounted else 'Regular'
+    
+    # Get correct model and threshold
+    model = models[vehicle_type][fare_type]
+    threshold = thresholds[vehicle_type][fare_type]
+    
+    # Predict fare and compute difference
+    predicted_fare = model.predict([[distance_km]])[0]
+    difference = abs(charged_fare - predicted_fare)
+    is_anomalous = difference > threshold
+    
+    return {
+        'vehicle_type': vehicle_type,
+        'fare_type': fare_type,
+        'predicted_fare': round(predicted_fare, 2),
+        'charged_fare': round(charged_fare, 2),
+        'difference': round(difference, 2),
+        'is_anomalous': is_anomalous,
+        'threshold': round(threshold, 2)
+    }
+
+
+app.run(host='0.0.0.0', port=49945, debug=True)
+
+# -----------------------------
+# 5. Example usage
+# -----------------------------
+# You can test this like so:
+# result = check_fare_anomaly(vehicle_type='Jeep', distance_km=5.0, charged_fare=20.0, discounted=False)
+# print(result)
