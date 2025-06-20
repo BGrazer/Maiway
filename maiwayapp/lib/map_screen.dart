@@ -5,6 +5,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:maiwayapp/chatbot_dialog.dart';
+
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -75,7 +77,6 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  /// Opens the search sheet for origin and destination input.
   void _openSearchSheet() {
     showModalBottomSheet(
       context: context,
@@ -89,6 +90,16 @@ class _MapScreenState extends State<MapScreen> {
             originController: originController,
             destinationController: destinationController,
           ),
+    );
+  }
+
+  void _openChatbotDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return const ChatbotDialog();
+      },
     );
   }
 
@@ -197,6 +208,7 @@ class _MapScreenState extends State<MapScreen> {
             bottom: 90,
             right: 20,
             child: FloatingActionButton(
+              heroTag: 'centerLocationBtn',
               elevation: 4,
               onPressed: _centerOnUserLocation,
               child: const Icon(Icons.my_location),
@@ -206,9 +218,27 @@ class _MapScreenState extends State<MapScreen> {
             bottom: 150,
             right: 20,
             child: FloatingActionButton(
+              heroTag: 'resetOrientationBtn',
               elevation: 4,
               onPressed: _resetCameraOrientation,
               child: const Icon(Icons.explore),
+            ),
+          ),
+
+          
+          Positioned(
+            bottom: 210,
+            right: 20,
+            child: FloatingActionButton(
+              heroTag: 'chatbotBtn',
+              elevation: 4,
+              onPressed: _openChatbotDialog,
+              backgroundColor: const Color(0xFF0084FF),
+              child: Image.asset(
+                'assets/chatbot_icon.png', 
+                width: 70, 
+                height: 70, 
+              ),
             ),
           ),
         ],
