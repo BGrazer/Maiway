@@ -1,6 +1,6 @@
-// ↓↓↓ NEWLY ADDED BLOCK: SurveyPage.dart ↓↓↓
-
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SurveyPage extends StatefulWidget {
   final double distanceKm;
@@ -30,72 +30,101 @@ class _SurveyPageState extends State<SurveyPage> {
     super.dispose();
   }
 
-  void _submitSurvey() {
+  Future<void> _submitSurvey() async {
     if (_fareFeedback == 'yes') {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Nice!"),
-          content: const Text("Thank you and have a safe trip."),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Go back to previous screen (main)
-              },
-              child: const Text("OK"),
-            )
-          ],
-        ),
-      );
+      _showDialog("Nice!", "Thank you and have a safe trip.");
     } else if (_fareFeedback == 'no') {
       if (_chargedFareController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter the charged fare')),
-        );
+        _showSnackbar('Please enter the charged fare');
         return;
       }
 
       final chargedFare = double.tryParse(_chargedFareController.text);
       if (chargedFare == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid fare input')),
-        );
+        _showSnackbar('Invalid fare input');
         return;
       }
 
-      // Simulate prediction logic
-      final predictedFare = 12.0; // placeholder for actual algorithm
-      final difference = (chargedFare - predictedFare).abs();
-      final threshold = 5.0;
+      final result = await _validateFareWithBackend(
+        vehicleType: widget.transportMode,
+        distanceKm: widget.distanceKm,
+        chargedFare: chargedFare,
+        isDiscounted: widget.passengerType == 'Discounted',
+      );
 
-      final alert = (difference > threshold)
+      if (result == null) {
+        _showSnackbar('Server error or no response.');
+        return;
+      }
+
+      final alertMessage = result['is_anomalous']
           ? "🚨 ALERT: Overpricing Detected!"
           : "✅ Fare is within the acceptable range.";
 
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Fare Validation Result"),
-          content: Text(
-            "Distance: ${widget.distanceKm} km\n"
-            "Predicted Fare: ₱${predictedFare.toStringAsFixed(2)}\n"
-            "Charged Fare: ₱${chargedFare.toStringAsFixed(2)}\n"
-            "Difference: ₱${difference.toStringAsFixed(2)}\n\n"
-            "$alert",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Return to main.dart
-              },
-              child: const Text("OK"),
-            )
-          ],
-        ),
+      _showDialog(
+        "Fare Validation Result",
+        "Distance: ${widget.distanceKm} km\n"
+        "Predicted Fare: ₱${result['predicted_fare']}\n"
+        "Charged Fare: ₱${result['charged_fare']}\n"
+        "Difference: ₱${result['difference']}\n"
+        "Threshold: ₱${result['threshold']}\n\n"
+        "$alertMessage",
       );
     }
+  }
+
+  Future<Map<String, dynamic>?> _validateFareWithBackend({
+    required String vehicleType,
+    required double distanceKm,
+    required double chargedFare,
+    required bool isDiscounted,
+  }) async {
+    const String backendUrl = 'http://172.20.91.139'; // 🔁 Replace if using phone/emulator
+
+    try {
+      final response = await http.post(
+        Uri.parse(backendUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'vehicle_type': vehicleType,
+          'distance_km': distanceKm,
+          'charged_fare': chargedFare,
+          'discounted': isDiscounted,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error calling backend: $e");
+      return null;
+    }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Return to previous screen
+            },
+            child: const Text("OK"),
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -103,11 +132,31 @@ class _SurveyPageState extends State<SurveyPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Trip Fare Survey"),
+        backgroundColor: const Color(0xFF6699CC),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
+            Card(
+              elevation: 4,
+              color: Colors.blue[50],
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Selected Travel Preferences:", style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text("• Preference: ${widget.selectedPreference}"),
+                    Text("• Mode: ${widget.transportMode}"),
+                    Text("• Passenger Type: ${widget.passengerType}"),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             const Text("Was the fare given fair?", style: TextStyle(fontSize: 18)),
             const SizedBox(height: 12),
             Row(
@@ -117,11 +166,7 @@ class _SurveyPageState extends State<SurveyPage> {
                     title: const Text("Yes"),
                     value: 'yes',
                     groupValue: _fareFeedback,
-                    onChanged: (value) {
-                      setState(() {
-                        _fareFeedback = value;
-                      });
-                    },
+                    onChanged: (value) => setState(() => _fareFeedback = value),
                   ),
                 ),
                 Expanded(
@@ -129,11 +174,7 @@ class _SurveyPageState extends State<SurveyPage> {
                     title: const Text("No"),
                     value: 'no',
                     groupValue: _fareFeedback,
-                    onChanged: (value) {
-                      setState(() {
-                        _fareFeedback = value;
-                      });
-                    },
+                    onChanged: (value) => setState(() => _fareFeedback = value),
                   ),
                 ),
               ],
@@ -144,9 +185,7 @@ class _SurveyPageState extends State<SurveyPage> {
               TextField(
                 controller: _chargedFareController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  hintText: "Enter fare in PHP",
-                ),
+                decoration: const InputDecoration(hintText: "Enter fare in PHP"),
               ),
             ],
             const Spacer(),
@@ -160,5 +199,3 @@ class _SurveyPageState extends State<SurveyPage> {
     );
   }
 }
-
-// ↑↑↑ END OF SURVEY PAGE CODE ↑↑↑

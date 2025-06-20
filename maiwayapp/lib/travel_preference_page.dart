@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TravelPreferenceScreen extends StatefulWidget {
-  final void Function(String preference, List<String> modes, String passengerType) onPreferencesSaved;
+  final void Function(List<String> preferences, List<String> modes, String passengerType) onPreferencesSaved;
 
   const TravelPreferenceScreen({
     super.key,
@@ -15,17 +15,17 @@ class TravelPreferenceScreen extends StatefulWidget {
 
 class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
   final Map<String, bool> _preferences = {
-    'Fastest': true,
+    'Fastest': false,
     'Cheapest': false,
     'Convenient': false,
   };
 
   final Map<String, bool> _modes = {
     'Jeepney': false,
-    'E-Jeep': false,
+    'Bus': false,
     'LRT': false,
     'Tricycle': false,
-    'E-Tricycle': false,
+    'LRT 2': false,
   };
 
   String _passengerType = 'Regular';
@@ -62,12 +62,6 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
     for (var entry in _modes.entries) {
       await prefs.setBool('mode_${entry.key}', entry.value);
     }
-  }
-
-  void _selectOnlyOne(String selected) {
-    setState(() {
-      _preferences.updateAll((key, value) => key == selected);
-    });
   }
 
   @override
@@ -110,7 +104,9 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
               trailing: Switch(
                 value: entry.value,
                 onChanged: (bool value) {
-                  if (value) _selectOnlyOne(entry.key);
+                  setState(() {
+                    _preferences[entry.key] = value;
+                  });
                 },
                 activeColor: Colors.green,
               ),
@@ -146,11 +142,19 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
             child: ElevatedButton.icon(
               onPressed: () async {
                 await _savePreferences();
-                final selectedPreference = _preferences.entries.firstWhere((e) => e.value).key;
-                final selectedModes = _modes.entries.where((e) => e.value).map((e) => e.key).toList();
+
+                final selectedPreferences = _preferences.entries
+                    .where((e) => e.value)
+                    .map((e) => e.key)
+                    .toList();
+
+                final selectedModes = _modes.entries
+                    .where((e) => e.value)
+                    .map((e) => e.key)
+                    .toList();
 
                 widget.onPreferencesSaved(
-                  selectedPreference,
+                  selectedPreferences,
                   selectedModes,
                   _passengerType,
                 );

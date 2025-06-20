@@ -1,9 +1,8 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:maiwayapp/loginpage.dart';
 import 'package:maiwayapp/profile_screen.dart';
 import 'package:maiwayapp/map_screen.dart';
-import 'package:maiwayapp/travel_preference_page.dart'; // make sure filename matches
+import 'package:maiwayapp/travel_preference_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +20,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: LoginPage(),
+      home: LoginPage(), // <-- Start from LoginPage
     );
   }
 }
@@ -36,22 +35,23 @@ class HomeNavigation extends StatefulWidget {
 class _HomeNavigationState extends State<HomeNavigation> {
   int _currentIndex = 0;
 
-  // Store preferences for future use
-  String _selectedPreference = 'Fastest';
+  // ✅ Hold state here
+  List<String> _selectedPreferences = [];
   List<String> _selectedModes = [];
   String _passengerType = 'Regular';
 
+  // ✅ Build screens with data
   List<Widget> _buildPages() {
     return [
       MapScreen(
-        selectedPreference: _selectedPreference,
+        selectedPreferences: _selectedPreferences,
         selectedModes: _selectedModes,
         passengerType: _passengerType,
       ),
       TravelPreferenceScreen(
-        onPreferencesSaved: (preference, modes, type) {
+        onPreferencesSaved: (preferences, modes, type) {
           setState(() {
-            _selectedPreference = preference;
+            _selectedPreferences = preferences;
             _selectedModes = modes;
             _passengerType = type;
           });

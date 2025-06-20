@@ -6,19 +6,20 @@ import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
-import 'package:maiwayapp/survey_page.dart'; // <-- Import SurveyPage
+import 'package:maiwayapp/survey_page.dart';
 
 class MapScreen extends StatefulWidget {
-  final String selectedPreference;
+  final List<String> selectedPreferences;
   final List<String> selectedModes;
   final String passengerType;
 
   const MapScreen({
     super.key,
-    required this.selectedPreference,
+    required this.selectedPreferences,
     required this.selectedModes,
     required this.passengerType,
   });
+
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -37,6 +38,24 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
     super.initState();
     _getCurrentLocation();
     _manilaBoundary = getManilaBoundary();
+
+    // ✅ Optional: Handle preferences logic (Fastest, Cheapest, Convenient)
+    for (String preference in widget.selectedPreferences) {
+      switch (preference) {
+        case 'Fastest':
+          debugPrint("🔵 Preference active: Fastest");
+          // TODO: Prioritize fastest route logic
+          break;
+        case 'Cheapest':
+          debugPrint("🟢 Preference active: Cheapest");
+          // TODO: Prioritize lowest fare routes
+          break;
+        case 'Convenient':
+          debugPrint("🟣 Preference active: Convenient");
+          // TODO: Show routes with fewer transfers or easier navigation
+          break;
+      }
+    }
   }
 
   @override
@@ -224,7 +243,9 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
                           ? widget.selectedModes.first
                           : 'Jeepney',
                       passengerType: widget.passengerType,
-                      selectedPreference: widget.selectedPreference,
+                      selectedPreference: widget.selectedPreferences.isNotEmpty
+                          ? widget.selectedPreferences.first
+                          : 'Fastest',
                     ),
                   ),
                 );
