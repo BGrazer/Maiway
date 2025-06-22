@@ -276,10 +276,6 @@
         "answer": "Opo, ang Manila Ocean Park ay matatagpuan malapit sa Quirino Grandstand. Maaari kang sumakay ng jeep na papuntang **Pier South o Baclaran** na dadaan sa Roxas Boulevard, at bumaba sa Quirino Grandstand. Ito ay isang magandang lugar para sa family outing."
     },
     {
-        "question": "Closest train station to Manila Ocean Park?",
-        "answer": "The closest LRT-1 station to Manila Ocean Park is **United Nations Avenue Station**. From there, you might need to take a short taxi/ride-hailing trip or a longer walk towards Quirino Grandstand. Enjoy your time with marine life!"
-    },
-    {
         "question": "Manila Ocean Park commute?",
         "answer": "Nearest LRT is UN Avenue. From there, it's a walk or short ride. Jeeps passing Roxas Boulevard (Pier South/Baclaran) can also take you there. Ready to see some aquatic wonders?"
     },
@@ -536,18 +532,6 @@
         "answer": "You can buy a Beep card at any LRT, MRT, or PNR station ticket booth, or at convenience stores like 7-Eleven. The card itself costs PHP 20.00."
     },
     {
-        "question": "Maaari bang bumiyahe o mag commute kung ikaw ay lasing?",
-        "answer": "Hindi inirerekomenda ang pag-commute o pagbibiyahe kung ikaw ay lasing. Ang pagiging lasing ay maaaring magdulot ng **panganib sa iyong kaligtasan at sa iba pang pasahero**. Kung ikaw ay lasing, mas mabuting magpahinga muna o kumuha ng taxi o ride-hailing service para sa iyong kaligtasan. Please be responsible."
-    },
-    {
-        "question": "Is it safe to commute when drunk?",
-        "answer": "It is **not advisable** to commute or travel when drunk. Being intoxicated can pose **risks to your safety and that of other passengers**. If you are drunk, it is better to rest first or take a taxi or ride-hailing service for your safety. Please be responsible."
-    },
-    {
-        "question": "Commuting drunk?",
-        "answer": "Commuting while drunk is not recommended due to safety risks. It's best to rest or take a taxi/ride-hailing service instead. Prioritize your safety and others'!"
-    },
-    {
         "question": "Maari bang magdala ng malaking bag sa jeep?",
         "answer": "Oo, maaari kang magdala ng malaking bag sa jeep, ngunit dapat mo itong ilagay sa **iyong kandungan o sa ilalim ng upuan** upang hindi ito makasagabal sa ibang pasahero. Iwasan ang paglalagay ng bag sa tabi ng upuan kung may ibang tao na gustong umupo. Maging considerate po."
     },
@@ -558,18 +542,6 @@
     {
         "question": "Large bag in jeepney?",
         "answer": "You can bring a large bag on a jeepney, but it should be on your lap or under the seat to avoid inconveniencing other passengers. Be mindful of space!"
-    },
-    {
-        "question": "24/7 ba ang Jeep?",
-        "answer": "Hindi lahat ng jeepney routes ay 24/7. Karamihan sa mga jeepney ay tumatakbo mula umaga hanggang gabi, ngunit may ilang ruta na nagtatapos nang maaga, karaniwan ay **bago mag-midnight (11PM)**. Para sa mga late-night trips, maaaring kailanganin mong gumamit ng taxi o ride-hailing service. Laging planuhin ang late-night commute."
-    },
-    {
-        "question": "Are jeepneys available 24/7?",
-        "answer": "Not all jeepney routes operate 24/7. Most jeepneys run from morning until evening, but some routes may end early, usually **before midnight (11 PM)**. For late-night trips, you may need to use a taxi or ride-hailing service. Always plan your late-night commute ahead!"
-    },
-    {
-        "question": "Jeepney operating hours?",
-        "answer": "Most jeepneys operate until late evening, usually before midnight. 24/7 routes are rare. For very late trips, consider taxis or ride-hailing apps."
     },
     {
         "question": "Kung nakaranas ka ng hindi magandang karanasan sa Jeep, Bus, Lrt, Mrt ano ang dapat gawin?",
@@ -666,14 +638,6 @@
     {
         "question": "Jeepney tourist experience?",
         "answer": "Jeepneys offer an authentic and affordable Manila experience. They're unique! Just be mindful of safety, especially during rush hour, and have a clear idea of your route."
-    },
-    {
-        "question": "What are the common scams to avoid while commuting in Manila?",
-        "answer": "Common scams to avoid while commuting in Manila include **overcharging by drivers, fake taxi meters, and pickpocketing** in crowded areas. Always agree on a fare before starting your trip, use reputable taxi apps, and keep your belongings secure. Be cautious of overly friendly strangers who may distract you while an accomplice steals your belongings. Stay vigilant!"
-    },
-    {
-        "question": "Commuting scams in Manila?",
-        "answer": "Watch out for overcharging drivers, fake taxi meters, and pickpockets in crowded areas. Always confirm fares, use trusted apps, and secure your belongings. Stay alert!"
     },
     {
         "question": "Saan maaring makasakay ng tricycle sa Manila?",
@@ -908,18 +872,6 @@
         "answer": "Jeep to Monumento/Bambang (alight Bambang St.). Or, LRT-1 to Blumentritt (transfer at Doroteo Jose)."
     },
     {
-        "question": "Ano ang mga karaniwang scam sa taxi sa Manila?",
-        "answer": "Mga karaniwang scam sa taxi sa Manila ay ang **'meter tampering'** (minaniobra ang metro para mas mahal ang pamasahe), **'kontrata'** (ayaw gumamit ng metro, magpapabayad ng fixed rate na mataas), at **'long cut'** (palilibutin ka sa malayo). Gumamit ng Grab Taxi para maiwasan ito."
-    },
-    {
-        "question": "What are common taxi scams in Manila?",
-        "answer": "Common taxi scams in Manila include **'meter tampering'** (manipulating the meter for higher fares), **'kontrata'** (refusing to use the meter and demanding a high fixed rate), and **'long cut'** (taking a longer route). Use Grab Taxi to avoid these."
-    },
-    {
-        "question": "Manila taxi scams to avoid?",
-        "answer": "Meter tampering, 'kontrata' (fixed high rates), and 'long cut' routes. Use Grab Taxi for safety."
-    },
-    {
         "question": "Paano mag-commute papuntang Museo Pambata?",
         "answer": "Ang Museo Pambata ay nasa Roxas Boulevard, Ermita, Manila. Maaari kang sumakay ng jeep na papuntang **Baclaran o Pier South** na dadaan sa Roxas Boulevard. Bumaba sa harap ng museo. Malapit din ito sa Manila Ocean Park."
     },
@@ -990,18 +942,6 @@
     {
         "question": "Jeepney loading area meaning?",
         "answer": "Designated spots where jeeps pick up passengers, meant to regulate traffic flow."
-    },
-    {
-        "question": "Paano mag-commute papuntang St. Luke's Medical Center - Quezon City (SLMC-QC)?",
-        "answer": "Ang St. Luke's Medical Center ay nasa Quezon City, hindi sa Manila. Para makapunta doon mula Manila, sumakay ng LRT-2 hanggang **Betty Go-Belmonte Station o Gilmore Station**. Mula doon, maaari kang sumakay ng taxi, Grab, o jeepney papuntang SLMC-QC."
-    },
-    {
-        "question": "How to commute to St. Luke's Medical Center - Quezon City (SLMC-QC)?",
-        "answer": "St. Luke's Medical Center is in Quezon City, not Manila. To get there from Manila, take LRT-2 to **Betty Go-Belmonte Station or Gilmore Station**. From there, you can take a taxi, Grab, or jeepney to SLMC-QC."
-    },
-    {
-        "question": "SLMC-QC commute from Manila?",
-        "answer": "Take LRT-2 to Betty Go-Belmonte or Gilmore Station, then a taxi/Grab/jeepney to SLMC-QC."
     },
     {
         "question": "Ano ang 'terminal fee' sa bus stations?",
@@ -1448,18 +1388,6 @@
         "answer": "From Lawton or Taft Ave, take a bus to Fairview/Philcoa and alight at QMC."
     },
     {
-        "question": "Ano ang 'boundary' ng taxi driver?",
-        "answer": "Ang 'boundary' ng taxi driver ay ang **fixed amount na kailangan niyang i-remit** sa may-ari ng taxi bawat shift. Tulad ng jeepney, ang sobra ay sa driver. Nakakaapekto ito sa kanilang pagmamaneho at pagpili ng pasahero."
-    },
-    {
-        "question": "What is the 'boundary' for a taxi driver?",
-        "answer": "The 'boundary' for a taxi driver is the **fixed amount they need to remit** to the taxi owner per shift. Similar to jeepneys, any excess earnings belong to the driver. This can affect their driving and passenger selection."
-    },
-    {
-        "question": "Taxi driver 'boundary' meaning?",
-        "answer": "The fixed amount a taxi driver remits to the owner per shift; affects driving and passenger selection."
-    },
-    {
         "question": "Paano mag-commute papuntang Manila City Hall mula Lawton?",
         "answer": "Ang Manila City Hall ay katabi lang ng Lawton. Maikli lang ang lakad, o pwede ka ring sumakay ng jeep na papuntang **Quiapo o Divisoria** at bumaba sa harap ng City Hall. Malapit din ito sa **Central Terminal LRT-1 Station**."
     },
@@ -1470,18 +1398,6 @@
     {
         "question": "Lawton to Manila City Hall commute?",
         "answer": "Short walk, or take a Quiapo/Divisoria jeep and alight at City Hall. Near Central Terminal LRT-1."
-    },
-    {
-        "question": "Ano ang 'special trip' sa taxi o tricycle?",
-        "answer": "Ang 'special trip' ay tumutukoy sa isang biyahe kung saan **hindi ginagamit ang metro** (para sa taxi) o mayroong **negosasyon sa pamasahe** (para sa tricycle/Tuktuk) bago bumyahe. Karaniwan itong ginagawa sa mga long-distance trips o sa mga oras na walang metro o fixed rate. Mas mahal ito."
-    },
-    {
-        "question": "What is a 'special trip' for a taxi or tricycle?",
-        "answer": "A 'special trip' refers to a ride where the **meter is not used** (for taxis) or there's a **negotiation of fare** (for tricycles/Tuktuks) before the journey. This is typically done for long-distance trips or during times when meters/fixed rates are not applicable. It's usually more expensive."
-    },
-    {
-        "question": "'Special trip' taxi/tricycle meaning?",
-        "answer": "A negotiated, often higher, fare without a meter for long or specific trips."
     },
     {
         "question": "Paano mag-commute papuntang Intramuros Golf Course?",
@@ -1580,18 +1496,6 @@
         "answer": "Jeep to Divisoria/Recto via Rizal Ave, turn on Masangkay. Or short walk from Bambang LRT-1 Station."
     },
     {
-        "question": "May mga taxi ba na 24/7 sa Manila?",
-        "answer": "Opo, karamihan sa mga taxi sa Manila ay **24/7 ang operasyon**, lalo na sa mga major roads, transportation hubs, at tourist spots. Gayunpaman, mas mahirap humanap ng taxi at mas mataas ang demand sa madaling araw."
-    },
-    {
-        "question": "Are taxis 24/7 in Manila?",
-        "answer": "Yes, most taxis in Manila **operate 24/7**, especially on major roads, transportation hubs, and tourist spots. However, it can be harder to find a taxi and demand is higher during early morning hours."
-    },
-    {
-        "question": "Manila taxi 24/7 availability?",
-        "answer": "Mostly 24/7, but harder to find and higher demand in early morning."
-    },
-    {
         "question": "Ano ang 'grab-and-run' sa public transport?",
         "answer": "Ang 'grab-and-run' ay isang uri ng krimen kung saan **aagawin ng magnanakaw ang gamit ng biktima** (tulad ng cellphone o bag) habang nasa pampublikong sasakyan o sa labas nito, at mabilis na tatakas. Mag-ingat lalo na sa mga bukas na bintana."
     },
@@ -1628,14 +1532,6 @@
         "answer": "The final segment of a commute from a major transport hub to the exact destination, often covered by tricycles, pedicabs, or walking."
     },
     {
-        "question": "Paano mag-commute papuntang Manila South Cemetery?",
-        "answer": "Ang Manila South Cemetery ay nasa Makati City, hindi sa mismong City of Manila. Para makapunta doon mula Manila, sumakay ng jeep o bus na papuntang **Guadalupe o Pasay Rotonda** na dadaan sa EDSA. Mula doon, sumakay ng bus o jeep na papuntang Cembo/Pembo o mag-taxi."
-    },
-    {
-        "question": "How to commute to Manila South Cemetery?",
-        "answer": "Manila South Cemetery is in Makati City, not within the City of Manila proper. To get there from Manila, take a jeepney or bus to **Guadalupe or Pasay Rotonda** that passes through EDSA. From there, take a bus or jeep to Cembo/Pembo or a taxi."
-    },
-    {
         "question": "Manila South Cemetery commute from Manila?",
         "answer": "Located in Makati. Take jeep/bus to Guadalupe/Pasay Rotonda, then connecting transport to Cembo/Pembo area."
     },
@@ -1651,10 +1547,7 @@
         "question": "'Carpooling' Manila meaning?",
         "answer": "Sharing a private car with others going the same way to save on costs and reduce traffic. Not public transport."
     },
-    {
-        "question": "PUV meaning?",
-        "answer": "Public Utility Vehicle; any vehicle transporting passengers (jeepney, bus, taxi, etc.)."
-    },
+
     {
         "question": "Paano mag-commute papuntang UST Museum?",
         "answer": "Ang UST Museum ay nasa loob ng University of Santo Tomas campus. Maaari kang sumakay ng jeep o bus na dadaan sa **España Boulevard** at bumaba sa tapat ng UST. Malapit din ang LRT-1 **Tayuman Station**, pero kailangan mo pang sumakay ng tricycle/jeep mula doon."
@@ -1776,18 +1669,6 @@
         "answer": "Extreme anger or aggressive behavior by a driver in traffic. Avoid for safety."
     },
     {
-        "question": "Paano mag-commute papuntang National Power Corporation (NAPOCOR)?",
-        "answer": "Ang NAPOCOR main office ay nasa Quezon City, hindi sa Manila. Para makapunta doon, sumakay ng LRT-2 hanggang **Betty Go-Belmonte Station o Gilmore Station**. Mula doon, maaari kang mag-taxi, Grab, o jeepney papuntang NAPOCOR."
-    },
-    {
-        "question": "How to commute to National Power Corporation (NAPOCOR)?",
-        "answer": "NAPOCOR's main office is in Quezon City, not Manila. To get there, take LRT-2 to **Betty Go-Belmonte Station or Gilmore Station**. From there, you can take a taxi, Grab, or jeepney to NAPOCOR."
-    },
-    {
-        "question": "NAPOCOR commute from Manila?",
-        "answer": "Located in Quezon City. Take LRT-2 to Betty Go-Belmonte/Gilmore, then taxi/Grab/jeep."
-    },
-    {
         "question": "Ano ang 'PUV consolidation'?",
         "answer": "Ang 'PUV consolidation' ay bahagi ng modernization program na naghihikayat sa mga indibidwal na operator na **mag-organisa sa mga kooperatiba o korporasyon** upang mas madaling maipatupad ang mga bagong regulasyon at modernisasyon ng mga sasakyan."
     },
@@ -1884,18 +1765,6 @@
         "answer": "The final destination or last stop of a PUV before it reverses or starts a new trip."
     },
     {
-        "question": "Paano mag-commute papuntang Remedios Circle?",
-        "answer": "Ang Remedios Circle ay nasa Malate, Manila. Maaari kang sumakay ng jeep na papuntang **Baclaran o Vito Cruz** na dadaan sa M.H. Del Pilar St. o Mabini St. na malapit sa Remedios Circle. Ang pinakamalapit na LRT-1 station ay **Vito Cruz Station** (at mag-tricycle/taxi)."
-    },
-    {
-        "question": "How to commute to Remedios Circle?",
-        "answer": "Remedios Circle is in Malate, Manila. You can take a jeepney to **Baclaran or Vito Cruz** that passes through M.H. Del Pilar St. or Mabini St., which are near Remedios Circle. The nearest LRT-1 station is **Vito Cruz Station** (then take a tricycle/taxi)."
-    },
-    {
-        "question": "Remedios Circle commute?",
-        "answer": "Jeep to Baclaran/Vito Cruz via M.H. Del Pilar/Mabini St. Near Vito Cruz LRT-1 (then tricycle/taxi)."
-    },
-    {
         "question": "Ano ang 'traffic violation ticket'?",
         "answer": "Ang 'traffic violation ticket' ay isang **dokumento na ibinibigay ng traffic enforcer** sa isang driver o pedestrian na lumabag sa traffic rules. Nakasaad dito ang uri ng paglabag, petsa, oras, at halaga ng multa."
     },
@@ -1918,18 +1787,6 @@
     {
         "question": "Lawton to National Museum of Fine Arts commute?",
         "answer": "Short walk from Lawton. Near Central Terminal LRT-1 Station."
-    },
-    {
-        "question": "Ano ang 'rush hour surcharge'?",
-        "answer": "Ang 'rush hour surcharge' ay isang **karagdagang bayad** na sisingilin sa pamasahe, lalo na sa mga taxi o ride-hailing apps, tuwing rush hour. Ito ay hiwalay sa 'surge pricing' at karaniwang fixed rate para sa oras ng rush hour."
-    },
-    {
-        "question": "What is 'rush hour surcharge'?",
-        "answer": "A 'rush hour surcharge' is an **additional fee** applied to fares, particularly for taxis or ride-hailing apps, during rush hour. It's separate from 'surge pricing' and is usually a fixed rate for peak hours."
-    },
-    {
-        "question": "'Rush hour surcharge' meaning?",
-        "answer": "An additional, fixed fee added to fares (taxis/ride-hailing) during rush hour, distinct from surge pricing."
     },
     {
         "question": "Paano mag-commute papuntang Robinsons Ermita (dating Robinsons Place Manila)?",
@@ -2988,18 +2845,6 @@
         "answer": "LRT-1 to UN Avenue Station, then 5-10 minute walk to PGH."
     },
     {
-        "question": "May mga taxi ba na may fixed rate sa Manila?",
-        "answer": "Ang mga regular na taxi sa Manila ay **dapat gumamit ng metro**. Hindi sila pinapayagang mag-fixed rate ('kontrata') maliban kung sa airport o para sa special arrangements. Kung ayaw gamitin ang metro, maaari itong i-report sa LTFRB. Gumamit ng Grab Taxi para sa upfront pricing."
-    },
-    {
-        "question": "Are there taxis with fixed rates in Manila?",
-        "answer": "Regular taxis in Manila are **required to use a meter**. They are not allowed to charge fixed rates ('kontrata') except at airports or for special arrangements. If a driver refuses to use the meter, you can report them to LTFRB. Use Grab Taxi for upfront pricing."
-    },
-    {
-        "question": "Manila fixed rate taxis?",
-        "answer": "Regular taxis must use meters; fixed rates ('kontrata') are usually illegal unless airport/special. Report to LTFRB if driver refuses meter. Use Grab Taxi for upfront pricing."
-    },
-    {
         "question": "Paano mag-commute papuntang Malacañang Museum (Presidential Museum and Library) mula sa Recto LRT-2 Station?",
         "answer": "Mula Recto LRT-2 Station, maglakad patungong Recto Avenue at sumakay ng jeep na papuntang **'Mendiola' o 'San Miguel'**. Bumaba sa Mendiola Street, at maglakad papuntang Malacañang Museum. Tandaan ang security checkpoints sa lugar."
     },
@@ -3024,18 +2869,6 @@
         "answer": "Must wear helmets (driver/backrider), no more than one passenger, no right-side overtaking. Designated lanes exist. No barriers in EDSA Carousel lanes."
     },
     {
-        "question": "Paano mag-commute papuntang Manila Baywalk Dolomite Beach mula sa Vito Cruz LRT-1 Station?",
-        "answer": "Mula Vito Cruz LRT-1 Station, maaari kang sumakay ng jeep na papuntang **'Baclaran' o 'PITX'** na dadaan sa Roxas Boulevard. Bumaba sa tapat ng Manila Baywalk Dolomite Beach. Maaari ka ring mag-taxi o Grab mula sa istasyon."
-    },
-    {
-        "question": "How to commute to Manila Baywalk Dolomite Beach from Vito Cruz LRT-1 Station?",
-        "answer": "From Vito Cruz LRT-1 Station, you can take a jeepney to **'Baclaran' or 'PITX'** that passes through Roxas Boulevard. Alight in front of Manila Baywalk Dolomite Beach. You can also take a taxi or Grab from the station."
-    },
-    {
-        "question": "Vito Cruz LRT-1 to Dolomite Beach commute?",
-        "answer": "Jeep to Baclaran/PITX via Roxas Blvd, alight at beach. Or taxi/Grab from station."
-    },
-    {
         "question": "Paano mag-commute papuntang Quiapo Market mula sa Sta. Mesa, Manila?",
         "answer": "Mula Sta. Mesa (LRT-2 Pureza Station), sumakay ng LRT-2 papuntang **Recto Station**. Mula Recto, lumakad patungong Quiapo Market area (mga 5-10 minuto)."
     },
@@ -3058,18 +2891,6 @@
     {
         "question": "Jeepney accident protocol?",
         "answer": "Stay calm, ensure safety, help others if possible. Don't alight if unsafe. Call 911 for injuries. Get driver/plate details."
-    },
-    {
-        "question": "Paano mag-commute papuntang Remedios Circle mula sa Lawton?",
-        "answer": "Mula Lawton, sumakay ng jeep na papuntang **Baclaran o Vito Cruz** na dadaan sa Taft Avenue. Bumaba sa Pedro Gil Street at maglakad papuntang Remedios Circle, o sumakay ng tricycle/taxi mula doon. Ang pinakamalapit na LRT-1 station ay Pedro Gil or Vito Cruz."
-    },
-    {
-        "question": "How to commute to Remedios Circle from Lawton?",
-        "answer": "From Lawton, take a jeepney to **Baclaran or Vito Cruz** that passes through Taft Avenue. Alight on Pedro Gil Street and walk towards Remedios Circle, or take a tricycle/taxi from there. The nearest LRT-1 station is Pedro Gil or Vito Cruz."
-    },
-    {
-        "question": "Lawton to Remedios Circle commute?",
-        "answer": "Jeep to Baclaran/Vito Cruz via Taft Ave, alight Pedro Gil St., then walk/tricycle/taxi. Near Pedro Gil/Vito Cruz LRT-1."
     },
     {
         "question": "May mga express bus ba sa Manila na gagamitin ang EDSA Carousel lane?",
@@ -3226,18 +3047,6 @@
     {
         "question": "Modern jeepneys Tondo Manila?",
         "answer": "Yes, increasing routes, especially to Divisoria, Monumento, bus-train terminals. Check signage or ask driver."
-    },
-    {
-        "question": "Paano mag-commute papuntang Manila Baywalk Dolomite Beach mula sa Central Terminal LRT-1 Station?",
-        "answer": "Mula Central Terminal LRT-1 Station, sumakay ng jeep na papuntang **Baclaran o PITX** na dadaan sa Roxas Boulevard. Bumaba sa tapat ng Manila Baywalk Dolomite Beach. Maaari ka ring mag-taxi o Grab mula sa istasyon."
-    },
-    {
-        "question": "How to commute to Manila Baywalk Dolomite Beach from Central Terminal LRT-1 Station?",
-        "answer": "From Central Terminal LRT-1 Station, take a jeepney to **Baclaran or PITX** that passes through Roxas Boulevard. Alight in front of Manila Baywalk Dolomite Beach. You can also take a taxi or Grab from the station."
-    },
-    {
-        "question": "Central Terminal LRT-1 to Dolomite Beach commute?",
-        "answer": "Jeep to Baclaran/PITX via Roxas Blvd, alight at beach. Or taxi/Grab from station."
     },
     {
         "question": "Ano ang 'yellow box' sa intersection?",
@@ -3468,18 +3277,6 @@
         "answer": "Easier in subdivisions/side streets. Not allowed on main roads."
     },
     {
-        "question": "Ano ang tamang paraan ng pagtawag ng taxi sa kalsada?",
-        "answer": "Ang tamang paraan ay maghintay sa isang **ligtas na bahagi ng kalsada** (hindi sa no-stopping zone), at magtaas ng kamay upang senyasan ang dumadaang taxi. Huwag subukang pumara sa gitna ng trapiko. Makipag-usap muna sa driver bago sumakay para kumpirmahin ang destinasyon."
-    },
-    {
-        "question": "What is the proper way to hail a taxi on the street?",
-        "answer": "The proper way is to wait in a **safe part of the road** (not in a no-stopping zone), and raise your hand to signal a passing taxi. Do not attempt to hail one in the middle of traffic. Confirm the destination with the driver before boarding."
-    },
-    {
-        "question": "How to hail taxi Manila street?",
-        "answer": "Wait in a safe road section, raise hand. Don't hail in traffic. Confirm destination before boarding."
-    },
-    {
         "question": "Paano mag-commute papuntang Manila Cathedral mula sa Central Terminal LRT-1 Station?",
         "answer": "Mula Central Terminal LRT-1 Station, maglakad patungong Padre Burgos Street at dadaan ka sa Manila City Hall. Maglakad papasok ng Intramuros (sa pamamagitan ng Padre Burgos Gate) at makikita mo na ang Manila Cathedral. Mga 10-15 minutong lakad."
     },
@@ -3624,18 +3421,6 @@
         "answer": "Yes, designated bike lane available. Cyclists should use it for safety and traffic flow."
     },
     {
-        "question": "Paano mag-commute papuntang Remedios Circle mula sa Vito Cruz LRT-1 Station?",
-        "answer": "Mula Vito Cruz LRT-1 Station, maaari kang maglakad patungong Remedios Circle (mga 10-15 minuto) o sumakay ng tricycle/taxi mula sa istasyon. Nasa Malate area ito."
-    },
-    {
-        "question": "How to commute to Remedios Circle from Vito Cruz LRT-1 Station?",
-        "answer": "From Vito Cruz LRT-1 Station, you can walk towards Remedios Circle (about 10-15 minutes) or take a tricycle/taxi from the station. It's in the Malate area."
-    },
-    {
-        "question": "Vito Cruz LRT-1 to Remedios Circle walk?",
-        "answer": "10-15 minute walk or tricycle/taxi from Vito Cruz LRT-1 Station."
-    },
-    {
         "question": "Ano ang kasalukuyang operating hours ng MRT-3 tuwing weekend?",
         "answer": "Ang MRT-3 ay karaniwang tumatakbo mula **5:00 AM hanggang 9:30 PM** tuwing weekend at holidays. Mas maaga ang huling biyahe kaysa sa weekdays. Laging tingnan ang official DOTr-MRT3 website para sa mga abiso."
     },
@@ -3768,18 +3553,6 @@
         "answer": "Yes, if card not read properly or error, transaction won't proceed. Re-tap or ask staff."
     },
     {
-        "question": "Paano mag-commute papuntang St. Luke's Medical Center - Quezon City (SLMC-QC) mula sa UST?",
-        "answer": "Ang SLMC-QC ay nasa Quezon City. Mula UST (España Blvd), sumakay ng jeep o bus na papuntang **Cubao** at bumaba sa Gilmore Avenue. Mula Gilmore, sumakay ng taxi, Grab, o jeepney papuntang SLMC-QC."
-    },
-    {
-        "question": "How to commute to St. Luke's Medical Center - Quezon City (SLMC-QC) from UST?",
-        "answer": "SLMC-QC is in Quezon City. From UST (España Blvd), take a jeepney or bus to **Cubao** and alight at Gilmore Avenue. From Gilmore, take a taxi, Grab, or jeepney to SLMC-QC."
-    },
-    {
-        "question": "UST to SLMC-QC commute?",
-        "answer": "Jeep/bus to Cubao (alight Gilmore Ave), then taxi/Grab/jeep to SLMC-QC."
-    },
-    {
         "question": "Ano ang special trip sa tricycle?",
         "answer": "Ang special trip sa tricycle ay nangangahulugang **mag-isa kang pasahero** sa tricycle at ang driver ay papayag na dalhin ka sa destinasyon na lampas sa kanyang karaniwang ruta o boundary, kapalit ng **negosyadong pamasahe** na mas mataas sa regular. Makipag-usap muna sa driver bago sumakay."
     },
@@ -3826,18 +3599,6 @@
     {
         "question": "Taft Ave (Pedro Gil) to National Museum of Anthropology commute?",
         "answer": "Jeep to Monumento/Divisoria (alight UN Ave), then short walk northbound to museum complex."
-    },
-    {
-        "question": "May mga taxi ba na may credit card payment sa Manila?",
-        "answer": "Karamihan sa mga regular taxi sa Manila ay **cash only**. Ang mga taxi na konektado sa **Grab Taxi app** ay maaaring tumanggap ng credit card o e-wallet payment sa pamamagitan ng app mismo. Hindi ito karaniwan sa mga traditional street taxi."
-    },
-    {
-        "question": "Are there taxis with credit card payment in Manila?",
-        "answer": "Most regular taxis in Manila are **cash only**. Taxis connected to the **Grab Taxi app** might accept credit card or e-wallet payments through the app itself. This is not common for traditional street taxis."
-    },
-    {
-        "question": "Manila taxi credit card payment?",
-        "answer": "Mostly cash only. Grab Taxi app may accept credit card/e-wallet payments. Not common for traditional taxis."
     },
     {
         "question": "Paano mag-commute papuntang Philippine Women's University (PWU) mula sa Vito Cruz LRT-1 Station?",
@@ -4102,18 +3863,6 @@
     {
         "question": "Bus terminal last call meaning?",
         "answer": "Final reminder that bus is about to depart; announced by conductor/dispatcher to ensure boarding."
-    },
-    {
-        "question": "Paano mag-commute papuntang Quirino Grandstand mula sa Vito Cruz LRT-1 Station?",
-        "answer": "Mula Vito Cruz LRT-1 Station, sumakay ng jeep na papuntang **Baclaran o PITX** na dadaan sa Roxas Boulevard. Bumaba sa tapat ng Quirino Grandstand. Maaari ka ring mag-taxi o Grab mula sa istasyon."
-    },
-    {
-        "question": "How to commute to Quirino Grandstand from Vito Cruz LRT-1 Station?",
-        "answer": "From Vito Cruz LRT-1 Station, take a jeepney to **Baclaran or PITX** that passes through Roxas Boulevard. Alight in front of Quirino Grandstand. You can also take a taxi or Grab from the station."
-    },
-    {
-        "question": "Vito Cruz LRT-1 to Quirino Grandstand commute?",
-        "answer": "Jeep to Baclaran/PITX via Roxas Blvd, alight at Grandstand. Or taxi/Grab from station."
     },
     {
         "question": "Saan ako pwedeng magreklamo tungkol sa Grab/Angkas driver?",
@@ -4402,18 +4151,6 @@
     {
         "question": "PUV Modernization Program jeepney drivers?",
         "answer": "Program to replace old jeeps with new, high-tech ones (aircon, CCTV, GPS, cashless) and form cooperatives. Caused financial issues for some drivers."
-    },
-    {
-        "question": "Paano mag-commute papuntang Manila Baywalk Dolomite Beach mula sa Lawton?",
-        "answer": "Mula Lawton, sumakay ng jeep na papuntang **Baclaran o PITX** na dadaan sa Roxas Boulevard. Bumaba sa tapat ng Manila Baywalk Dolomite Beach. Maaari ka ring mag-taxi o Grab mula sa Lawton."
-    },
-    {
-        "question": "How to commute to Manila Baywalk Dolomite Beach from Lawton?",
-        "answer": "From Lawton, take a jeepney to **Baclaran or PITX** that passes through Roxas Boulevard. Alight in front of Manila Baywalk Dolomite Beach. You can also take a taxi or Grab from Lawton."
-    },
-    {
-        "question": "Lawton to Dolomite Beach commute?",
-        "answer": "Jeep to Baclaran/PITX via Roxas Blvd, alight at beach. Or taxi/Grab from Lawton."
     },
     {
         "question": "Ano ang barrier-free access sa public transport?",
@@ -5258,14 +4995,6 @@
     {
         "question": "Jaywalking fine City of Manila?",
         "answer": "PHP 500.00 for first offense, plus potential community service. Cross at pedestrian lanes."
-    },
-    {
-        "question": "Pinapayagan ba ang paninigarilyo sa loob ng public transport sa City of Manila?",
-        "answer": "Hindi po. **Mahigpit na ipinagbabawal ang paninigarilyo** sa loob ng lahat ng public transport (jeepney, bus, tren, taxi) at sa mga terminals/istasyon sa buong Pilipinas, kabilang ang City of Manila, sa ilalim ng Executive Order No. 26 at RA 9211. May kaakibat na multa ang paglabag."
-    },
-    {
-        "question": "Is smoking allowed inside public transport in the City of Manila?",
-        "answer": "No. **Smoking is strictly prohibited** inside all public transport (jeepneys, buses, trains, taxis) and at terminals/stations throughout the Philippines, including the City of Manila, under Executive Order No. 26 and RA 9211. Violators face fines."
     },
     {
         "question": "Smoking public transport Manila?",

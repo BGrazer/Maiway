@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'loginpage.dart';
 import 'change_pass.dart';
-import 'user_report_page.dart';
+import 'travel_history_screen.dart';
+import 'admin.dart';
+import 'user_report_history_page.dart';
 import 'edit_profile.dart';
+import 'legalities_page.dart';
+import 'transport_policies_page.dart';
+import 'developer_policies_page.dart';
+
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -12,19 +19,19 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
         children: [
-          const SectionHeader(title: 'Account'),
-          _buildSettingsTile(
-            icon: Icons.person,
-            title: 'Edit Profile',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const EditProfileScreen(),
-                ),
-              );
-            },
-          ),
+          //ACCOUNT
+const SectionHeader(title: 'Account'),
+_buildSettingsTile(
+  icon: Icons.person,
+  title: 'Edit Profile',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) =>  EditProfileScreen()),
+    );
+  },
+),
+
           _buildSettingsTile(
             icon: Icons.lock,
             title: 'Change Password',
@@ -42,44 +49,87 @@ class ProfileScreen extends StatelessWidget {
             title: 'Notifications',
             onTap: () {},
           ),
+_buildSettingsTile(
+  icon: Icons.place,
+  title: 'Travel History',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TravelHistoryScreen(), // <-- const removed here
+      ),
+    );
+  },
+),
+_buildSettingsTile(
+  icon: Icons.outlined_flag,
+  title: 'Report History',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) =>  UserReportHistoryPage()),
+    );
+  },
+),
+
+          // ABOUT
+const SectionHeader(title: 'About'),
+_buildSettingsTile(
+  icon: Icons.description,
+  title: 'Legalities of Transportation',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LegalitiesPage()),
+    );
+  },
+),
+_buildSettingsTile(
+  icon: Icons.help_outline,
+  title: 'Policies of all Transportations',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TransportPoliciesPage()),
+    );
+  },
+),
+_buildSettingsTile(
+  icon: Icons.info_outline,
+  title: 'Terms and Policies of Developers',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const DeveloperPoliciesPage()),
+    );
+  },
+),
+const SectionHeader(title: ''),
+
+
+_buildSettingsTile(
+  icon: Icons.admin_panel_settings,
+  title: 'Admin Mode (Not Accessible by Normal User/Guest)',
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+       builder: (context) => AdminScreen(), // removed `const`
+
+      ),
+    );
+  },
+),
           _buildSettingsTile(
-            icon: Icons.place,
-            title: 'Travel History',
-            onTap: () {},
-          ),
-          _buildSettingsTile(
-            icon: Icons.outlined_flag,
-            title: 'Report History',
+            icon: Icons.logout,
+            title: 'Logout',
             onTap: () {
-              Navigator.push(
+              Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const AddReportScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => LoginPage()),
+                (route) => false,
               );
             },
-          ),
-          _buildSettingsTile(
-            icon: Icons.admin_panel_settings,
-            title: 'Admin Mode (Not Accessible by Normal User/Guest)',
-            onTap: () {},
-          ),
-
-          const SectionHeader(title: 'About'),
-          _buildSettingsTile(
-            icon: Icons.description,
-            title: 'Legalities of transportations',
-            onTap: () {},
-          ),
-          _buildSettingsTile(
-            icon: Icons.help_outline,
-            title: 'Policies of transportations',
-            onTap: () {},
-          ),
-          _buildSettingsTile(
-            icon: Icons.info_outline,
-            title: 'Terms and Policies of developers',
-            onTap: () {},
           ),
         ],
       ),

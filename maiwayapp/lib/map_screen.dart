@@ -5,8 +5,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:maiwayapp/chatbot_dialog.dart';
-
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:maiwayapp/chatbot_dialog.dart'; 
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -15,7 +15,8 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreenState extends State<MapScreen>
+    with AutomaticKeepAliveClientMixin {
   final MapController _mapController = MapController();
   LatLng? _currentLocation;
 
@@ -39,21 +40,44 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location services are disabled')),
+        );
+        return;
+      }
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permissions are denied')),
+          );
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permissions are permanently denied'),
+          ),
+        );
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _currentLocation = LatLng(position.latitude, position.longitude);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error getting location: $e')));
     }
-
-    if (permission == LocationPermission.deniedForever) return;
-
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _currentLocation = LatLng(position.latitude, position.longitude);
-    });
   }
 
   void _centerOnUserLocation() {
@@ -85,11 +109,10 @@ class _MapScreenState extends State<MapScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
-      builder:
-          (context) => SearchSheet(
-            originController: originController,
-            destinationController: destinationController,
-          ),
+      builder: (context) => SearchSheet(
+        originController: originController,
+        destinationController: destinationController,
+      ),
     );
   }
 
@@ -104,7 +127,11 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         title: RichText(
@@ -151,25 +178,10 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ],
               ),
-              if (_currentLocation != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _currentLocation!,
-                      width: 40,
-                      height: 40,
-                      child: const Icon(
-                        Icons.my_location,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                  ],
-                ),
+              CurrentLocationLayer(),
             ],
           ),
 
-          // Search Bar
           Positioned(
             top: 7,
             left: 7,
@@ -184,7 +196,7 @@ class _MapScreenState extends State<MapScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 6,
@@ -192,8 +204,8 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                   ],
                 ),
-                child: Row(
-                  children: const [
+                child: const Row(
+                  children: [
                     Icon(Icons.search, color: Colors.grey),
                     SizedBox(width: 10),
                     Text("Where to?", style: TextStyle(color: Colors.grey)),
@@ -203,12 +215,11 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Buttons for user location and camera orientation
           Positioned(
             bottom: 90,
             right: 20,
             child: FloatingActionButton(
-              heroTag: 'centerLocationBtn',
+              heroTag: 'user_location_button',
               elevation: 4,
               onPressed: _centerOnUserLocation,
               child: const Icon(Icons.my_location),
@@ -218,14 +229,13 @@ class _MapScreenState extends State<MapScreen> {
             bottom: 150,
             right: 20,
             child: FloatingActionButton(
-              heroTag: 'resetOrientationBtn',
+              heroTag: 'reset_orientation_button',
               elevation: 4,
               onPressed: _resetCameraOrientation,
               child: const Icon(Icons.explore),
             ),
           ),
 
-          
           Positioned(
             bottom: 210,
             right: 20,
@@ -235,9 +245,9 @@ class _MapScreenState extends State<MapScreen> {
               onPressed: _openChatbotDialog,
               backgroundColor: const Color(0xFF0084FF),
               child: Image.asset(
-                'assets/chatbot_icon.png', 
-                width: 70, 
-                height: 70, 
+                'assets/images/chatbot_icon.png',
+                width: 70,
+                height: 70,
               ),
             ),
           ),
@@ -247,7 +257,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   TileLayer get openStreetMapTileLayer => TileLayer(
-    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    userAgentPackageName: 'com.example.maiway',
-  );
+        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        userAgentPackageName: 'com.example.maiway',
+      );
 }

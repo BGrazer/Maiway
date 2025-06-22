@@ -26,30 +26,23 @@ def chat():
     response = chatbot.get_response(user_message)
     return jsonify({"response": response})
 
-# >>>>>>>>>>> THIS IS THE CORRECTED DYNAMIC SUGGESTIONS ENDPOINT <<<<<<<<<<<<
-# Ensure this is the ONLY endpoint in app.py that handles dynamic suggestions.
-@app.route('/dynamic_suggestions', methods=['GET']) # <--- ROUTE IS NOW CORRECTLY '/dynamic_suggestions'
+@app.route('/dynamic_suggestions', methods=['GET']) 
 def get_dynamic_suggestions():
     try:
-        # The faq_file_path is now handled by the ChatbotModel constructor
-        # We don't need to load data here again. The chatbot instance already has it loaded.
         
-        query = request.args.get('query', '') # Get query parameter from URL
+        query = request.args.get('query', '') 
         
         if not query:
-            return jsonify({"suggestions": []}) # Return empty list if query is empty
+            return jsonify({"suggestions": []}) 
 
-        # Call the get_matching_questions method on the chatbot instance
-        suggestions = chatbot.get_matching_questions(query) # This method is in chatbot_model.py
+        suggestions = chatbot.get_matching_questions(query)
         
         return jsonify({"suggestions": suggestions})
     except Exception as e:
         print(f"An unexpected error occurred while fetching dynamic suggestions: {e}")
-        # Log the full traceback on the server for better debugging
         import traceback
         traceback.print_exc() 
         return jsonify({"error": f"An unexpected server error occurred: {e}"}), 500
-# >>>>>>>>>>> END CORRECTED DYNAMIC SUGGESTIONS ENDPOINT <<<<<<<<<<<<
 
 @app.route('/admin/add_faq', methods=['POST'])
 def add_faq():

@@ -11,7 +11,6 @@ class ChatbotModel:
         self.faq_file_path = os.path.join(script_dir, data_path)
         self.similarity_threshold = similarity_threshold 
 
-        # Initialize the model only once
         self.model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
         self._load_and_encode_data()
@@ -58,9 +57,8 @@ class ChatbotModel:
         self.faq_data = self._load_data(self.faq_file_path)
 
         self.corpus = [self._preprocess_text(item["question"]) for item in self.faq_data]
-        # Handle empty corpus case before encoding
         if not self.corpus:
-            self.corpus_embeddings = torch.tensor([]) # Initialize as empty tensor
+            self.corpus_embeddings = torch.tensor([]) 
             print("Warning: Corpus is empty, no embeddings generated.")
         else:
             self.corpus_embeddings = self.model.encode(self.corpus, convert_to_tensor=True)
@@ -76,8 +74,7 @@ class ChatbotModel:
 
         processed_query = self._preprocess_text(user_query)
 
-        # Check if corpus_embeddings is empty before attempting operations on it
-        if self.corpus_embeddings.numel() == 0: # Checks if the tensor has any elements
+        if self.corpus_embeddings.numel() == 0: 
             print("Warning: Chatbot corpus embeddings are empty. Cannot generate response.")
             return "Pasensya na, wala pa po akong impormasyon. Pakisubukang magdagdag ng FAQs."
 
@@ -115,7 +112,6 @@ class ChatbotModel:
 
         processed_new_question = self._preprocess_text(question)
 
-        # Ensure self.faq_data is not empty before iterating if it was initialized as []
         if self.faq_data:
             for item in self.faq_data:
                 if self._preprocess_text(item["question"]) == processed_new_question:
@@ -133,7 +129,6 @@ class ChatbotModel:
         self._load_and_encode_data()
         print("Chatbot data reloaded manually.")
 
-    # >>>>>>>>>>> YOU MUST ADD THIS METHOD <<<<<<<<<<<<
     def get_matching_questions(self, query_text, limit=5):
         """
         Finds questions in the FAQ data that partially match the query_text.
@@ -150,4 +145,3 @@ class ChatbotModel:
             if len(matches) >= limit:
                 break
         return matches
-    # >>>>>>>>>>> END OF METHOD TO ADD <<<<<<<<<<<<

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:maiwayapp/models/message.dart'; // Import Message model
-import 'package:maiwayapp/chatbot_conversation_manager.dart'; // Import the new manager
+import 'package:maiwayapp/models/message.dart'; 
+import 'package:maiwayapp/chatbot_conversation_manager.dart'; 
 
 class ChatbotDialog extends StatefulWidget {
   const ChatbotDialog({super.key});
@@ -13,11 +13,10 @@ class ChatbotDialog extends StatefulWidget {
 }
 
 class _ChatbotDialogState extends State<ChatbotDialog> with SingleTickerProviderStateMixin {
-  // These are now managed internally by ChatbotDialog again, as requested.
-  // The conversation history will come from chatbotConversationManager.
+
   final TextEditingController _textEditingController = TextEditingController();
   bool _isBotTyping = false;
-  List<String> _dynamicSuggestions = []; // Dynamic suggestions still live here
+  List<String> _dynamicSuggestions = [];
   late AnimationController _typingAnimationController;
 
 final String _chatBackendUrl = 'http://10.5.1.55:5001/chat';
@@ -30,7 +29,6 @@ final String _dynamicSuggestionsUrl = 'http://10.5.1.55:5001/dynamic_suggestions
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
-    // No need to load suggestions on init, they load onChanged
   }
 
   Future<void> _onInputChanged(String query) async {
@@ -62,13 +60,12 @@ final String _dynamicSuggestionsUrl = 'http://10.5.1.55:5001/dynamic_suggestions
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
-    // Add user message via the global manager
     chatbotConversationManager.addMessage(Message(text: text, isUser: true));
     _textEditingController.clear();
 
     setState(() {
       _isBotTyping = true;
-      _dynamicSuggestions = []; // Clear suggestions after sending
+      _dynamicSuggestions = []; 
     });
 
     try {
@@ -86,13 +83,11 @@ final String _dynamicSuggestionsUrl = 'http://10.5.1.55:5001/dynamic_suggestions
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         final botResponse = responseData['response'];
 
-        // Add bot response via the global manager
         chatbotConversationManager.addMessage(Message(text: botResponse, isUser: false));
         setState(() {
           _isBotTyping = false;
         });
       } else {
-        // Add error message via the global manager
         chatbotConversationManager.addMessage(Message(text: "Error: Could not get a response from the chatbot. Status: ${response.statusCode}", isUser: false));
         setState(() {
           _isBotTyping = false;
@@ -100,7 +95,6 @@ final String _dynamicSuggestionsUrl = 'http://10.5.1.55:5001/dynamic_suggestions
         print("Chatbot server error: ${response.statusCode} - ${response.body}");
       }
     } catch (e) {
-      // Add network error message via the global manager
       chatbotConversationManager.addMessage(Message(text: "Error: Failed to connect to the chatbot. Please check your network or server. ($e)", isUser: false));
       setState(() {
         _isBotTyping = false;
@@ -149,7 +143,7 @@ final String _dynamicSuggestionsUrl = 'http://10.5.1.55:5001/dynamic_suggestions
                       ),
                       ClipOval(
                         child: Image.asset(
-                          'assets/maiway_logo.png',
+                          'assets/images/maiway_logo.png',
                           width: 30,
                           height: 30,
                           fit: BoxFit.cover,
@@ -169,7 +163,6 @@ final String _dynamicSuggestionsUrl = 'http://10.5.1.55:5001/dynamic_suggestions
                   ),
                 ),
 
-                // >>>>>>>>>>> Use ValueListenableBuilder for messages <<<<<<<<<<<<
                 Expanded(
                   child: ValueListenableBuilder<List<Message>>(
                     valueListenable: chatbotConversationManager,
@@ -215,7 +208,6 @@ final String _dynamicSuggestionsUrl = 'http://10.5.1.55:5001/dynamic_suggestions
                     },
                   ),
                 ),
-                // >>>>>>>>>>> END ValueListenableBuilder <<<<<<<<<<<<
 
                 if (_dynamicSuggestions.isNotEmpty)
                   Container(
@@ -252,13 +244,13 @@ final String _dynamicSuggestionsUrl = 'http://10.5.1.55:5001/dynamic_suggestions
                             contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
                           ),
                           autofocus: true,
-                          onSubmitted: _sendMessage, // Use internal _sendMessage
+                          onSubmitted: _sendMessage, 
                         ),
                       ),
                       const SizedBox(width: 10),
                       InkWell(
                         borderRadius: BorderRadius.circular(50),
-                        onTap: () => _sendMessage(_textEditingController.text), // Use internal _sendMessage
+                        onTap: () => _sendMessage(_textEditingController.text), 
                         child: Container(
                           width: 40,
                           height: 40,
@@ -288,7 +280,7 @@ final String _dynamicSuggestionsUrl = 'http://10.5.1.55:5001/dynamic_suggestions
     return GestureDetector(
       onTap: () {
         _textEditingController.text = text;
-        _sendMessage(text); // Use internal _sendMessage
+        _sendMessage(text); 
       },
       child: Chip(
         label: Text(
@@ -323,7 +315,7 @@ final String _dynamicSuggestionsUrl = 'http://10.5.1.55:5001/dynamic_suggestions
           mainAxisSize: MainAxisSize.min,
           children: List.generate(3, (index) {
             return AnimatedBuilder(
-              animation: _typingAnimationController, // Use internal controller
+              animation: _typingAnimationController,
               builder: (context, child) {
                 final double opacity = (index == 0
                         ? _typingAnimationController.value
