@@ -4,6 +4,7 @@ import 'package:maiwayapp/profile_screen.dart';
 import 'package:maiwayapp/map_screen.dart';
 import 'package:maiwayapp/travel_preference_page.dart';
 
+
 void main() {
   runApp(const MyApp());
 }

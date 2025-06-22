@@ -30,7 +30,6 @@ class _SurveyPageState extends State<SurveyPage> {
     super.dispose();
   }
 
-  // ✅ FIXED: Maps frontend value to backend expected label
   String mapVehicleType(String frontendType) {
     switch (frontendType) {
       case "Jeepney":
@@ -44,35 +43,40 @@ class _SurveyPageState extends State<SurveyPage> {
 
   Future<void> _submitSurvey() async {
     if (_fareFeedback == 'yes') {
+      if (!mounted) return;
       _showDialog("Nice!", "Thank you and have a safe trip.");
     } else if (_fareFeedback == 'no') {
       if (_chargedFareController.text.isEmpty) {
+        if (!mounted) return;
         _showSnackbar('Please enter the charged fare');
         return;
       }
 
       final chargedFare = double.tryParse(_chargedFareController.text);
       if (chargedFare == null) {
+        if (!mounted) return;
         _showSnackbar('Invalid fare input');
         return;
       }
 
       final result = await _validateFareWithBackend(
-        vehicleType: mapVehicleType(widget.transportMode), // ✅ FIX APPLIED HERE
+        vehicleType: mapVehicleType(widget.transportMode),
         distanceKm: widget.distanceKm,
         chargedFare: chargedFare,
         isDiscounted: widget.passengerType == 'Discounted',
       );
 
       if (result == null) {
+        if (!mounted) return;
         _showSnackbar('Server error or no response.');
         return;
       }
 
       final alertMessage = result['is_anomalous']
-          ? "🚨 ALERT: Overpricing Detected!"
-          : "✅ Fare is within the acceptable range.";
+          ? "ALERT: Overpricing Detected!"
+          : "Fare is within the acceptable range.";
 
+      if (!mounted) return;
       _showDialog(
         "Fare Validation Result",
         "Distance: ${widget.distanceKm} km\n"
@@ -118,10 +122,13 @@ class _SurveyPageState extends State<SurveyPage> {
   }
 
   void _showSnackbar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showDialog(String title, String content) {
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -130,8 +137,9 @@ class _SurveyPageState extends State<SurveyPage> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Return to previous screen
+              if (!mounted) return;
+              Navigator.pop(context); // close dialog
+              Navigator.pop(context); // go back to map
             },
             child: const Text("OK"),
           )

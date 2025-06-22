@@ -7,7 +7,6 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-
 # --------------------------
 # 1. Load CSV Fare Matrices
 # --------------------------
@@ -41,7 +40,7 @@ y_jeep_discounted = df_jeep['Discounted Fare (₱)'].values
 models['Jeep']['Regular'].fit(X_jeep, y_jeep_regular)
 models['Jeep']['Discounted'].fit(X_jeep, y_jeep_discounted)
 
-# LRT 1 (uses only one fare column for both)
+# LRT 1
 X_lrt1 = df_lrt1[['Distance_km']].values
 y_lrt1 = df_lrt1['Fare_PHP'].values
 
@@ -82,15 +81,14 @@ def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
     is_anomalous = difference > threshold
 
     return {
-        'vehicle_type': str(vehicle_type),
-        'fare_type': str(fare_type),
-        'predicted_fare': float(round(predicted_fare, 2)),
-        'charged_fare': float(round(charged_fare, 2)),
-        'difference': float(round(difference, 2)),
-        'is_anomalous': bool(is_anomalous),
-        'threshold': float(round(threshold, 2))
+        'vehicle_type': vehicle_type,
+        'fare_type': fare_type,
+        'predicted_fare': round(predicted_fare),
+        'charged_fare': round(charged_fare),
+        'difference': round(difference),
+        'threshold': round(threshold),
+        'is_anomalous': bool(is_anomalous)
     }
-
 
 # --------------------------
 # 5. Flask API Endpoint
