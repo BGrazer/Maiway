@@ -42,6 +42,7 @@ dependencies:
   location: ^8.0.0
   http: ^1.3.0
   google_fonts: ^6.2.1
+  syncfusion_flutter_pdfviewer: ^29.2.11
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +68,10 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/legalities/regform.pdf
+    - assets/images/legalities/summser.pdf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -75,7 +75,7 @@ class ProfileScreen extends StatelessWidget {
           const SectionHeader(title: 'About'),
           _buildSettingsTile(
             icon: Icons.description,
-            title: 'Legalities of Transportation',
+            title: 'Legalities and Policies of Transportations',
             onTap: () {
               Navigator.push(
                 context,
@@ -85,7 +85,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           _buildSettingsTile(
             icon: Icons.help_outline,
-            title: 'Policies of all Transportations',
+            title: 'Fare Matrices of all Transportations',
             onTap: () {
               Navigator.push(
                 context,
