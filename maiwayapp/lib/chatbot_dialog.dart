@@ -19,9 +19,9 @@ class _ChatbotDialogState extends State<ChatbotDialog> with SingleTickerProvider
   List<String> _dynamicSuggestions = [];
   late AnimationController _typingAnimationController;
 
-// FOR PHYSICAL ANDROID DEVICE:
-final String _chatBackendUrl = 'http://172.20.109.39:5000/chat'; // Your computer's Wi-Fi IP
-final String _dynamicSuggestionsUrl = 'http://172.20.109.39:5000/dynamic_suggestions'; // Your computer's Wi-Fi IP
+
+final String _chatBackendUrl = 'http://172.20.109.39:5000/chat';
+final String _dynamicSuggestionsUrl = 'http://172.20.109.39:5000/dynamic_suggestions'; 
 
   @override
 
