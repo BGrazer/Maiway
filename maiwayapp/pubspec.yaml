@@ -43,7 +43,6 @@ dependencies:
   http: ^1.4.0 # Kept the higher version from old file
   google_fonts: ^6.2.1
   font_awesome_flutter: ^10.8.0 # Added from old file
-  syncfusion_flutter_pdfviewer: ^29.2.11
 
 dev_dependencies:
   flutter_test:
@@ -72,17 +71,6 @@ flutter:
   assets:
     - assets/images/maiway_logo.png
     - assets/images/chatbot_icon.png
-    - assets/images/ordinanceno9091.pdf
-    - assets/images/ordinanceno8979.pdf
-    - assets/images/d1-6toda.pdf
-    - assets/images/pujwithconso.pdf
-    - assets/images/pujwithoutconso.pdf
-    - assets/images/busroute1.pdf
-    - assets/images/busroute2.pdf
-    - assets/images/lrt1routefare.pdf
-    - assets/images/pujfare.pdf
-    - assets/images/busordinaryfare.pdf
-    - assets/images/busairconfare.pdf
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
