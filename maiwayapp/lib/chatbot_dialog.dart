@@ -52,7 +52,7 @@ final String _dynamicSuggestionsUrl = 'http://172.20.109.39:5000/dynamic_suggest
           _dynamicSuggestions = fetchedSuggestions.cast<String>();
         });
       } else {
-        print("Failed to load dynamic suggestions. Status: ${response.statusCode} - ${response.body}");
+        print("Failed to load dynamic suggestion. Status: ${response.statusCode} - ${response.body}");
       }
     } catch (e) {
       print("Error fetching dynamic suggestions: $e");
