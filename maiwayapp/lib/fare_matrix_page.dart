@@ -5,17 +5,13 @@ class FareMatrixPage extends StatelessWidget {
   const FareMatrixPage({super.key});
 
   // Organized PDF file names
-  static const ltfrbPdfs = {
+  static const ltfrbfarePdfs = {
     'PUJ Fare Guide': 'pujfare.pdf',
     'PUB (Ordinary) Fare Guide': 'busordinaryfare.pdf',
     'PUB (Aircon) Fare Guide': 'busairconfare.pdf',
   };
-  static const mtpbPdfs = {
-    'Ordinance No. 9091': 'ordinanceno9091.pdf',
-    'Ordinance No. 8979': 'ordinanceno8979.pdf',
-    'D1-D6 Toda List': 'd1-6toda.pdf',
-  };
-  static const lrtPdfs = {'LRT Safety': 'LRT Safety.pdf'};
+  static const mtpbFarePdfs = {'Ordinance No. 8979': 'ordinanceno8979.pdf'};
+  static const lrtFarePdfs = {'LRT 1 Fare': 'lrt1routefare.pdf'};
 
   @override
   Widget build(BuildContext context) {
@@ -27,21 +23,21 @@ class FareMatrixPage extends StatelessWidget {
             context,
             icon: Icons.directions_bus,
             title: 'LTFRB',
-            pdfs: ltfrbPdfs,
+            pdfs: ltfrbfarePdfs,
             previewOnly: true,
           ),
           _buildCategory(
             context,
             icon: Icons.motorcycle,
             title: 'MTPB',
-            pdfs: mtpbPdfs,
+            pdfs: mtpbFarePdfs,
             previewOnly: false,
           ),
           _buildCategory(
             context,
             icon: Icons.train,
             title: 'LRT',
-            pdfs: lrtPdfs,
+            pdfs: lrtFarePdfs,
             previewOnly: true,
           ),
         ],

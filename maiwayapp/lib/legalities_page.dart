@@ -16,7 +16,7 @@ class LegalitiesPage extends StatelessWidget {
     'Ordinance No. 8979': 'ordinanceno8979.pdf',
     'D1-D6 Toda List': 'd1-6toda.pdf',
   };
-  static const lrtPdfs = {'LRT Safety': 'LRT Safety.pdf'};
+  static const lrtPdfs = {'LRT 1 Route': 'lrt1routefare.pdf'};
 
   @override
   Widget build(BuildContext context) {
