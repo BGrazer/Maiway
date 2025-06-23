@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maiwayapp/fare_matrix_page.dart';
 import 'loginpage.dart';
 import 'change_pass.dart';
 import 'travel_history_screen.dart';
@@ -6,7 +7,6 @@ import 'admin.dart';
 import 'user_report_history_page.dart';
 import 'edit_profile.dart';
 import 'legalities_page.dart';
-import 'transport_policies_page.dart';
 import 'developer_policies_page.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -89,9 +89,7 @@ class ProfileScreen extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const TransportPoliciesPage(),
-                ),
+                MaterialPageRoute(builder: (context) => const FareMatrixPage()),
               );
             },
           ),

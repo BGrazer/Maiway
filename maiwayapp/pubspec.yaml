@@ -70,9 +70,17 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/legalities/regform.pdf
-    - assets/images/legalities/summser.pdf
-
+    - assets/images/ordinanceno9091.pdf
+    - assets/images/ordinanceno8979.pdf
+    - assets/images/d1-6toda.pdf
+    - assets/images/pujwithconso.pdf
+    - assets/images/pujwithoutconso.pdf
+    - assets/images/busroute1.pdf
+    - assets/images/busroute2.pdf
+    - assets/images/pujfare.pdf
+    - assets/images/busordinaryfare.pdf
+    - assets/images/busairconfare.pdf
+    
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
