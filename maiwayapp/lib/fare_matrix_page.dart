@@ -24,7 +24,7 @@ class FareMatrixPage extends StatelessWidget {
             icon: Icons.directions_bus,
             title: 'LTFRB',
             pdfs: ltfrbfarePdfs,
-            previewOnly: true,
+            previewOnly: false,
           ),
           _buildCategory(
             context,
@@ -38,7 +38,7 @@ class FareMatrixPage extends StatelessWidget {
             icon: Icons.train,
             title: 'LRT',
             pdfs: lrtFarePdfs,
-            previewOnly: true,
+            previewOnly: false,
           ),
         ],
       ),

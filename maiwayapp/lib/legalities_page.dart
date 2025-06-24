@@ -23,7 +23,7 @@ class LegalitiesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text('Legalities of Transportation'),
+        title: const Text('Legalities and Policies of Transportations'),
       ),
       body: ListView(
         children: [
@@ -32,7 +32,7 @@ class LegalitiesPage extends StatelessWidget {
             icon: Icons.directions_bus,
             title: 'LTFRB',
             pdfs: ltfrbPdfs,
-            previewOnly: true,
+            previewOnly: false,
           ),
           _buildCategory(
             context,
@@ -46,7 +46,7 @@ class LegalitiesPage extends StatelessWidget {
             icon: Icons.train,
             title: 'LRT',
             pdfs: lrtPdfs,
-            previewOnly: true,
+            previewOnly: false,
           ),
         ],
       ),

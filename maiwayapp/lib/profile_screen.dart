@@ -7,7 +7,6 @@ import 'admin.dart';
 import 'user_report_history_page.dart';
 import 'edit_profile.dart';
 import 'legalities_page.dart';
-import 'developer_policies_page.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -93,19 +92,6 @@ class ProfileScreen extends StatelessWidget {
               );
             },
           ),
-          _buildSettingsTile(
-            icon: Icons.info_outline,
-            title: 'Terms and Policies of Developers',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DeveloperPoliciesPage(),
-                ),
-              );
-            },
-          ),
-          const SectionHeader(title: ''),
 
           _buildSettingsTile(
             icon: Icons.admin_panel_settings,
