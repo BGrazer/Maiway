@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 
 class GeocodingService {
   /// Get address from coordinates (reverse geocoding)
@@ -20,7 +21,6 @@ class GeocodingService {
       }
       return 'Unknown location';
     } catch (e) {
-      print('🚨 Mapbox reverse geocoding error: $e');
       return 'Unknown location';
     }
   }
@@ -29,7 +29,7 @@ class GeocodingService {
   /// (Optional: implement with Mapbox if needed, or leave as is for now)
   static Future<LatLng?> getLocationFromAddress(String address) async {
     // TODO: Replace with Mapbox forward geocoding if needed
-      return null;
+    return null;
   }
 
   /// Search for places matching a query using Mapbox
@@ -53,8 +53,43 @@ class GeocodingService {
       }
       return [];
     } catch (e) {
-      print('🚨 Mapbox place search error: $e');
       return [];
     }
+  }
+
+  static List<Map<String, dynamic>> _landmarks = [];
+  static bool _landmarksLoaded = false;
+
+  static Future<void> _loadLandmarks() async {
+    if (_landmarksLoaded) return;
+    try {
+      final data = await rootBundle.loadString('assets/landmarks.geojson');
+      final geojson = json.decode(data);
+      if (geojson is Map && geojson['features'] is List) {
+        _landmarks = (geojson['features'] as List).map<Map<String, dynamic>>((feature) {
+          final props = feature['properties'] ?? {};
+          final geom = feature['geometry'] ?? {};
+          final coords = geom['coordinates'] ?? [0.0, 0.0];
+          return {
+            'name': props['name'] ?? '',
+            'latitude': coords[1],
+            'longitude': coords[0],
+          };
+        }).toList();
+      }
+      _landmarksLoaded = true;
+    } catch (e) {
+      _landmarks = [];
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> searchLandmarks(String query) async {
+    await _loadLandmarks();
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return [];
+    return _landmarks.where((landmark) {
+      final name = (landmark['name'] ?? '').toString().toLowerCase();
+      return name.contains(q);
+    }).toList();
   }
 }

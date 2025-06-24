@@ -44,10 +44,13 @@ class _SearchSheetState extends State<SearchSheet> {
     _destinationController.text = widget.destinationAddress;
     _originAddress = widget.originAddress;
     _destinationAddress = widget.destinationAddress;
-    
-    if (_originAddress.isEmpty) {
+    if (_originAddress.isEmpty && !_isFallbackLocation(widget.currentLocation)) {
       _getCurrentLocationAddress();
     }
+  }
+
+  bool _isFallbackLocation(LatLng loc) {
+    return loc.latitude == 14.5995 && loc.longitude == 120.9842;
   }
 
   Future<void> _getCurrentLocationAddress() async {
@@ -58,12 +61,7 @@ class _SearchSheetState extends State<SearchSheet> {
         _originController.text = address;
       });
     } catch (e) {
-      print('Error getting current location address: $e');
-      // Fallback to coordinates
-      setState(() {
-        _originAddress = 'Current Location (${widget.currentLocation.latitude.toStringAsFixed(4)}, ${widget.currentLocation.longitude.toStringAsFixed(4)})';
-        _originController.text = _originAddress;
-      });
+      // Handle error silently
     }
   }
 
@@ -80,42 +78,57 @@ class _SearchSheetState extends State<SearchSheet> {
     });
 
     try {
-      // First try the routing service for stops
       List<Map<String, dynamic>> stopResults = await RoutingService.searchStops(query);
-      
-      // Then try OpenCage API for general addresses
-      List<Map<String, dynamic>> openCageResults = await GeocodingService.searchPlaces(query);
+      List<Map<String, dynamic>> mapboxResults = await GeocodingService.searchPlaces(query);
+      List<Map<String, dynamic>> landmarkResults = await GeocodingService.searchLandmarks(query);
 
-      // Combine and filter results
-      List<Map<String, dynamic>> combinedResults = [];
-      
-      // Add stop results
-      for (var stop in stopResults) {
-        combinedResults.add({
-          'type': 'stop',
-          'name': stop['name'] ?? 'Unknown Stop',
-          'address': stop['address'] ?? '',
-          'location': LatLng(stop['lat'] ?? 0.0, stop['lng'] ?? 0.0),
-          'description': stop['name'] ?? 'Unknown Stop',
-        });
-      }
+      List<Map<String, dynamic>> filteredStops = stopResults.where((stop) {
+        final name = (stop['name'] ?? '').toString().trim();
+        return name.isNotEmpty && name.toLowerCase() != 'unknown stop';
+      }).map((stop) => {
+        'type': 'stop',
+        'name': stop['name'],
+        'address': stop['address'] ?? '',
+        'location': LatLng(stop['lat'] ?? 0.0, stop['lng'] ?? 0.0),
+        'description': stop['name'],
+      }).toList();
 
-      // Add OpenCage results (filter for Manila)
-      for (var place in openCageResults) {
+      List<Map<String, dynamic>> filteredMapbox = mapboxResults.where((place) {
+        final name = (place['name'] ?? '').toString().trim();
         LatLng latLng = LatLng(place['latitude'] ?? 0.0, place['longitude'] ?? 0.0);
-        if (GeocodingHelper.isWithinManila(latLng, getManilaBoundary())) {
-          combinedResults.add({
-            'type': 'address',
-            'name': place['name'] ?? 'Unknown Location',
-            'address': place['name'] ?? 'Unknown Location',
-            'location': latLng,
-            'description': place['name'] ?? 'Unknown Location',
-          });
-        }
-      }
+        final isInPolygon = GeocodingHelper.isWithinManila(latLng, getManilaBoundary());
+        final mentionsManila = name.toLowerCase().contains('manila');
+        return name.isNotEmpty && name.toLowerCase() != 'unknown location' && (isInPolygon || mentionsManila);
+      }).map((place) => {
+        'type': 'address',
+        'name': place['name'],
+        'address': place['name'],
+        'location': LatLng(place['latitude'] ?? 0.0, place['longitude'] ?? 0.0),
+        'description': place['name'],
+      }).toList();
+
+      List<Map<String, dynamic>> filteredLandmarks = landmarkResults.map((place) => {
+        'type': 'address',
+        'name': place['name'],
+        'address': place['name'],
+        'location': LatLng(place['latitude'] ?? 0.0, place['longitude'] ?? 0.0),
+        'description': place['name'],
+      }).toList();
+
+      Set<String> seen = {};
+      List<Map<String, dynamic>> allResults = [
+        ...filteredLandmarks,
+        ...filteredMapbox,
+        ...filteredStops,
+      ].where((item) {
+        final key = '${item['name']}|${item['location'].latitude}|${item['location'].longitude}';
+        if (seen.contains(key)) return false;
+        seen.add(key);
+        return true;
+      }).toList();
 
       setState(() {
-        _searchResults = combinedResults;
+        _searchResults = allResults;
         _isSearching = false;
       });
     } catch (e) {
@@ -123,7 +136,6 @@ class _SearchSheetState extends State<SearchSheet> {
         _searchResults = [];
         _isSearching = false;
       });
-      print('Search error: $e');
     }
   }
 
@@ -193,32 +205,46 @@ class _SearchSheetState extends State<SearchSheet> {
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6,
+            offset: Offset(0, -3),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          // Blue header, flush to the top, with centered DIRECTIONS
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 18.0),
-            color: const Color(0xFF6699CC),
-            child: Stack(
-              alignment: Alignment.center,
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF6699CC),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: Row(
               children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: () => Navigator.pop(context),
+                Text(
+                  'MAIWAY',
+                  style: GoogleFonts.notoSerif(
+                    fontSize: 24,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
                   ),
                 ),
-                Center(
-                  child: Text(
-                    'DIRECTIONS',
-                    style: GoogleFonts.notoSerif(
-                      color: Colors.black,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'SEARCH',
+                      style: GoogleFonts.notoSerif(
+                        fontSize: 20,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -226,7 +252,6 @@ class _SearchSheetState extends State<SearchSheet> {
             ),
           ),
           
-          // Origin and Destination inputs
           Container(
             padding: EdgeInsets.all(16),
             child: Column(
@@ -239,7 +264,7 @@ class _SearchSheetState extends State<SearchSheet> {
                           width: 12,
                           height: 12,
                           decoration: BoxDecoration(
-                            color: Colors.blue,
+                            color: Color(0xFF003366),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -252,7 +277,7 @@ class _SearchSheetState extends State<SearchSheet> {
                           width: 12,
                           height: 12,
                           decoration: BoxDecoration(
-                            color: Colors.grey[400],
+                            color: Colors.red,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -267,17 +292,19 @@ class _SearchSheetState extends State<SearchSheet> {
                             decoration: InputDecoration(
                               hintText: 'Where you start',
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(color: Colors.grey[300]!),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.blue),
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: const Color(0xFF6699CC), width: 2),
                               ),
                               contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 12,
+                                horizontal: 16,
+                                vertical: 14,
                               ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
                             ),
                             onTap: () {
                               setState(() {
@@ -294,20 +321,22 @@ class _SearchSheetState extends State<SearchSheet> {
                           SizedBox(height: 12),
                           TextField(
                             controller: _destinationController,
-                decoration: InputDecoration(
+                            decoration: InputDecoration(
                               hintText: 'Where to?',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(color: Colors.grey[300]!),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.blue),
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: const Color(0xFF6699CC), width: 2),
                               ),
                               contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 12,
+                                horizontal: 16,
+                                vertical: 14,
                               ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
                             ),
                             onTap: () {
                               setState(() {
@@ -325,7 +354,7 @@ class _SearchSheetState extends State<SearchSheet> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.swap_vert, color: Colors.blue),
+                      icon: Icon(Icons.swap_vert, color: const Color(0xFF6699CC)),
                       onPressed: _swapLocations,
                     ),
                   ],
@@ -334,51 +363,72 @@ class _SearchSheetState extends State<SearchSheet> {
             ),
           ),
 
-          // Quick actions
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  ListTile(
-                  leading: Icon(Icons.location_pin, color: Colors.grey[600]),
-                  title: Text('Pin location on Map'),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.location_pin, color: const Color(0xFF6699CC)),
+                  title: Text(
+                    'Pin location on Map',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   onTap: _pinLocationOnMap,
+                ),
+                ListTile(
+                  leading: Icon(Icons.my_location, color: const Color(0xFF6699CC)),
+                  title: Text(
+                    'Use current location',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  ListTile(
-                  leading: Icon(Icons.my_location, color: Colors.blue),
-                  title: Text('Use current location'),
                   onTap: _useCurrentLocation,
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
             
-          // Search results
           if (_isSearching)
             Expanded(
               child: Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                  valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFF6699CC)),
                 ),
               ),
             )
           else if (_searchResults.isNotEmpty)
-              Expanded(
-                child: ListView.builder(
+            Expanded(
+              child: ListView.builder(
                 itemCount: _searchResults.length,
-                  itemBuilder: (context, index) {
+                itemBuilder: (context, index) {
                   Map<String, dynamic> result = _searchResults[index];
-                    return ListTile(
+                  return ListTile(
                     leading: Icon(
                       result['type'] == 'stop' ? Icons.directions_bus : Icons.location_on,
-                      color: result['type'] == 'stop' ? Colors.orange : Colors.grey[600],
+                      color: result['type'] == 'stop' ? Colors.orange : const Color(0xFF6699CC),
                     ),
-                    title: Text(result['name']),
-                    subtitle: Text(result['address']),
+                    title: Text(
+                      result['name'],
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: Text(
+                      result['address'],
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                      ),
+                    ),
                     onTap: () => _selectLocation(result),
-                    );
-                  },
-                ),
+                  );
+                },
+              ),
             )
           else
             Expanded(
@@ -395,12 +445,13 @@ class _SearchSheetState extends State<SearchSheet> {
                     Text(
                       'Search for locations',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
                         color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-          ],
-        ),
               ),
             ),
         ],

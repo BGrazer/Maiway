@@ -1,6 +1,5 @@
 import 'package:latlong2/latlong.dart';
-import 'package:maiwayapp/models/route_segment.dart';
-import 'package:maiwayapp/models/transport_mode.dart';
+import '../models/route_segment.dart';
 
 class RouteProcessor {
   /// Process route response from routing service
@@ -67,7 +66,6 @@ class RouteProcessor {
           'segments': segments,
           'total_cost': summary?['total_cost'] ?? 0,
           'total_distance': summary?['total_distance'] ?? 0,
-          'total_time': summary?['total_time'] ?? 0,
           'route_segments': routeSegments,
           'fare_breakdown': fareBreakdown,
         },
@@ -76,7 +74,6 @@ class RouteProcessor {
         'stops': stops,
         'totalCost': summary?['total_cost']?.toDouble() ?? 0.0,
         'totalDistance': summary?['total_distance']?.toDouble() ?? 0.0,
-        'totalTime': summary?['total_time']?.toInt() ?? 0,
         'fareBreakdown': fareBreakdown,
         'summary': summary,
       };
@@ -139,7 +136,8 @@ class RouteProcessor {
         try {
           segments.add(RouteSegment.fromMap(segment));
         } catch (e) {
-          print("⚠️ Error processing route segment: $e");
+          // Skip invalid segments silently
+          continue;
         }
       }
     }
@@ -208,7 +206,8 @@ class RouteProcessor {
           double lat = (coord[1] as num).toDouble();
           allPoints.add(LatLng(lat, lon));
         } catch (e) {
-          print("⚠️ Invalid coordinate in new format: $coord");
+          // Skip invalid coordinates silently
+          continue;
         }
       }
     }
@@ -222,7 +221,7 @@ class RouteProcessor {
     
     for (final shape in shapes) {
       if (shape != null && shape.containsKey('coordinates')) {
-        final coordinates = shape['coordinates'] as List?;
+        final coordinates = shape['coordinates'] as List? ?? [];
         if (coordinates != null) {
           for (final coord in coordinates) {
             if (coord != null && coord is List && coord.length >= 2) {
@@ -277,7 +276,6 @@ class RouteProcessor {
     final segments = routeData['segments'] as List<RouteSegment>? ?? [];
     final totalCost = routeData['total_cost'];
     final totalDistance = routeData['total_distance'];
-    final totalTime = routeData['total_time'];
     final fareBreakdown = routeData['fare_breakdown'] as Map<String, double>? ?? {};
     
     int totalPoints = 0;
@@ -297,7 +295,6 @@ class RouteProcessor {
     return {
       'totalCost': totalCost?.toDouble(),
       'totalDistance': totalDistance?.toDouble(),
-      'totalTime': totalTime?.toInt(),
       'totalStops': stops.length,
       'totalSegments': segments.length,
       'totalPoints': totalPoints,

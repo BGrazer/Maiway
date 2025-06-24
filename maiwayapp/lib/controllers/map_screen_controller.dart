@@ -105,7 +105,7 @@ class MapScreenController {
       
       mapController.move(currentLocation!, 15.0);
     } catch (e) {
-      print("❌ Error getting location: $e");
+      // Handle error silently
     }
   }
 
@@ -152,7 +152,7 @@ class MapScreenController {
       }
       _safeSetState();
     } catch (e) {
-      print('🚨 Reverse geocoding error: $e');
+      // Handle error silently
     }
   }
 
@@ -170,8 +170,6 @@ class MapScreenController {
     _safeSetState();
 
     try {
-      print("🔍 Fetching route from $origin to $destination");
-      
       final selectedPrefs = await _getSelectedPreferences();
       final selectedModes = await _getSelectedModes();
       
@@ -181,8 +179,6 @@ class MapScreenController {
         mode: selectedPrefs.isNotEmpty ? selectedPrefs[0] : 'fastest',
         modes: selectedModes,
       );
-      
-      print("📝 Route response: $response");
 
       // Use RouteProcessor to process the response
       final processedResult = RouteProcessor.processRouteResponse(response);
@@ -367,7 +363,6 @@ class MapScreenController {
         showError('Selected location is outside Manila');
       }
     } catch (e) {
-      print('🚨 Geocoding error: $e');
       showError('Error finding location');
     }
   }

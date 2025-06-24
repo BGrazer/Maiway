@@ -7,10 +7,10 @@ class RouteSegment {
   final String name;
   final List<LatLng> coordinates;
   final double distance;
-  final int time;
   final double fare;
   final String fromStop;
   final String toStop;
+  final List<dynamic> detailedInstructions;
 
   RouteSegment({
     required this.mode,
@@ -18,10 +18,10 @@ class RouteSegment {
     required this.name,
     required this.coordinates,
     required this.distance,
-    required this.time,
     this.fare = 0.0,
     required this.fromStop,
     required this.toStop,
+    this.detailedInstructions = const [],
   });
 
   factory RouteSegment.fromMap(Map<String, dynamic> map) {
@@ -42,10 +42,10 @@ class RouteSegment {
       name: map['name']?.toString() ?? 'Unnamed Segment',
       coordinates: coords,
       distance: (map['distance'] as num?)?.toDouble() ?? 0.0,
-      time: (map['time'] as num?)?.toInt() ?? 0,
       fare: (map['fare'] as num?)?.toDouble() ?? 0.0,
       fromStop: map['from_stop']?['name']?.toString() ?? 'Start of segment',
       toStop: map['to_stop']?['name']?.toString() ?? 'End of segment',
+      detailedInstructions: map['detailed_instructions'] as List<dynamic>? ?? [],
     );
   }
 
@@ -56,15 +56,15 @@ class RouteSegment {
       'name': name,
       'shape': coordinates.map((c) => [c.longitude, c.latitude]).toList(),
       'distance': distance,
-      'time': time,
       'fare': fare,
       'from_stop': {'name': fromStop},
       'to_stop': {'name': toStop},
+      'detailed_instructions': detailedInstructions,
     };
   }
 
   @override
   String toString() {
-    return 'RouteSegment(mode: ${mode.name}, from: $fromStop, to: $toStop, distance: ${distance}m, time: ${time}min, fare: ₱$fare)';
+    return 'RouteSegment(mode: ${mode.name}, from: $fromStop, to: $toStop, distance: ${distance}m, fare: ₱$fare)';
   }
 } 

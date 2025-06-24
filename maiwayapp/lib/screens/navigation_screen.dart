@@ -14,7 +14,7 @@ class NavigationScreen extends StatefulWidget {
 class _NavigationScreenState extends State<NavigationScreen> {
   MapController _mapController = MapController();
   List<RouteSegment> _segments = [];
-  List<LatLng> _fullPolyline = []; // To store the complete route path
+  List<LatLng> _fullPolyline = [];
   LatLng? _origin;
   LatLng? _destination;
   Color _routeColor = Colors.blue;
@@ -28,7 +28,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
       if (args != null && args['route'] != null) {
         final routeData = args['route'] as Map<String, dynamic>;
         setState(() {
-          // Ensure segments are parsed from map if needed
           final rawSegments = routeData['segments'] as List?;
           if (rawSegments != null && rawSegments.isNotEmpty) {
             _segments = rawSegments.map((s) {
@@ -37,7 +36,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
               } else if (s is RouteSegment) {
                 return s;
               } else {
-                print('⚠️ Unknown segment type: $s');
                 return null;
               }
             }).whereType<RouteSegment>().toList();
@@ -45,11 +43,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
           _origin = args['origin'] as LatLng?;
           _destination = args['destination'] as LatLng?;
         });
-        print('🔍 NavigationScreen: Loaded ${_segments.length} segments');
-        for (var i = 0; i < _segments.length; i++) {
-          print('  Segment $i: mode=${_segments[i].mode}, coords=${_segments[i].coordinates.length}');
-        }
-        // Auto-zoom to first segment
         if (_segments.isNotEmpty) {
           _focusOnStep(0);
         }
@@ -58,7 +51,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   void _setupMap() {
-    // Use the full polyline for fitting the map view
     if (_fullPolyline.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -71,7 +63,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
         }
       });
     } else if (_origin != null && _destination != null) {
-      // Fallback to origin/destination if full polyline is empty
       WidgetsBinding.instance.addPostFrameCallback((_) {
          if (mounted) {
           _mapController.fitCamera(
@@ -108,60 +99,44 @@ class _NavigationScreenState extends State<NavigationScreen> {
       final segment = _segments[stepIndex];
       if (segment.coordinates.isNotEmpty) {
         final bounds = LatLngBounds.fromPoints(segment.coordinates);
-        print('🔍 Auto-zooming to segment $stepIndex, ${segment.coordinates.length} points');
         _mapController.fitCamera(
           CameraFit.bounds(
             bounds: bounds,
             padding: EdgeInsets.all(50.0),
           ),
         );
-      } else {
-        print('⚠️ Segment $stepIndex has no coordinates');
       }
     }
   }
 
-  // Robust color mapping for segment modes
   Color _getSegmentColor(String mode) {
     final m = mode.toLowerCase();
-    if (m.contains('walk')) return Color(0xFFFBC531); // Yellow
-    if (m.contains('jeep')) return Color(0xFF00A8FF); // Blue
-    if (m.contains('bus')) return Color(0xFF8C7AE6); // Purple
-    if (m.contains('tricycle')) return Color(0xFF4CD137); // Green
-    if (m.contains('lrt')) return Color(0xFFE84118); // Orange
+    if (m.contains('walk')) return Color(0xFFFBC531);
+    if (m.contains('jeep')) return Color(0xFF00A8FF);
+    if (m.contains('bus')) return Color(0xFF8C7AE6);
+    if (m.contains('tricycle')) return Color(0xFF4CD137);
+    if (m.contains('lrt')) return Color(0xFFE84118);
     return Colors.grey;
   }
 
-  // Add this function to save a trip entry to Firestore
   Future<void> saveTripToFirestore(TripEntry entry, String collection) async {
     await FirebaseFirestore.instance.collection(collection).add(entry.toMap());
   }
 
-  // Example usage in your Start Trip and End Trip button handlers:
-
   void _onStartTrip(TripEntry entry) async {
     await saveTripToFirestore(entry, 'travel_history');
-    // Navigate to Travel History screen
     Navigator.pushReplacementNamed(context, '/travel-history');
   }
 
   void _onEndTrip(TripEntry entry) async {
     await saveTripToFirestore(entry, 'survey');
-    // Clear pins after ending trip
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
     }
-    // Access the map screen controller and clear pins/controllers
-    // (Assuming you have a way to access the controller, e.g., via a singleton or provider)
-    // Example:
-    // MapScreenController.instance.clearPinsAndControllers();
-    // Or pass the controller via arguments/context if needed
-    // Then navigate to the survey screen
     Navigator.pushReplacementNamed(context, '/survey');
   }
 
   TripEntry _createTripEntryFromSummary(Map<String, dynamic> summary) {
-    // Map transport mode code to string
     String transportModeStr(dynamic code) {
       switch (code) {
         case 2:
@@ -195,13 +170,12 @@ class _NavigationScreenState extends State<NavigationScreen> {
           backgroundColor: const Color(0xFF6699CC),
           elevation: 0,
           automaticallyImplyLeading: true,
-          titleSpacing: 0,
           title: Row(
             children: [
               Text(
                 'MAIWAY',
                 style: GoogleFonts.notoSerif(
-                  fontSize: 22,
+                  fontSize: 24,
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,
@@ -223,33 +197,43 @@ class _NavigationScreenState extends State<NavigationScreen> {
           ),
         ),
         body: Center(
-          child: Text('Could not load navigation data.'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.red,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Could not load navigation data.',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     final currentStep = _segments.isNotEmpty ? _segments[_currentStepIndex] : null;
     final isLastStep = _currentStepIndex == _segments.length - 1;
-    
-    // Debug: print if any segment has empty coordinates
-    for (var i = 0; i < _segments.length; i++) {
-      if (_segments[i].coordinates.isEmpty) {
-        print('⚠️ Segment $i has empty coordinates!');
-      }
-    }
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF6699CC),
         elevation: 0,
         automaticallyImplyLeading: true,
-        titleSpacing: 0,
         title: Row(
           children: [
             Text(
               'MAIWAY',
               style: GoogleFonts.notoSerif(
-                fontSize: 22,
+                fontSize: 24,
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 2,
@@ -272,7 +256,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
       ),
       body: Stack(
         children: [
-          // Fullscreen map
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
@@ -284,7 +267,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.maiwayapp',
               ),
-              // Render all segment polylines with their colors
               PolylineLayer(
                 polylines: [
                   for (final segment in _segments)
@@ -306,7 +288,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     point: _origin!,
                     child: Icon(
                       Icons.radio_button_checked,
-                      color: Colors.blue,
+                      color: Color(0xFF003366),
                       size: 20,
                     ),
                   ),
@@ -324,19 +306,19 @@ class _NavigationScreenState extends State<NavigationScreen> {
               ),
             ],
           ),
-          // Directions/steps as a bottom overlay panel
+
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    offset: Offset(0, -2),
+                    color: Colors.black26,
+                    blurRadius: 6,
+                    offset: Offset(0, -3),
                   ),
                 ],
               ),
@@ -344,42 +326,95 @@ class _NavigationScreenState extends State<NavigationScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Step indicator
+                  Container(
+                    margin: EdgeInsets.only(bottom: 16),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         'Step ${_currentStepIndex + 1} of ${_segments.length}',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                           color: Colors.grey[600],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  // Current step instruction
+                  const SizedBox(height: 12),
+                  
                   if (currentStep != null)
-                    Text(
-                      currentStep.instruction,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                      textAlign: TextAlign.center,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        currentStep.instruction,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  const SizedBox(height: 16),
-                  // Navigation buttons
+                  const SizedBox(height: 20),
+                  
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ElevatedButton(
-                        onPressed: _currentStepIndex > 0 ? _previousStep : null,
-                        child: const Text('Previous'),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _currentStepIndex > 0 ? _previousStep : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6699CC),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: Text(
+                            'Previous',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
                       ),
-                      ElevatedButton(
-                        onPressed: !isLastStep ? _nextStep : null,
-                        child: const Text('Next'),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: !isLastStep ? _nextStep : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6699CC),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: Text(
+                            'Next',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
+                  
                   if (isLastStep)
                     Padding(
                       padding: const EdgeInsets.only(top: 16.0),
@@ -391,12 +426,20 @@ class _NavigationScreenState extends State<NavigationScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 16),
                           minimumSize: Size(double.infinity, 48),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          elevation: 2,
                         ),
-                        child: const Text('End Trip', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        child: Text(
+                          'End Trip',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                 ],
@@ -406,11 +449,5 @@ class _NavigationScreenState extends State<NavigationScreen> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    // MapScreenController.instance.clearPinsAndControllers();
-    super.dispose();
   }
 } 

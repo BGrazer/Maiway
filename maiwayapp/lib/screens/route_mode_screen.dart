@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../routing_service.dart';
 import '../utils/route_processor.dart';
 import '../models/route_segment.dart';
+import '../models/transport_mode.dart';
 import '../screens/navigation_screen.dart';
 import '../services/geocoding_service.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -97,16 +98,9 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     });
 
     try {
-      print("🔍 Fetching routes from backend...");
-      print("📍 Origin: $_originLocation");
-      print("📍 Destination: $_destinationLocation");
-
       // Determine which preferences are selected
       final prefs = await _getSelectedPreferences();
       final modes = await _getSelectedModes();
-      
-      print("🔍 DEBUG: Selected preferences: $prefs");
-      print("🔍 DEBUG: Selected modes: $modes");
       
       List<Map<String, dynamic>> processedRoutes = [];
 
@@ -180,7 +174,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         }
       }
 
-      print("📋 Total processed routes: ${processedRoutes.length}");
       setState(() {
         _routes = processedRoutes;
         _isLoading = false;
@@ -198,7 +191,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       }
 
     } catch (e) {
-      print("❌ Error fetching routes: $e");
       setState(() {
         _errorMessage = 'Failed to fetch routes: ${e.toString()}';
         _isLoading = false;
@@ -423,109 +415,42 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // Top App Bar - Blue bar with white 'MAIWAY'
+          // App Bar
           Container(
+            width: double.infinity,
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 10,
               left: 16,
               right: 16,
-              bottom: 0,
+              bottom: 10,
             ),
-            color: Color(0xFF6699CC),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            color: const Color(0xFF6699CC),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    if (_isPinning)
-                      IconButton(
-                        icon: Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => setState(() => _isPinning = false),
-                      )
-                    else
-                      SizedBox(width: 48),
-                    Expanded(
-                      child: Text(
-                        'MAIWAY',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Arial',
-                          letterSpacing: 2,
-                        ),
-                        textAlign: TextAlign.center,
+                Text(
+                  'MAIWAY',
+                  style: GoogleFonts.notoSerif(
+                    fontSize: 24,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'DIRECTIONS',
+                      style: GoogleFonts.notoSerif(
+                        fontSize: 20,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(width: 48),
-                  ],
+                  ),
                 ),
-                // Optional: blue bezel (can be omitted since bar is already blue)
               ],
             ),
           ),
-
-          // Pinning Mode UI
-          if (_isPinning)
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _isFetchingPinAddress ? 'Loading address...' : _pinAddress,
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Do you know information about this place?',
-                        style: TextStyle(color: Colors.lightBlue, fontSize: 15),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _confirmPinLocation,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text('Plan a Trip', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      FloatingActionButton(
-                        heroTag: 'user_location_button',
-                        mini: true,
-                        elevation: 4,
-                        onPressed: _centerOnUserLocation,
-                        child: const Icon(Icons.my_location),
-                      ),
-                      SizedBox(width: 8),
-                      FloatingActionButton(
-                        heroTag: 'reset_orientation_button',
-                        mini: true,
-                        elevation: 4,
-                        onPressed: _resetCameraOrientation,
-                        child: const Icon(Icons.explore),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
 
           // Map Section
           Expanded(
@@ -679,14 +604,14 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
-                      offset: Offset(0, -2),
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(0, -3),
                     ),
                   ],
                 ),
@@ -703,62 +628,19 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                       ),
                     ),
                     
-                    // Directions Header
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 18.0),
-                        decoration: BoxDecoration(
-                          color: Color(0xFF6699CC),
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
-                          ),
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: IconButton(
-                                icon: Icon(Icons.arrow_back, color: Colors.white),
-                                onPressed: () => Navigator.pop(context),
-                              ),
-                            ),
-                            Center(
-                              child: Text(
-                                'DIRECTIONS',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Arial',
-                                  letterSpacing: 2,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
                     // Origin and Destination
                     Padding(
-                      padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
                       child: Row(
                         children: [
                           Column(
                             children: [
-                              GestureDetector(
-                                onTap: () => _enterPinningMode(isOrigin: true),
-                                child: Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFF003366), // dark blue for origin
-                                    shape: BoxShape.circle,
-                                  ),
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: Color(0xFF003366), // dark blue for origin
+                                  shape: BoxShape.circle,
                                 ),
                               ),
                               Container(
@@ -766,15 +648,12 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                                 height: 30,
                                 color: Colors.grey[300],
                               ),
-                              GestureDetector(
-                                onTap: () => _enterPinningMode(isOrigin: false),
-                                child: Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
                                 ),
                               ),
                             ],
@@ -791,7 +670,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                SizedBox(height: 8),
+                                SizedBox(height: 16),
                                 Text(
                                   _destinationAddress,
                                   style: TextStyle(
@@ -803,7 +682,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.swap_vert, color: Colors.blue),
+                            icon: Icon(Icons.swap_vert, color: const Color(0xFF6699CC)),
                             onPressed: () {
                               // Handle swap locations
                             },
@@ -833,9 +712,17 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFF6699CC)),
+            ),
             SizedBox(height: 16),
-            Text('Finding best routes...'),
+            Text(
+              'Finding best routes...',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
+            ),
           ],
         ),
       );
@@ -864,6 +751,14 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _fetchRoutesFromBackend,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6699CC),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
                 child: Text('Try Again'),
               ),
             ],
