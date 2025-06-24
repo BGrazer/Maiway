@@ -42,6 +42,7 @@ class _HomeNavigationState extends State<HomeNavigation> {
   String _passengerType = 'Regular';
 
   // ✅ Build screens with data
+  // From travel pref
   List<Widget> _buildPages() {
     return [
       MapScreen(

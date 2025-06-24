@@ -30,192 +30,147 @@ class _SurveyPageState extends State<SurveyPage> {
     super.dispose();
   }
 
-  String mapVehicleType(String frontendType) {
-    switch (frontendType) {
-      case "Jeepney":
-        return "Jeep";
-      case "LRT1":
-        return "LRT 1";
-      default:
-        return frontendType;
-    }
-  }
-
   Future<void> _submitSurvey() async {
     if (_fareFeedback == 'yes') {
-      if (!mounted) return;
-      _showDialog("Nice!", "Thank you and have a safe trip.");
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Nice!"),
+          content: Text(
+            "Thank you and have a safe trip.\n\n"
+            "Distance: ${widget.distanceKm} km\n"
+            "Transport Mode: ${widget.transportMode}\n"
+            "Passenger Type: ${widget.passengerType}",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // close dialog
+                Navigator.pop(context); // close bottom sheet
+              },
+              child: const Text("OK"),
+            )
+          ],
+        ),
+      );
     } else if (_fareFeedback == 'no') {
       if (_chargedFareController.text.isEmpty) {
-        if (!mounted) return;
-        _showSnackbar('Please enter the charged fare');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter the charged fare')),
+        );
         return;
       }
 
       final chargedFare = double.tryParse(_chargedFareController.text);
       if (chargedFare == null) {
-        if (!mounted) return;
-        _showSnackbar('Invalid fare input');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid fare input')),
+        );
         return;
       }
 
-      final result = await _validateFareWithBackend(
-        vehicleType: mapVehicleType(widget.transportMode),
-        distanceKm: widget.distanceKm,
-        chargedFare: chargedFare,
-        isDiscounted: widget.passengerType == 'Discounted',
-      );
+      final url = Uri.parse("http://192.168.254.105:49945/predict_fare");
+      final isDiscounted = widget.passengerType.toLowerCase() == 'discounted';
 
-      if (result == null) {
-        if (!mounted) return;
-        _showSnackbar('Server error or no response.');
-        return;
+      try {
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            "vehicle_type": widget.transportMode,
+            "distance_km": widget.distanceKm,
+            "charged_fare": chargedFare,
+            "discounted": isDiscounted,
+          }),
+        );
+
+        final data = jsonDecode(response.body);
+        final predictedFare = data['predicted_fare'];
+        final difference = data['difference'];
+        final chargedFareFormatted = data['charged_fare'];
+        final isAnomalous = data['is_anomalous'];
+
+        final alert = isAnomalous
+            ? "🚨 ALERT: Overpricing Detected!"
+            : "✅ Fare is within the acceptable range.";
+
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Fare Validation Result"),
+            content: Text(
+              "Distance: ${widget.distanceKm} km\n"
+              "Predicted Fare: ₱$predictedFare\n"
+              "Charged Fare: ₱$chargedFareFormatted\n"
+              "Difference: ₱$difference\n\n"
+              "$alert",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // dialog
+                  Navigator.pop(context); // bottom sheet
+                },
+                child: const Text("OK"),
+              )
+            ],
+          ),
+        );
+      } catch (e) {
+        print("Error connecting to backend: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to connect to server')),
+        );
       }
-
-      final alertMessage = result['is_anomalous']
-          ? "ALERT: Overpricing Detected!"
-          : "Fare is within the acceptable range.";
-
-      if (!mounted) return;
-      _showDialog(
-        "Fare Validation Result",
-        "Distance: ${widget.distanceKm} km\n"
-        "Predicted Fare: ₱${result['predicted_fare']}\n"
-        "Charged Fare: ₱${result['charged_fare']}\n"
-        "Difference: ₱${result['difference']}\n"
-        "Threshold: ₱${result['threshold']}\n\n"
-        "$alertMessage",
-      );
     }
-  }
-
-  Future<Map<String, dynamic>?> _validateFareWithBackend({
-    required String vehicleType,
-    required double distanceKm,
-    required double chargedFare,
-    required bool isDiscounted,
-  }) async {
-    const String backendUrl = 'http://localhost:49945/predict_fare';
-
-    try {
-      final response = await http.post(
-        Uri.parse(backendUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'vehicle_type': vehicleType,
-          'distance_km': distanceKm,
-          'charged_fare': chargedFare,
-          'discounted': isDiscounted,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        print('Backend error: ${response.statusCode} ${response.body}');
-        return null;
-      }
-    } catch (e) {
-      print("Error calling backend: $e");
-      return null;
-    }
-  }
-
-  void _showSnackbar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  void _showDialog(String title, String content) {
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () {
-              if (!mounted) return;
-              Navigator.pop(context); // close dialog
-              Navigator.pop(context); // go back to map
-            },
-            child: const Text("OK"),
-          )
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Trip Fare Survey"),
-        backgroundColor: const Color(0xFF6699CC),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            Card(
-              elevation: 4,
-              color: Colors.blue[50],
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Selected Travel Preferences:", style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Text("• Preference: ${widget.selectedPreference}"),
-                    Text("• Mode: ${widget.transportMode}"),
-                    Text("• Passenger Type: ${widget.passengerType}"),
-                  ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text("Do you feel you were charged the right amount?",
+              style: TextStyle(fontSize: 18)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: RadioListTile<String>(
+                  title: const Text("Yes"),
+                  value: 'yes',
+                  groupValue: _fareFeedback,
+                  onChanged: (value) => setState(() => _fareFeedback = value),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text("Was the fare given fair?", style: TextStyle(fontSize: 18)),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text("Yes"),
-                    value: 'yes',
-                    groupValue: _fareFeedback,
-                    onChanged: (value) => setState(() => _fareFeedback = value),
-                  ),
+              Expanded(
+                child: RadioListTile<String>(
+                  title: const Text("No"),
+                  value: 'no',
+                  groupValue: _fareFeedback,
+                  onChanged: (value) => setState(() => _fareFeedback = value),
                 ),
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text("No"),
-                    value: 'no',
-                    groupValue: _fareFeedback,
-                    onChanged: (value) => setState(() => _fareFeedback = value),
-                  ),
-                ),
-              ],
-            ),
-            if (_fareFeedback == 'no') ...[
-              const SizedBox(height: 20),
-              const Text("How much was the charged fare?"),
-              TextField(
-                controller: _chargedFareController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(hintText: "Enter fare in PHP"),
               ),
             ],
-            const Spacer(),
-            ElevatedButton(
-              onPressed: _submitSurvey,
-              child: const Text("Submit"),
+          ),
+          if (_fareFeedback == 'no') ...[
+            const SizedBox(height: 20),
+            const Text("How much was the charged fare?"),
+            TextField(
+              controller: _chargedFareController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(hintText: "Enter fare in PHP"),
             ),
           ],
-        ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _submitSurvey,
+            child: const Text("Submit"),
+          ),
+        ],
       ),
     );
   }

@@ -6,8 +6,9 @@ import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
-import 'package:maiwayapp/survey_page.dart';
+import 'package:maiwayapp/survey_page.dart' as my_survey; // Use a prefix to avoid name conflict
 
+// Nyaw from Travel preference page
 class MapScreen extends StatefulWidget {
   final List<String> selectedPreferences;
   final List<String> selectedModes;
@@ -19,7 +20,6 @@ class MapScreen extends StatefulWidget {
     required this.selectedModes,
     required this.passengerType,
   });
-
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -38,24 +38,6 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
     super.initState();
     _getCurrentLocation();
     _manilaBoundary = getManilaBoundary();
-
-    // ✅ Optional: Handle preferences logic (Fastest, Cheapest, Convenient)
-    for (String preference in widget.selectedPreferences) {
-      switch (preference) {
-        case 'Fastest':
-          debugPrint("🔵 Preference active: Fastest");
-          // TODO: Prioritize fastest route logic
-          break;
-        case 'Cheapest':
-          debugPrint("🟢 Preference active: Cheapest");
-          // TODO: Prioritize lowest fare routes
-          break;
-        case 'Convenient':
-          debugPrint("🟣 Preference active: Convenient");
-          // TODO: Show routes with fewer transfers or easier navigation
-          break;
-      }
-    }
   }
 
   @override
@@ -136,6 +118,35 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       builder: (context) => SearchSheet(
         originController: originController,
         destinationController: destinationController,
+      ),
+    );
+  }
+
+  void _openSurveyPopup() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: 20,
+          left: 20,
+          right: 20,
+        ),
+        child: my_survey.SurveyPage(
+          distanceKm: 5.0,
+          transportMode: widget.selectedModes.isNotEmpty
+              ? widget.selectedModes.first
+              : 'Jeep',
+          passengerType: widget.passengerType,
+          selectedPreference: widget.selectedPreferences.isNotEmpty
+              ? widget.selectedPreferences.first
+              : 'Fastest',
+        ),
       ),
     );
   }
@@ -227,29 +238,13 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
             ),
           ),
 
-          // Floating Buttons
+          // Floating Buttons for temporary survey pop up
           Positioned(
             bottom: 210,
             right: 20,
             child: FloatingActionButton(
               heroTag: 'survey_button',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SurveyPage(
-                      distanceKm: 5.0,
-                      transportMode: widget.selectedModes.isNotEmpty
-                          ? widget.selectedModes.first
-                          : 'Jeep',
-                      passengerType: widget.passengerType,
-                      selectedPreference: widget.selectedPreferences.isNotEmpty
-                          ? widget.selectedPreferences.first
-                          : 'Fastest',
-                    ),
-                  ),
-                );
-              },
+              onPressed: _openSurveyPopup,
               tooltip: 'Open Survey Page',
               child: const Icon(Icons.feedback),
             ),
