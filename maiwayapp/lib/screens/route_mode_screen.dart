@@ -413,200 +413,69 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          // App Bar
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              left: 16,
-              right: 16,
-              bottom: 10,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF6699CC),
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            Text(
+              'MAIWAY',
+              style: GoogleFonts.notoSerif(
+                fontSize: 24,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
             ),
-            color: const Color(0xFF6699CC),
-            child: Row(
-              children: [
-                Text(
-                  'MAIWAY',
+            Expanded(
+              child: Center(
+                child: Text(
+                  'ROUTE',
                   style: GoogleFonts.notoSerif(
-                    fontSize: 24,
+                    fontSize: 20,
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
                   ),
                 ),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      'DIRECTIONS',
-                      style: GoogleFonts.notoSerif(
-                        fontSize: 20,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+          ],
+        ),
+      ),
+      body: Stack(
+        children: [
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: _originLocation,
+              initialZoom: 15.0,
+              onTap: _isPinning ? (_, point) => _onMapTap(point) : null,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.example.app',
+              ),
+              PolylineLayer(
+                polylines: _polylines,
+              ),
+              MarkerLayer(
+                markers: _markers,
+              ),
+            ],
           ),
 
-          // Map Section
-          Expanded(
-            flex: 2,
-            child: Stack(
-              children: [
-                FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: _isPinning ? _pinLocation : _originLocation,
-                    initialZoom: 15.0,
-                    onPositionChanged: (pos, hasGesture) {
-                      if (_isPinning && hasGesture) {
-                        setState(() {
-                          _pinLocation = pos.center!;
-                        });
-                        _fetchPinAddress(_pinLocation);
-                      }
-                    },
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.maiwayapp',
-                      tileProvider: CancellableNetworkTileProvider(),
-                    ),
-                    if (_isPinning)
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            width: 60.0,
-                            height: 60.0,
-                            point: _pinLocation,
-                            child: Icon(Icons.location_pin, color: Colors.blue, size: 48),
-                          ),
-                        ],
-                      )
-                    else ...[
-                      PolylineLayer(polylines: _polylines),
-                      MarkerLayer(markers: _markers),
-                    ],
-                  ],
-                ),
-                
-                // Loading Overlay
-                if (_isLoading)
-                  Container(
-                    color: Colors.black54,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'Finding routes...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                
-                // Error Overlay
-                if (_errorMessage != null)
-                  Container(
-                    color: Colors.black54,
-                    child: Center(
-                      child: Container(
-                        margin: EdgeInsets.all(32),
-                        padding: EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              color: Colors.red,
-                              size: 48,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'Route Error',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              _errorMessage!,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: _fetchRoutesFromBackend,
-                              child: Text('Try Again'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                
-                // Start Trip Button Overlay
-                if (!_isPinning && !_isLoading && _errorMessage == null && _routes.isNotEmpty && _selectedRouteIndex >= 0)
-                  Positioned(
-                    bottom: 20,
-                    left: 20,
-                    right: 20,
-                    child: ElevatedButton(
-                      onPressed: _startTrip,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        'START TRIP',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          
           // Bottom Sheet Content (hide during pinning)
           if (!_isPinning)
-            Expanded(
-              flex: 3,
+            Align(
+              alignment: Alignment.bottomCenter,
               child: Container(
+                width: double.infinity,
+                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black26,
@@ -616,10 +485,10 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                   ],
                 ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Drag Handle
                     Container(
-                      margin: EdgeInsets.only(top: 8),
+                      margin: EdgeInsets.only(top: 12, bottom: 8),
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
@@ -627,12 +496,18 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    
-                    // Origin and Destination
+                    // Origin and Destination Section with Back Button
                     Padding(
-                      padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
                       child: Row(
                         children: [
+                          // Back Button
+                          IconButton(
+                            icon: Icon(Icons.arrow_back, color: const Color(0xFF6699CC)),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                          SizedBox(width: 8),
+                          // Origin/Destination Markers
                           Column(
                             children: [
                               Container(
@@ -659,6 +534,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                             ],
                           ),
                           SizedBox(width: 16),
+                          // Location Text
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -681,6 +557,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                               ],
                             ),
                           ),
+                          // Swap Button
                           IconButton(
                             icon: Icon(Icons.swap_vert, color: const Color(0xFF6699CC)),
                             onPressed: () {
@@ -690,14 +567,40 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                         ],
                       ),
                     ),
-                    
                     Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-                    
-                    // Loading/Error/Routes
                     Expanded(
-                      child: _buildRoutesSection(),
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(16),
+                        child: _buildRoutesSection(),
+                      ),
                     ),
                   ],
+                ),
+              ),
+            ),
+
+          // Start Trip Button Overlay
+          if (!_isPinning && !_isLoading && _errorMessage == null && _routes.isNotEmpty && _selectedRouteIndex >= 0)
+            Positioned(
+              bottom: 20,
+              left: 20,
+              right: 20,
+              child: ElevatedButton(
+                onPressed: _startTrip,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6699CC),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'START TRIP',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -929,5 +832,9 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         padding: EdgeInsets.all(50.0),
       ),
     );
+  }
+
+  void _onMapTap(LatLng point) {
+    // Implement the logic to handle map tap
   }
 } 

@@ -261,6 +261,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
             options: MapOptions(
               initialCenter: _origin!,
               initialZoom: 15.0,
+              onMapReady: () => _setupMap(),
             ),
             children: [
               TileLayer(
@@ -306,7 +307,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
               ),
             ],
           ),
-
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -414,34 +414,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
                       ),
                     ],
                   ),
-                  
-                  if (isLastStep)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          final tripEntry = _createTripEntryFromSummary(summary);
-                          _onEndTrip(tripEntry);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          minimumSize: Size(double.infinity, 48),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: Text(
-                          'End Trip',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
