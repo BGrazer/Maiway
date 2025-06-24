@@ -443,40 +443,49 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // Top App Bar - Black bezel with 'MaiWay' in white
+          // Top App Bar - Keep MaiwayApp blue header
           Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 10,
               left: 16,
               right: 16,
-              bottom: 10,
+              bottom: 0,
             ),
-            decoration: BoxDecoration(
-              color: Colors.black,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
+            color: Colors.black,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(width: 48),
-                Expanded(
-                  child: Text(
-                    'MaiWay',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
+                Row(
+                  children: [
+                    if (_isPinning)
+                      IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => setState(() => _isPinning = false),
+                      )
+                    else
+                      SizedBox(width: 48),
+                    Expanded(
+                      child: Text(
+                        'MAIWAY',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Arial',
+                          letterSpacing: 2,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
+                    SizedBox(width: 48),
+                  ],
                 ),
-                SizedBox(width: 48),
+                // Blue bezel
+                Container(
+                  height: 8,
+                  width: double.infinity,
+                  color: Color(0xFF6699CC),
+                ),
               ],
             ),
           ),
@@ -719,32 +728,38 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                       ),
                     ),
                     
-                    // Directions Header (panel) - Blue with white text and white back arrow
+                    // Directions Header
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 0.0),
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
-                        color: const Color(0xFF1565C0), // Strong blue
-                        child: Row(
+                        padding: const EdgeInsets.symmetric(vertical: 18.0),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF6699CC),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
+                          ),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            IconButton(
-                              icon: Icon(Icons.arrow_back, color: Colors.white),
-                              onPressed: () {
-                                Navigator.of(context).pop({'clearPins': true});
-                              },
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: IconButton(
+                                icon: Icon(Icons.arrow_back, color: Colors.white),
+                                onPressed: () => Navigator.pop(context),
+                              ),
                             ),
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'DIRECTIONS',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 2,
-                                  ),
+                            Center(
+                              child: Text(
+                                'DIRECTIONS',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Arial',
+                                  letterSpacing: 2,
                                 ),
                               ),
                             ),

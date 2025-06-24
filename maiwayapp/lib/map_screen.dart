@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:maiwayapp/city_boundary.dart';
-import 'package:maiwayapp/search_sheet.dart';
+import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'search_sheet.dart';
 import 'controllers/map_screen_controller.dart';
 import 'city_boundary.dart';
@@ -11,21 +10,11 @@ import 'services/geocoding_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
-
   @override
-  State<MapScreen> createState() => _MapScreenState();
   _MapScreenState createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final MapController _mapController = MapController();
-  LatLng? _currentLocation;
-
-  late final List<LatLng> _manilaBoundary;
-
-  final TextEditingController originController = TextEditingController();
-  final TextEditingController destinationController = TextEditingController();
   late MapScreenController controller;
   bool _isLoading = true;
   bool _isPinningMode = false;
@@ -34,8 +23,6 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
-    _manilaBoundary = getManilaBoundary();
     controller = MapScreenController(
       showError: _showError,
       showSuccess: _showSuccess,
@@ -45,19 +32,12 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   @override
-  void dispose() {
-    originController.dispose();
-    destinationController.dispose();
-    super.dispose();
   void didChangeDependencies() {
     super.didChangeDependencies();
     // This will be called when the widget is rebuilt, including after preference changes
     print('🔄 DEBUG: MapScreen dependencies changed, checking for preference updates');
   }
 
-  Future<void> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
   void _showError(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,10 +50,6 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
   void _showSuccess(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,7 +71,6 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-    if (permission == LocationPermission.deniedForever) return;
   void _onMapTap(TapPosition tapPosition, LatLng point) {
     if (_isPinningMode) {
       // Tapping the map does nothing during pinning mode.
@@ -104,9 +79,6 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _currentLocation = LatLng(position.latitude, position.longitude);
   void _confirmPinAndReturnToSearch() {
     final pinnedLocation = controller.mapController.camera.center;
     
@@ -163,10 +135,6 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  void _centerOnUserLocation() {
-    if (_currentLocation != null) {
-      _mapController.move(_currentLocation!, 15.0);
-      _mapController.rotate(0);
   void _checkForAutoTransition() {
     print('🔍 DEBUG: Checking auto transition...');
     print('🔍 DEBUG: Origin pin: ${controller.originPin?.latitude}, ${controller.originPin?.longitude}');
@@ -179,21 +147,10 @@ class _MapScreenState extends State<MapScreen> {
         _goToRouteMode();
       });
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Unable to fetch location')));
       print('❌ DEBUG: Not all pins set yet');
     }
   }
 
-  void _resetCameraOrientation() {
-    if (_currentLocation != null) {
-      _mapController.rotate(0);
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Unable to fetch location')));
-    }
   void _goToRouteMode() {
     Navigator.pushNamed(
       context, 
@@ -213,16 +170,11 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  /// Opens the search sheet for origin and destination input.
-  void _openSearchSheet() {
   void _showSearchSheet() {
     // Do not clear pins and controllers automatically here
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       backgroundColor: Colors.transparent,
       builder: (context) => SearchSheet(
         onLocationSelected: (LatLng location, String address, bool isOrigin) {
@@ -241,11 +193,6 @@ class _MapScreenState extends State<MapScreen> {
         originAddress: controller.originController.text,
         destinationAddress: controller.destinationController.text,
       ),
-      builder:
-          (context) => SearchSheet(
-            originController: originController,
-            destinationController: destinationController,
-          ),
     );
   }
 
@@ -302,17 +249,6 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: RichText(
-          text: TextSpan(
-            style: GoogleFonts.notoSerifDevanagari(
-              fontSize: 22,
-              color: Colors.black,
-            ),
-            children: const [
-              TextSpan(text: 'M'),
-              TextSpan(text: 'AI', style: TextStyle(fontSize: 27)),
-              TextSpan(text: 'WAY'),
-            ],
         title: Text(
           'MAIWAY',
           style: GoogleFonts.notoSerif(
@@ -331,20 +267,8 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           // OpenStreetMap
           FlutterMap(
-            mapController: _mapController,
             mapController: controller.mapController,
             options: MapOptions(
-              initialCenter: LatLng(14.5995, 120.9842),
-              initialZoom: 13.5,
-              interactionOptions: const InteractionOptions(
-                flags: ~InteractiveFlag.doubleTapDragZoom,
-              ),
-              cameraConstraint: CameraConstraint.contain(
-                bounds: LatLngBounds(
-                  LatLng(14.66, 120.92),
-                  LatLng(14.54, 121.05),
-                ),
-              ),
               initialCenter: controller.currentLocation ?? LatLng(14.5995, 120.9842),
               initialZoom: 15.0,
               onTap: _onMapTap,
@@ -352,7 +276,6 @@ class _MapScreenState extends State<MapScreen> {
               maxZoom: 18.0,
             ),
             children: [
-              openStreetMapTileLayer,
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.maiwayapp',
@@ -362,10 +285,6 @@ class _MapScreenState extends State<MapScreen> {
               PolygonLayer(
                 polygons: [
                   Polygon(
-                    points: _manilaBoundary,
-                    color: Colors.transparent,
-                    borderColor: Colors.redAccent,
-                    borderStrokeWidth: 3,
                     points: getManilaBoundary(),
                     color: Colors.red.withOpacity(0.1),
                     borderColor: Colors.red,
@@ -373,23 +292,6 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ],
               ),
-<<<<<<< Updated upstream
-              if (_currentLocation != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _currentLocation!,
-                      width: 40,
-                      height: 40,
-                      child: const Icon(
-                        Icons.my_location,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                  ],
-                ),
-=======
               MarkerLayer(markers: _getMarkers()),
               // Add route polyline if available
               if (controller.routePolyline.isNotEmpty)
@@ -401,8 +303,7 @@ class _MapScreenState extends State<MapScreen> {
                       color: Colors.blue,
                     ),
                   ],
-              ),
->>>>>>> Stashed changes
+                ),
             ],
           ),
 
@@ -430,12 +331,10 @@ class _MapScreenState extends State<MapScreen> {
           
           // Search Bar
           Positioned(
-            top: 7,
             top: 8, // Move even closer to the AppBar
             left: 7,
             right: 7,
             child: GestureDetector(
-              onTap: _openSearchSheet,
               onTap: _showSearchSheet,
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -464,7 +363,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Buttons for user location and camera orientation
           // Pinning Mode Controls
           if (_isPinningMode)
             Positioned(
@@ -541,7 +439,6 @@ class _MapScreenState extends State<MapScreen> {
             child: FloatingActionButton(
               heroTag: 'user_location_button',
               elevation: 4,
-              onPressed: _centerOnUserLocation,
               onPressed: controller.centerOnUserLocation,
               child: const Icon(Icons.my_location),
             ),
@@ -552,22 +449,16 @@ class _MapScreenState extends State<MapScreen> {
             child: FloatingActionButton(
               heroTag: 'reset_orientation_button',
               elevation: 4,
-              onPressed: _resetCameraOrientation,
               onPressed: controller.resetCameraOrientation,
               child: const Icon(Icons.explore),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  TileLayer get openStreetMapTileLayer => TileLayer(
-    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    userAgentPackageName: 'com.example.maiway',
-  );
-}
+  List<Marker> _getMarkers() {
     List<Marker> markers = [];
     
     print('🎯 DEBUG: Creating markers...');
