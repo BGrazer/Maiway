@@ -1,4 +1,5 @@
 import 'package:latlong2/latlong.dart';
+import 'package:flutter_map/flutter_map.dart';
 
 List<LatLng> getManilaBoundary() {
   return [
@@ -63,4 +64,26 @@ List<LatLng> getManilaBoundary() {
     LatLng(14.6346, 120.9532),
     LatLng(14.6344, 120.9412),
   ];
+}
+
+// Get Manila bounding box for quick pre-filtering
+LatLngBounds getManilaBounds() {
+  final boundary = getManilaBoundary();
+  
+  double minLat = boundary.first.latitude;
+  double maxLat = boundary.first.latitude;
+  double minLng = boundary.first.longitude;
+  double maxLng = boundary.first.longitude;
+
+  for (final point in boundary) {
+    if (point.latitude < minLat) minLat = point.latitude;
+    if (point.latitude > maxLat) maxLat = point.latitude;
+    if (point.longitude < minLng) minLng = point.longitude;
+    if (point.longitude > maxLng) maxLng = point.longitude;
+  }
+
+  return LatLngBounds(
+    LatLng(minLat, minLng), // southwest
+    LatLng(maxLat, maxLng), // northeast
+  );
 }

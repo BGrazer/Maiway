@@ -1,9 +1,24 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:maiwayapp/loginpage.dart';
 import 'package:maiwayapp/profile_screen.dart';
 import 'map_screen.dart';
-import 'travel_preference_page.dart';
+import 'travel_preference_page_new.dart';
+import 'screens/route_mode_screen.dart';
+import 'screens/navigation_screen.dart';
+import 'signup.dart';
+import 'forgot_password_page.dart';
+import 'change_pass.dart';
+import 'edit_profile.dart';
+import 'admin.dart';
+import 'travel_history_screen.dart';
+import 'user_report_page.dart';
+import 'user_report_history_page.dart';
+import 'legalities_page.dart';
+import 'developer_policies_page.dart';
+import 'transport_policies_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,8 +35,42 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        fontFamily: 'Arial',
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(fontFamily: 'Arial'),
+          bodyMedium: TextStyle(fontFamily: 'Arial'),
+          titleLarge: TextStyle(fontFamily: 'Arial'),
+          titleMedium: TextStyle(fontFamily: 'Arial'),
+          titleSmall: TextStyle(fontFamily: 'Arial'),
+          labelLarge: TextStyle(fontFamily: 'Arial'),
+          labelMedium: TextStyle(fontFamily: 'Arial'),
+          labelSmall: TextStyle(fontFamily: 'Arial'),
+          headlineLarge: TextStyle(fontFamily: 'Arial'),
+          headlineMedium: TextStyle(fontFamily: 'Arial'),
+          headlineSmall: TextStyle(fontFamily: 'Arial'),
+        ),
+        primaryTextTheme: const TextTheme(
+          bodyLarge: TextStyle(fontFamily: 'Arial'),
+          bodyMedium: TextStyle(fontFamily: 'Arial'),
+          titleLarge: TextStyle(fontFamily: 'Arial'),
+          titleMedium: TextStyle(fontFamily: 'Arial'),
+          titleSmall: TextStyle(fontFamily: 'Arial'),
+        ),
       ),
-      home: LoginPage(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => LoginPage(),
+        '/home': (context) => HomeNavigation(),
+        '/route-mode': (context) => RouteModeScreen(),
+        '/navigation': (context) => NavigationScreen(),
+        '/transport-modes': (context) => TravelPreferenceScreenNew(
+          onPreferencesSaved: (prefs, modes, passengerType) {
+            // Handle preferences saved from route navigation
+            print('Preferences saved from route: $prefs, $modes, $passengerType');
+          },
+          shouldNavigateBack: true,
+        ),
+      },
     );
   }
 }
@@ -35,12 +84,33 @@ class HomeNavigation extends StatefulWidget {
 
 class _HomeNavigationState extends State<HomeNavigation> {
   int _currentIndex = 0;
+  late final List<Widget> _pages;
 
-  final List<Widget> _pages = const [
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
     MapScreen(),
-    TravelPreferenceScreen(),
+      TravelPreferenceScreenNew(
+        onPreferencesSaved: _handlePreferencesSaved,
+      ),
     ProfileScreen(),
   ];
+  }
+
+  void _handlePreferencesSaved(List<String> prefs, List<String> modes, String passengerType) {
+    // Handle preferences saved from bottom navigation
+    print('Preferences saved from bottom nav: $prefs, $modes, $passengerType');
+    
+    // Show a success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Preferences updated! Routes will use your new settings.'),
+        backgroundColor: const Color(0xFF6699CC),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
