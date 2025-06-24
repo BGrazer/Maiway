@@ -35,15 +35,18 @@ class GeocodingService {
   /// Search for places matching a query using Mapbox
   static Future<List<Map<String, dynamic>>> searchPlaces(String query) async {
     const String mapboxToken = 'pk.eyJ1IjoibWFpd2F5YWRtaW4iLCJhIjoiY21jOG5tdDY1MWZrcTJrcHl4c2lrZTJuaSJ9.fEoTCb7zqrsJuCLOjcabXg';
+    // Manila bounding box: 120.95,14.55,121.02,14.65
+    // Proximity: 120.9842,14.5995 (center of Manila)
     final String url =
-        'https://api.mapbox.com/geocoding/v5/mapbox.places/${Uri.encodeComponent(query)}.json?access_token=$mapboxToken&autocomplete=true&limit=5&country=PH';
+        'https://api.mapbox.com/geocoding/v5/mapbox.places/${Uri.encodeComponent(query)}.json?access_token=$mapboxToken&autocomplete=true&limit=8&country=PH&bbox=120.95,14.55,121.02,14.65&proximity=120.9842,14.5995';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final features = data['features'] as List;
-        return features.map((feature) => {
-          'name': feature['place_name'] ?? 'Unknown',
+        // Only return features with a valid place_name
+        return features.where((feature) => feature['place_name'] != null && feature['place_name'].toString().trim().isNotEmpty).map((feature) => {
+          'name': feature['place_name'],
           'latitude': (feature['center'] as List)[1] ?? 0.0,
           'longitude': (feature['center'] as List)[0] ?? 0.0,
         }).toList();

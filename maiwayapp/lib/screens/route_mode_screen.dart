@@ -63,23 +63,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     });
   }
 
-  String _formatDuration(int totalSeconds) {
-    if (totalSeconds < 60) {
-      return '$totalSeconds sec';
-    }
-    final duration = Duration(seconds: totalSeconds);
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    String result = '';
-    if (hours > 0) {
-      result += '${hours} hr ';
-    }
-    if (minutes > 0 || hours == 0) {
-      result += '${minutes} min';
-    }
-    return result.trim();
-  }
-
   // Helper method to get selected preferences from SharedPreferences
   Future<List<String>> _getSelectedPreferences() async {
     final prefs = await SharedPreferences.getInstance();
@@ -143,7 +126,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
               'icon': Icons.speed,
               'color': Colors.green,
               'routeData': processed['routeData'],
-              'totalTime': _formatDuration(processed['totalTime'] as int? ?? 0),
               'totalCost': processed['totalCost'] ?? 0.0,
               'segments': processed['segments'] ?? [],
               'polyline': processed['polylinePoints'] ?? [],
@@ -167,7 +149,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
               'icon': Icons.attach_money,
               'color': Colors.orange,
               'routeData': processed['routeData'],
-              'totalTime': _formatDuration(processed['totalTime'] as int? ?? 0),
               'totalCost': processed['totalCost'] ?? 0.0,
               'segments': processed['segments'] ?? [],
               'polyline': processed['polylinePoints'] ?? [],
@@ -191,7 +172,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
               'icon': Icons.accessibility,
               'color': Colors.purple,
               'routeData': processed['routeData'],
-              'totalTime': _formatDuration(processed['totalTime'] as int? ?? 0),
               'totalCost': processed['totalCost'] ?? 0.0,
               'segments': processed['segments'] ?? [],
               'polyline': processed['polylinePoints'] ?? [],
@@ -443,7 +423,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // Top App Bar - Keep MaiwayApp blue header
+          // Top App Bar - Blue bar with white 'MAIWAY'
           Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 10,
@@ -451,7 +431,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
               right: 16,
               bottom: 0,
             ),
-            color: Colors.black,
+            color: Color(0xFF6699CC),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -474,18 +454,13 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                           fontFamily: 'Arial',
                           letterSpacing: 2,
                         ),
-                        textAlign: TextAlign.left,
+                        textAlign: TextAlign.center,
                       ),
                     ),
                     SizedBox(width: 48),
                   ],
                 ),
-                // Blue bezel
-                Container(
-                  height: 8,
-                  width: double.infinity,
-                  color: Color(0xFF6699CC),
-                ),
+                // Optional: blue bezel (can be omitted since bar is already blue)
               ],
             ),
           ),
@@ -1009,13 +984,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: route['color'],
-                                ),
-                              ),
-                              Text(
-                                route['totalTime'],
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
                                 ),
                               ),
                             ],
