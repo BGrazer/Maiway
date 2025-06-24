@@ -1,6 +1,0 @@
-transformers
-torch
-flask
-flask-cors
-scikit-learn
-sentence-transformers # We'll use this for semantic similarity
