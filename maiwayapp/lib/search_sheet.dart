@@ -61,7 +61,7 @@ class _SearchSheetState extends State<SearchSheet> {
         _originController.text = address;
       });
     } catch (e) {
-      // Handle error silently
+      print('Error getting current location address: $e');
     }
   }
 
@@ -78,10 +78,14 @@ class _SearchSheetState extends State<SearchSheet> {
     });
 
     try {
+      // First try the routing service for stops
       List<Map<String, dynamic>> stopResults = await RoutingService.searchStops(query);
+      // Then try Mapbox API for general addresses
       List<Map<String, dynamic>> mapboxResults = await GeocodingService.searchPlaces(query);
+      // Also try local landmark search
       List<Map<String, dynamic>> landmarkResults = await GeocodingService.searchLandmarks(query);
 
+      // Filter out stops with invalid/empty/unknown names
       List<Map<String, dynamic>> filteredStops = stopResults.where((stop) {
         final name = (stop['name'] ?? '').toString().trim();
         return name.isNotEmpty && name.toLowerCase() != 'unknown stop';
@@ -93,6 +97,7 @@ class _SearchSheetState extends State<SearchSheet> {
         'description': stop['name'],
       }).toList();
 
+      // Filter Mapbox results for Manila and valid names
       List<Map<String, dynamic>> filteredMapbox = mapboxResults.where((place) {
         final name = (place['name'] ?? '').toString().trim();
         LatLng latLng = LatLng(place['latitude'] ?? 0.0, place['longitude'] ?? 0.0);
@@ -107,6 +112,7 @@ class _SearchSheetState extends State<SearchSheet> {
         'description': place['name'],
       }).toList();
 
+      // Landmark results as address-type
       List<Map<String, dynamic>> filteredLandmarks = landmarkResults.map((place) => {
         'type': 'address',
         'name': place['name'],
@@ -115,6 +121,7 @@ class _SearchSheetState extends State<SearchSheet> {
         'description': place['name'],
       }).toList();
 
+      // Remove duplicates (by name+lat+lng)
       Set<String> seen = {};
       List<Map<String, dynamic>> allResults = [
         ...filteredLandmarks,
@@ -136,6 +143,7 @@ class _SearchSheetState extends State<SearchSheet> {
         _searchResults = [];
         _isSearching = false;
       });
+      print('Search error: $e');
     }
   }
 
@@ -205,53 +213,35 @@ class _SearchSheetState extends State<SearchSheet> {
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 6,
-            offset: Offset(0, -3),
-          ),
-        ],
       ),
-      child: Column(
-        children: [
-          Container(
+        child: Column(
+          children: [
+          // Blue bar and left-aligned white 'MAIWAY' in Arial, matching MapScreen
+            Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF6699CC),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 10,
+              left: 16,
+              right: 16,
+              bottom: 10,
             ),
-            child: Row(
-              children: [
-                Text(
-                  'MAIWAY',
-                  style: GoogleFonts.notoSerif(
-                    fontSize: 24,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                  ),
+            color: Color(0xFF6699CC),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'MAIWAY',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Arial',
+                  letterSpacing: 2,
                 ),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      'SEARCH',
-                      style: GoogleFonts.notoSerif(
-                        fontSize: 20,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           
+          // Origin and Destination inputs
           Container(
             padding: EdgeInsets.all(16),
             child: Column(
@@ -259,12 +249,12 @@ class _SearchSheetState extends State<SearchSheet> {
                 Row(
                   children: [
                     Column(
-                      children: [
+                children: [
                         Container(
                           width: 12,
                           height: 12,
                           decoration: BoxDecoration(
-                            color: Color(0xFF003366),
+                            color: Colors.blue,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -277,12 +267,12 @@ class _SearchSheetState extends State<SearchSheet> {
                           width: 12,
                           height: 12,
                           decoration: BoxDecoration(
-                            color: Colors.red,
+                            color: Colors.grey[400],
                             shape: BoxShape.circle,
                           ),
-                        ),
-                      ],
-                    ),
+                  ),
+                ],
+              ),
                     SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -292,19 +282,17 @@ class _SearchSheetState extends State<SearchSheet> {
                             decoration: InputDecoration(
                               hintText: 'Where you start',
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(8),
                                 borderSide: BorderSide(color: Colors.grey[300]!),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: const Color(0xFF6699CC), width: 2),
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: Colors.blue),
                               ),
                               contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 14,
+                                horizontal: 12,
+                                vertical: 12,
                               ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
                             ),
                             onTap: () {
                               setState(() {
@@ -321,22 +309,20 @@ class _SearchSheetState extends State<SearchSheet> {
                           SizedBox(height: 12),
                           TextField(
                             controller: _destinationController,
-                            decoration: InputDecoration(
+                decoration: InputDecoration(
                               hintText: 'Where to?',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
                                 borderSide: BorderSide(color: Colors.grey[300]!),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: const Color(0xFF6699CC), width: 2),
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: Colors.blue),
                               ),
                               contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 14,
+                                horizontal: 12,
+                                vertical: 12,
                               ),
-                              filled: true,
-                              fillColor: Colors.grey[50],
                             ),
                             onTap: () {
                               setState(() {
@@ -354,7 +340,7 @@ class _SearchSheetState extends State<SearchSheet> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.swap_vert, color: const Color(0xFF6699CC)),
+                      icon: Icon(Icons.swap_vert, color: Colors.blue),
                       onPressed: _swapLocations,
                     ),
                   ],
@@ -363,72 +349,51 @@ class _SearchSheetState extends State<SearchSheet> {
             ),
           ),
 
+          // Quick actions
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(Icons.location_pin, color: const Color(0xFF6699CC)),
-                  title: Text(
-                    'Pin location on Map',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+              child: Column(
+                children: [
+                  ListTile(
+                  leading: Icon(Icons.location_pin, color: Colors.grey[600]),
+                  title: Text('Pin location on Map'),
                   onTap: _pinLocationOnMap,
-                ),
-                ListTile(
-                  leading: Icon(Icons.my_location, color: const Color(0xFF6699CC)),
-                  title: Text(
-                    'Use current location',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
                   ),
+                  ListTile(
+                  leading: Icon(Icons.my_location, color: Colors.blue),
+                  title: Text('Use current location'),
                   onTap: _useCurrentLocation,
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-          ),
             
+          // Search results
           if (_isSearching)
             Expanded(
               child: Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFF6699CC)),
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                 ),
               ),
             )
           else if (_searchResults.isNotEmpty)
-            Expanded(
-              child: ListView.builder(
+              Expanded(
+                child: ListView.builder(
                 itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
+                  itemBuilder: (context, index) {
                   Map<String, dynamic> result = _searchResults[index];
-                  return ListTile(
+                    return ListTile(
                     leading: Icon(
                       result['type'] == 'stop' ? Icons.directions_bus : Icons.location_on,
-                      color: result['type'] == 'stop' ? Colors.orange : const Color(0xFF6699CC),
+                      color: result['type'] == 'stop' ? Colors.orange : Colors.grey[600],
                     ),
-                    title: Text(
-                      result['name'],
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    subtitle: Text(
-                      result['address'],
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                      ),
-                    ),
+                    title: Text(result['name']),
+                    subtitle: Text(result['address']),
                     onTap: () => _selectLocation(result),
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
             )
           else
             Expanded(
@@ -445,13 +410,12 @@ class _SearchSheetState extends State<SearchSheet> {
                     Text(
                       'Search for locations',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
                         color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
                 ),
+              ),
+          ],
+        ),
               ),
             ),
         ],

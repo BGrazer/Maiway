@@ -18,36 +18,30 @@ class RouteModeScreen extends StatefulWidget {
 
 class _RouteModeScreenState extends State<RouteModeScreen> {
   MapController _mapController = MapController();
+  
+  // Location data
   LatLng _originLocation = LatLng(14.5995, 120.9842); // Default Manila
   LatLng _destinationLocation = LatLng(14.5547, 121.0244); // Default Manila
   String _originAddress = '';
   String _destinationAddress = '';
   
+  // Map data
   List<Marker> _markers = [];
   List<Polyline> _polylines = [];
   
-  // Route data from backend
+  // Route data
   List<Map<String, dynamic>> _routes = [];
   int _selectedRouteIndex = 0;
   bool _isLoading = true;
   String? _errorMessage;
-  Map<String, dynamic>? _selectedRoute;
-  List<RouteSegment>? _routeSegments;
-  List<LatLng>? _routePolyline;
-  int _highlightedSegmentIndex = -1;
-
-  // Pinning mode state
-  bool _isPinning = false;
-  bool _isPinningOrigin = true;
-  LatLng _pinLocation = LatLng(14.5995, 120.9842);
-  String _pinAddress = '';
-  bool _isFetchingPinAddress = false;
-
-  LatLng? _currentLocation;
 
   @override
   void initState() {
     super.initState();
+    _initializeScreen();
+  }
+
+  void _initializeScreen() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null) {
@@ -57,10 +51,8 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
           _originAddress = args['originAddress'] as String;
           _destinationAddress = args['destinationAddress'] as String;
         });
-        _fetchRoutesFromBackend();
-      } else {
-        _fetchRoutesFromBackend();
       }
+      _fetchRoutesFromBackend();
     });
   }
 
@@ -82,11 +74,10 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     final prefs = await SharedPreferences.getInstance();
     List<String> selectedModes = [];
     
-    if (prefs.getBool('mode_jeep') == true) selectedModes.add('jeepney');
+    if (prefs.getBool('mode_jeepney') == true) selectedModes.add('jeepney');
     if (prefs.getBool('mode_bus') == true) selectedModes.add('bus');
     if (prefs.getBool('mode_lrt') == true) selectedModes.add('lrt');
     if (prefs.getBool('mode_tricycle') == true) selectedModes.add('tricycle');
-    if (prefs.getBool('mode_lrt2') == true) selectedModes.add('lrt2');
     
     return selectedModes.isEmpty ? ['jeepney', 'bus', 'lrt'] : selectedModes;
   }
@@ -98,79 +89,59 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     });
 
     try {
-      // Determine which preferences are selected
       final prefs = await _getSelectedPreferences();
       final modes = await _getSelectedModes();
       
       List<Map<String, dynamic>> processedRoutes = [];
 
+      // Fetch fastest route
       if (prefs.contains('fastest')) {
-        final fastestRoute = await RoutingService.getRoute(
-          startLocation: _originLocation,
-          endLocation: _destinationLocation,
-          mode: 'fastest',
-          modes: modes,
-        );
-        if (fastestRoute != null && !fastestRoute.containsKey('error')) {
-          final processed = RouteProcessor.processRouteResponse(fastestRoute);
-          if (processed['success']) {
+        final fastestRoute = await _fetchRoute('fastest', modes);
+        if (fastestRoute != null) {
             processedRoutes.add({
               'type': 'fastest',
               'title': 'Fastest Route',
               'icon': Icons.speed,
               'color': Colors.green,
-              'routeData': processed['routeData'],
-              'totalCost': processed['totalCost'] ?? 0.0,
-              'segments': processed['segments'] ?? [],
-              'polyline': processed['polylinePoints'] ?? [],
-            });
-          }
+            'routeData': fastestRoute['routeData'],
+            'totalCost': fastestRoute['totalCost'] ?? 0.0,
+            'segments': fastestRoute['segments'] ?? [],
+            'polylinePoints': fastestRoute['polylinePoints'] ?? [],
+          });
         }
       }
+
+      // Fetch cheapest route
       if (prefs.contains('cheapest')) {
-        final cheapestRoute = await RoutingService.getRoute(
-          startLocation: _originLocation,
-          endLocation: _destinationLocation,
-          mode: 'cheapest',
-          modes: modes,
-        );
-        if (cheapestRoute != null && !cheapestRoute.containsKey('error')) {
-          final processed = RouteProcessor.processRouteResponse(cheapestRoute);
-          if (processed['success']) {
+        final cheapestRoute = await _fetchRoute('cheapest', modes);
+        if (cheapestRoute != null) {
             processedRoutes.add({
               'type': 'cheapest',
               'title': 'Cheapest Route',
               'icon': Icons.attach_money,
               'color': Colors.orange,
-              'routeData': processed['routeData'],
-              'totalCost': processed['totalCost'] ?? 0.0,
-              'segments': processed['segments'] ?? [],
-              'polyline': processed['polylinePoints'] ?? [],
-            });
-          }
+            'routeData': cheapestRoute['routeData'],
+            'totalCost': cheapestRoute['totalCost'] ?? 0.0,
+            'segments': cheapestRoute['segments'] ?? [],
+            'polylinePoints': cheapestRoute['polylinePoints'] ?? [],
+          });
         }
       }
+
+      // Fetch convenient route
       if (prefs.contains('convenient')) {
-        final convenientRoute = await RoutingService.getRoute(
-          startLocation: _originLocation,
-          endLocation: _destinationLocation,
-          mode: 'convenient',
-          modes: modes,
-        );
-        if (convenientRoute != null && !convenientRoute.containsKey('error')) {
-          final processed = RouteProcessor.processRouteResponse(convenientRoute);
-          if (processed['success']) {
+        final convenientRoute = await _fetchRoute('convenient', modes);
+        if (convenientRoute != null) {
             processedRoutes.add({
               'type': 'convenient',
               'title': 'Most Convenient',
               'icon': Icons.accessibility,
               'color': Colors.purple,
-              'routeData': processed['routeData'],
-              'totalCost': processed['totalCost'] ?? 0.0,
-              'segments': processed['segments'] ?? [],
-              'polyline': processed['polylinePoints'] ?? [],
-            });
-          }
+            'routeData': convenientRoute['routeData'],
+            'totalCost': convenientRoute['totalCost'] ?? 0.0,
+            'segments': convenientRoute['segments'] ?? [],
+            'polylinePoints': convenientRoute['polylinePoints'] ?? [],
+          });
         }
       }
 
@@ -178,11 +149,18 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         _routes = processedRoutes;
         _isLoading = false;
         _selectedRouteIndex = processedRoutes.isNotEmpty ? 0 : -1;
-        _selectedRoute = processedRoutes.isNotEmpty ? processedRoutes[0] : null;
       });
 
+      print('🟦 Processed ${processedRoutes.length} routes');
+      for (int i = 0; i < processedRoutes.length; i++) {
+        final route = processedRoutes[i];
+        print('🟦 Route $i: ${route['title']} - ${route['polylinePoints']?.length ?? 0} points');
+      }
+
       if (processedRoutes.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
         _setupMapData();
+        });
       } else {
         setState(() {
           _errorMessage = 'No routes found for this journey';
@@ -191,11 +169,74 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       }
 
     } catch (e) {
+      print('🟥 Error fetching routes: $e');
       setState(() {
         _errorMessage = 'Failed to fetch routes: ${e.toString()}';
         _isLoading = false;
       });
     }
+  }
+
+  Future<Map<String, dynamic>?> _fetchRoute(String mode, List<String> modes) async {
+    try {
+      final response = await RoutingService.getRoute(
+        startLocation: _originLocation,
+        endLocation: _destinationLocation,
+        mode: mode,
+        modes: modes,
+      );
+      
+      print('🟦 $mode RAW RESPONSE: $response');
+      
+      if (response != null && !response.containsKey('error')) {
+        final processed = RouteProcessor.processRouteResponse(response);
+        print('🟩 $mode PROCESSED: $processed');
+        
+        if (processed['success']) {
+          return processed;
+        } else {
+          print('❌ $mode route not added: ${processed['error']?.toString() ?? 'Unknown error'}');
+        }
+      } else {
+        print('❌ $mode route not added: error or null response');
+      }
+    } catch (e) {
+      print('🟥 Error fetching $mode route: $e');
+    }
+    
+    return null;
+  }
+
+  List<LatLng> parsePolyline(dynamic polyline) {
+    if (polyline is List<LatLng>) return polyline;
+    if (polyline is List) {
+      return polyline.map((p) {
+        if (p is LatLng) return p;
+        if (p is List && p.length == 2) {
+          return LatLng(p[1].toDouble(), p[0].toDouble());
+        }
+        if (p is Map && p.containsKey('latitude') && p.containsKey('longitude')) {
+          return LatLng((p['latitude'] as num).toDouble(), (p['longitude'] as num).toDouble());
+        }
+        throw Exception('Invalid polyline point: $p');
+      }).toList();
+    }
+    return [];
+  }
+
+  List<LatLng> robustPolyline(dynamic polyline, LatLng origin, LatLng destination) {
+    final parsed = parsePolyline(polyline);
+    if (parsed.isEmpty) {
+      print('🟥 Polyline empty, using fallback [origin, destination]');
+      return [origin, destination];
+    }
+    final first = parsed.first;
+    final allSame = parsed.every((p) => p.latitude == first.latitude && p.longitude == first.longitude);
+    if (allSame) {
+      print('🟥 Polyline all points same, using fallback [origin, destination]');
+      return [origin, destination];
+    }
+    return parsed;
   }
 
   void _setupMapData() {
@@ -227,11 +268,11 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       ),
     ];
 
-    // Add route polyline if routes are available
+    // Add route polyline
     if (_routes.isNotEmpty && _selectedRouteIndex < _routes.length) {
       final selectedRoute = _routes[_selectedRouteIndex];
-      final polylinePoints = selectedRoute['polyline'] as List<LatLng>? ?? [_originLocation, _destinationLocation];
-      
+      final polylinePoints = robustPolyline(selectedRoute['polylinePoints'], _originLocation, _destinationLocation);
+      print('🟦 Setting up polyline with ${polylinePoints.length} points');
       _polylines = [
         Polyline(
           points: polylinePoints,
@@ -240,7 +281,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         ),
       ];
     } else {
-      // Default polyline
       _polylines = [
         Polyline(
           points: [_originLocation, _destinationLocation],
@@ -283,8 +323,8 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       // Update polyline color and points
       if (_routes.isNotEmpty && index < _routes.length) {
         final selectedRoute = _routes[index];
-        final polylinePoints = selectedRoute['polyline'] as List<LatLng>? ?? [_originLocation, _destinationLocation];
-        
+        final polylinePoints = robustPolyline(selectedRoute['polylinePoints'], _originLocation, _destinationLocation);
+        print('🟦 Route selected: ${selectedRoute['title']} with ${polylinePoints.length} points');
         _polylines = [
           Polyline(
             points: polylinePoints,
@@ -296,118 +336,44 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     });
   }
 
-  void _showRouteOptions(Map<String, dynamic> routeData) {
-    setState(() {
-      _selectedRoute = routeData;
-      _routeSegments = (routeData['segments'] as List)
-          .map((s) => s as RouteSegment)
-          .toList();
-      _routePolyline = _getPolylineFromSegments(_routeSegments!);
-      _highlightedSegmentIndex = -1; // Reset highlight
-    });
-    _fitBounds(_getBoundsForSegments(_routeSegments!));
-  }
-
   void _startTrip() {
-    // If no route is explicitly selected, use the currently selected index
-    if (_selectedRoute == null && _routes.isNotEmpty && _selectedRouteIndex < _routes.length) {
-      _selectedRoute = _routes[_selectedRouteIndex];
+    if (_routes.isEmpty || _selectedRouteIndex < 0 || _selectedRouteIndex >= _routes.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select a route first'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
     }
-    if (_selectedRoute == null) return;
 
-    // Ensure the polyline for the selected route is passed correctly
-    final List<RouteSegment> segments = (_selectedRoute!['segments'] as List)
+    final selectedRoute = _routes[_selectedRouteIndex];
+    
+    // Ensure we have valid segments and polyline
+    final List<RouteSegment> segments = (selectedRoute['segments'] as List)
         .map((s) => s as RouteSegment)
         .toList();
-    final List<LatLng> fullPolyline = _getPolylineFromSegments(segments);
+    
+    final List<LatLng> polylinePoints = robustPolyline(selectedRoute['polylinePoints'], _originLocation, _destinationLocation);
+
+    print('🟦 Starting trip with ${segments.length} segments and ${polylinePoints.length} polyline points');
 
     Navigator.pushNamed(
       context,
       '/navigation',
       arguments: {
-        'route': _selectedRoute!,
+        'route': selectedRoute,
         'origin': _originLocation,
         'destination': _destinationLocation,
-        'polyline': fullPolyline,
-        'summary': _selectedRoute!['routeData']?['summary'] ?? {},
+        'polyline': polylinePoints,
+        'summary': selectedRoute['routeData']?['summary'] ?? {},
       },
     ).then((result) {
-      // Check if we need to clear pins when returning from navigation
       if (result != null && result is Map<String, dynamic> && result['clearPins'] == true) {
         print('🔄 Clearing pins after returning from navigation');
-        // Navigate back to map screen with clear pins flag
         Navigator.of(context).pop({'clearPins': true});
       }
     });
-  }
-
-  void _onSegmentTapped(int index) {
-    if (_routeSegments == null || index < 0 || index >= _routeSegments!.length) {
-      // ... existing code ...
-    }
-  }
-
-  void _enterPinningMode({required bool isOrigin}) {
-    setState(() {
-      _isPinning = true;
-      _isPinningOrigin = isOrigin;
-      _pinLocation = isOrigin ? _originLocation : _destinationLocation;
-      _pinAddress = isOrigin ? _originAddress : _destinationAddress;
-    });
-    _moveMapToPin();
-    _fetchPinAddress(_pinLocation);
-  }
-
-  void _moveMapToPin() {
-    _mapController.move(_pinLocation, 16.0);
-  }
-
-  Future<void> _fetchPinAddress(LatLng location) async {
-    setState(() { _isFetchingPinAddress = true; });
-    try {
-      final address = await GeocodingService.getAddressFromLocation(location);
-      setState(() {
-        _pinAddress = address;
-        _isFetchingPinAddress = false;
-      });
-    } catch (e) {
-      setState(() { _pinAddress = 'Unknown location'; _isFetchingPinAddress = false; });
-    }
-  }
-
-  void _confirmPinLocation() {
-    setState(() {
-      if (_isPinningOrigin) {
-        _originLocation = _pinLocation;
-        _originAddress = _pinAddress;
-      } else {
-        _destinationLocation = _pinLocation;
-        _destinationAddress = _pinAddress;
-      }
-      _isPinning = false;
-    });
-    _fetchRoutesFromBackend();
-  }
-
-  void _centerOnUserLocation() {
-    if (_currentLocation != null) {
-      _mapController.move(_currentLocation!, 15.0);
-      _mapController.rotate(0);
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Unable to fetch location')));
-    }
-  }
-
-  void _resetCameraOrientation() {
-    if (_currentLocation != null) {
-      _mapController.rotate(0);
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Unable to fetch location')));
-    }
   }
 
   @override
@@ -450,7 +416,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
             options: MapOptions(
               initialCenter: _originLocation,
               initialZoom: 15.0,
-              onTap: _isPinning ? (_, point) => _onMapTap(point) : null,
             ),
             children: [
               TileLayer(
@@ -466,13 +431,12 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
             ],
           ),
 
-          // Bottom Sheet Content (hide during pinning)
-          if (!_isPinning)
+          // Bottom Sheet Content
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
                 width: double.infinity,
-                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -487,15 +451,32 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      margin: EdgeInsets.only(top: 12, bottom: 8),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
+                  // START TRIP BUTTON
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _startTrip,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6699CC),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'START TRIP',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
+                  ),
+                  
                     // Origin and Destination Section with Back Button
                     Padding(
                       padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -578,32 +559,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                 ),
               ),
             ),
-
-          // Start Trip Button Overlay
-          if (!_isPinning && !_isLoading && _errorMessage == null && _routes.isNotEmpty && _selectedRouteIndex >= 0)
-            Positioned(
-              bottom: 20,
-              left: 20,
-              right: 20,
-              child: ElevatedButton(
-                onPressed: _startTrip,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6699CC),
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  'START TRIP',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -672,15 +627,43 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
 
     if (_routes.isEmpty) {
       return Center(
-        child: Text('No routes found for this journey.'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.route, color: Colors.grey, size: 48),
+            SizedBox(height: 16),
+            Text(
+              'No routes found for this journey.',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _fetchRoutesFromBackend,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6699CC),
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text('Try Again'),
+            ),
+          ],
+        ),
       );
     }
     
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Text(
             '${_routes.length} suggested routes',
             style: TextStyle(
@@ -689,14 +672,15 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
             ),
           ),
         ),
-        Expanded(
+        Flexible(
+          fit: FlexFit.loose,
           child: ListView.builder(
+            shrinkWrap: true,
             padding: EdgeInsets.symmetric(horizontal: 16),
             itemCount: _routes.length,
             itemBuilder: (context, index) {
               final route = _routes[index];
               final isSelected = index == _selectedRouteIndex;
-              
               return GestureDetector(
                 onTap: () => _onRouteSelected(index),
                 child: Container(
@@ -718,6 +702,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                     ],
                   ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
                         children: [
@@ -788,9 +773,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                           ),
                         ],
                       ),
-                      
                       SizedBox(height: 12),
-                      
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -812,29 +795,5 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         ),
       ],
     );
-  }
-
-  // --- HELPER METHODS ---
-
-  List<LatLng> _getPolylineFromSegments(List<RouteSegment> segments) {
-    return segments.expand((s) => s.coordinates).toList();
-  }
-
-  LatLngBounds _getBoundsForSegments(List<RouteSegment> segments) {
-    final points = _getPolylineFromSegments(segments);
-    return LatLngBounds.fromPoints(points);
-  }
-
-  void _fitBounds(LatLngBounds bounds) {
-    _mapController.fitCamera(
-      CameraFit.bounds(
-        bounds: bounds,
-        padding: EdgeInsets.all(50.0),
-      ),
-    );
-  }
-
-  void _onMapTap(LatLng point) {
-    // Implement the logic to handle map tap
   }
 } 

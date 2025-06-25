@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'signup.dart';
 import 'main.dart';
 import 'forgot_password_page.dart';
+
 class LoginPage extends StatelessWidget {
   final Color backgroundColor = Color(0xFF3F7399);
   final Color textBoxColor = Color(0xFF292929);

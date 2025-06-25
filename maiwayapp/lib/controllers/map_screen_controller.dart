@@ -62,9 +62,9 @@ class MapScreenController {
     final prefs = await SharedPreferences.getInstance();
     List<String> selectedPrefs = [];
     
-    if (prefs.getBool('pref_Fastest') == true) selectedPrefs.add('fastest');
-    if (prefs.getBool('pref_Cheapest') == true) selectedPrefs.add('cheapest');
-    if (prefs.getBool('pref_Convenient') == true) selectedPrefs.add('convenient');
+    if (prefs.getBool('pref_fastest') == true) selectedPrefs.add('fastest');
+    if (prefs.getBool('pref_cheapest') == true) selectedPrefs.add('cheapest');
+    if (prefs.getBool('pref_convenient') == true) selectedPrefs.add('convenient');
     
     // Return all three preferences by default if none are saved yet
     return selectedPrefs.isEmpty ? ['fastest', 'cheapest', 'convenient'] : selectedPrefs;
@@ -75,11 +75,10 @@ class MapScreenController {
     final prefs = await SharedPreferences.getInstance();
     List<String> selectedModes = [];
     
-    if (prefs.getBool('mode_Jeep') == true) selectedModes.add('jeepney');
-    if (prefs.getBool('mode_Bus') == true) selectedModes.add('bus');
-    if (prefs.getBool('mode_LRT') == true) selectedModes.add('lrt');
-    if (prefs.getBool('mode_Tricycle') == true) selectedModes.add('tricycle');
-    if (prefs.getBool('mode_LRT 2') == true) selectedModes.add('lrt2');
+    if (prefs.getBool('mode_jeepney') == true) selectedModes.add('jeepney');
+    if (prefs.getBool('mode_bus') == true) selectedModes.add('bus');
+    if (prefs.getBool('mode_lrt') == true) selectedModes.add('lrt');
+    if (prefs.getBool('mode_tricycle') == true) selectedModes.add('tricycle');
     
     return selectedModes.isEmpty ? ['jeepney', 'bus', 'lrt'] : selectedModes;
   }
@@ -423,5 +422,23 @@ class MapScreenController {
     _mounted = false;
     originController.dispose();
     destinationController.dispose();
+  }
+
+  // Test connection method for debugging
+  Future<void> testBackendConnection() async {
+    print("🧪 Testing backend connection...");
+    try {
+      final isHealthy = await RoutingService.checkHealth();
+      print("🧪 Health check result: $isHealthy");
+      
+      if (isHealthy) {
+        showSuccess("Backend connection successful!");
+      } else {
+        showError("Backend health check failed");
+      }
+    } catch (e) {
+      print("🧪 Connection test error: $e");
+      showError("Connection test failed: $e");
+    }
   }
 }

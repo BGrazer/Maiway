@@ -25,11 +25,10 @@ class _TravelPreferenceScreenNewState extends State<TravelPreferenceScreenNew> {
 
   // Transport modes
   Map<String, bool> _modes = {
-    'Jeep': true,
+    'Jeepney': true,
     'Bus': true,
     'LRT': true,
     'Tricycle': true,
-    'LRT 2': true,
   };
 
   // Passenger type
@@ -50,11 +49,10 @@ class _TravelPreferenceScreenNewState extends State<TravelPreferenceScreenNew> {
         _preferences['Cheapest'] = prefs.getBool('pref_cheapest') ?? true;
         _preferences['Convenient'] = prefs.getBool('pref_convenient') ?? true;
         
-        _modes['Jeep'] = prefs.getBool('mode_jeep') ?? true;
+        _modes['Jeepney'] = prefs.getBool('mode_jeepney') ?? true;
         _modes['Bus'] = prefs.getBool('mode_bus') ?? true;
         _modes['LRT'] = prefs.getBool('mode_lrt') ?? true;
         _modes['Tricycle'] = prefs.getBool('mode_tricycle') ?? true;
-        _modes['LRT 2'] = prefs.getBool('mode_lrt2') ?? true;
         
         _passengerType = prefs.getString('passenger_type') ?? 'Regular';
       });
@@ -73,11 +71,10 @@ class _TravelPreferenceScreenNewState extends State<TravelPreferenceScreenNew> {
       await prefs.setBool('pref_convenient', _preferences['Convenient']!);
       
       // Save transport modes
-      await prefs.setBool('mode_jeep', _modes['Jeep']!);
+      await prefs.setBool('mode_jeepney', _modes['Jeepney']!);
       await prefs.setBool('mode_bus', _modes['Bus']!);
       await prefs.setBool('mode_lrt', _modes['LRT']!);
       await prefs.setBool('mode_tricycle', _modes['Tricycle']!);
-      await prefs.setBool('mode_lrt2', _modes['LRT 2']!);
       
       // Save passenger type
       await prefs.setString('passenger_type', _passengerType);
@@ -99,9 +96,10 @@ class _TravelPreferenceScreenNewState extends State<TravelPreferenceScreenNew> {
           .map((entry) => entry.key.toLowerCase())
           .toList();
       
+      // Convert display names to backend mode strings
       final selectedModes = _modes.entries
           .where((entry) => entry.value)
-          .map((entry) => entry.key)
+          .map((entry) => _getBackendModeString(entry.key))
           .toList();
       
       // Call callback if provided
@@ -133,6 +131,22 @@ class _TravelPreferenceScreenNewState extends State<TravelPreferenceScreenNew> {
           ),
         );
       }
+    }
+  }
+
+  // Convert display names to backend mode strings
+  String _getBackendModeString(String displayName) {
+    switch (displayName) {
+      case 'Jeepney':
+        return 'jeepney';
+      case 'Bus':
+        return 'bus';
+      case 'LRT':
+        return 'lrt';
+      case 'Tricycle':
+        return 'tricycle';
+      default:
+        return displayName.toLowerCase();
     }
   }
 

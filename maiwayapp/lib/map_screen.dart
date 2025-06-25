@@ -217,6 +217,14 @@ class _MapScreenState extends State<MapScreen> {
         centerTitle: false,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          // Test connection button for debugging
+          IconButton(
+            icon: Icon(Icons.wifi_find, color: Colors.black),
+            onPressed: () => controller.testBackendConnection(),
+            tooltip: 'Test Backend Connection',
+          ),
+        ],
       ),
       body: Stack(
         children: [

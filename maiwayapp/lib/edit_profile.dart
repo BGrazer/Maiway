@@ -48,9 +48,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Stack(
                 alignment: Alignment.bottomRight,
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 50,
-                    backgroundImage: AssetImage('assets/profile_pic.png'),
+                    backgroundColor: Colors.grey[300],
+                    child: Icon(
+                      Icons.person,
+                      size: 50,
+                      color: Colors.grey[600],
+                    ),
                   ),
                   Positioned(
                     bottom: 0,

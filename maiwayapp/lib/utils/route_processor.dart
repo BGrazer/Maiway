@@ -4,7 +4,9 @@ import '../models/route_segment.dart';
 class RouteProcessor {
   /// Process route response from routing service
   static Map<String, dynamic> processRouteResponse(Map<String, dynamic>? response) {
+    print('🟦 processRouteResponse input: ' + response.toString());
     if (response == null) {
+      print('❌ processRouteResponse: response is null');
       return {
         'success': false,
         'error': 'No response from routing service',
@@ -12,20 +14,38 @@ class RouteProcessor {
     }
 
     if (response.containsKey('error')) {
+      print('❌ processRouteResponse: error in response: ' + response['error'].toString());
       return {
         'success': false,
         'error': _formatErrorMessage(response),
       };
     }
 
-    // Handle new response format from backend
-    // New format: {"route": [...], "shapes": [...], "summary": {...}}
-    if (response.containsKey('route') && response.containsKey('shapes')) {
-      final routeSegments = response['route'] as List?;
+    // Handle new backend format: {"fastest": [...], "cheapest": [...], "convenient": [...], "shapes": [...], "summary": {...}}
+    final modeKeys = ['fastest', 'cheapest', 'convenient'];
+    String? foundModeKey;
+    List? routeSegments;
+    
+    // Find which mode key contains the route data
+    for (final modeKey in modeKeys) {
+      if (response.containsKey(modeKey) && response[modeKey] is List) {
+        foundModeKey = modeKey;
+        routeSegments = response[modeKey] as List;
+        break;
+      }
+    }
+
+    if (foundModeKey != null && routeSegments != null && response.containsKey('shapes')) {
       final shapes = response['shapes'] as List?;
       final summary = response['summary'] as Map<String, dynamic>?;
 
-      if (routeSegments == null || routeSegments.isEmpty) {
+      print('🟩 processRouteResponse: found mode key: $foundModeKey');
+      print('🟩 processRouteResponse: routeSegments=' + routeSegments.toString());
+      print('🟩 processRouteResponse: shapes=' + shapes.toString());
+      print('🟩 processRouteResponse: summary=' + summary.toString());
+
+      if (routeSegments.isEmpty) {
+        print('❌ processRouteResponse: No route segments found');
         return {
           'success': false,
           'error': 'No route segments found in response',
@@ -33,6 +53,7 @@ class RouteProcessor {
       }
 
       if (shapes == null || shapes.isEmpty) {
+        print('❌ processRouteResponse: No route shapes found');
         return {
           'success': false,
           'error': 'No route shapes found in response',
@@ -43,13 +64,21 @@ class RouteProcessor {
       final List<RouteSegment> segments = _processRouteSegments(routeSegments);
       
       // Process shapes into polyline points (new format: direct coordinate arrays)
-      final List<LatLng> polylinePoints = _processNewShapeFormat(shapes);
+      List<LatLng> polylinePoints = [];
+      if (shapes != null && shapes.isNotEmpty) {
+        polylinePoints = _processNewShapeFormat(shapes);
+      } else {
+        // If no shapes provided, create a simple polyline from route segments
+        polylinePoints = _createPolylineFromSegments(segments);
+      }
       
-      if (polylinePoints.isEmpty) {
-        return {
-          'success': false,
-          'error': 'No valid coordinates found in route shapes',
-        };
+      print('🟩 processRouteResponse: parsed segments=' + segments.toString());
+      print('🟩 processRouteResponse: parsed polylinePoints=' + polylinePoints.toString());
+
+      // Allow routes with empty polylines (e.g., walking-only routes)
+      if (polylinePoints.isEmpty && segments.isNotEmpty) {
+        // Create a simple straight line polyline for walking routes
+        polylinePoints = _createSimplePolyline(routeSegments);
       }
 
       // Extract stops from route segments
@@ -312,5 +341,77 @@ class RouteProcessor {
     }
     
     return allCoordinates;
+  }
+
+  /// Create polyline from route segments when shapes are not available
+  static List<LatLng> _createPolylineFromSegments(List<RouteSegment> segments) {
+    final List<LatLng> allPoints = [];
+    
+    for (final segment in segments) {
+      if (segment.coordinates.isNotEmpty) {
+        allPoints.addAll(segment.coordinates);
+      }
+    }
+    
+    return allPoints;
+  }
+
+  /// Create a simple polyline for routes without detailed shapes
+  static List<LatLng> _createSimplePolyline(List routeSegments) {
+    final List<LatLng> points = [];
+    
+    for (final segment in routeSegments) {
+      if (segment is Map<String, dynamic>) {
+        // Try to get coordinates from shape if available
+        if (segment.containsKey('shape') && segment['shape'] is List) {
+          final shape = segment['shape'] as List;
+          for (final coord in shape) {
+            if (coord is List && coord.length >= 2) {
+              try {
+                double lon = (coord[0] as num).toDouble();
+                double lat = (coord[1] as num).toDouble();
+                points.add(LatLng(lat, lon));
+              } catch (e) {
+                continue;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // If no valid points found, create a simple straight line
+    if (points.isEmpty && routeSegments.isNotEmpty) {
+      final firstSegment = routeSegments.first;
+      final lastSegment = routeSegments.last;
+      
+      if (firstSegment is Map<String, dynamic> && lastSegment is Map<String, dynamic>) {
+        // Try to get coordinates from from_stop and to_stop
+        final fromStop = firstSegment['from_stop'];
+        final toStop = lastSegment['to_stop'];
+        
+        if (fromStop is Map<String, dynamic> && toStop is Map<String, dynamic>) {
+          final fromCoords = fromStop['coordinates'] as List?;
+          final toCoords = toStop['coordinates'] as List?;
+          
+          if (fromCoords != null && fromCoords.length >= 2 && 
+              toCoords != null && toCoords.length >= 2) {
+            try {
+              final fromLat = (fromCoords[1] as num).toDouble();
+              final fromLon = (fromCoords[0] as num).toDouble();
+              final toLat = (toCoords[1] as num).toDouble();
+              final toLon = (toCoords[0] as num).toDouble();
+              
+              points.add(LatLng(fromLat, fromLon));
+              points.add(LatLng(toLat, toLon));
+            } catch (e) {
+              print('🟥 Error creating simple polyline: $e');
+            }
+          }
+        }
+      }
+    }
+    
+    return points;
   }
 }
