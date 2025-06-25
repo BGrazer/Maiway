@@ -116,26 +116,6 @@
         "answer": "The minimum fare for a normal jeepney in Manila is **PHP 15.00**. This covers the initial distance. Do you have other fare-related questions?"
     },
     {
-        "question": "How much is the minimum fare for a modern jeep?",
-        "answer": "Ang minimum fare for modern jeepneys ay **PHP 15.00** for the first 4 kilometers, at additional PHP 2.50 for every succeeding kilometer. Mas comfortable ang mga ito pero may kaunting dagdag sa pamasahe."
-    },
-    {
-        "question": "Magkano ba ang pamasahe sa modern jeep?",
-        "answer": "Ang minimum fare for modern jeepneys ay **PHP 15.00** for the first 4 kilometers, at additional PHP 2.50 for every succeeding kilometer. Do you have any specific modern jeepney routes in mind?"
-    },
-    {
-        "question": "Modern jeepney fare?",
-        "answer": "Modern jeepneys start at PHP 15.00 for the first 4km, then PHP 2.50 per succeeding km. They offer a more comfortable ride. Is there a specific modern jeep route you're curious about?"
-    },
-    {
-        "question": "Paano ako makakakuha ng QR code para sa modern jeep?",
-        "answer": "Maaari kang makakuha ng QR code para sa modern jeep sa pamamagitan ng pag-download ng mga mobile apps tulad ng 'Modern Jeepney' o 'Jeepney Booking'. Kailangan mo lamang mag-register at sundin ang mga instructions sa app. Ito ay para sa cashless payments."
-    },
-    {
-        "question": "How to get QR code for modern jeep?",
-        "answer": "You can get a QR code for modern jeepneys by downloading mobile apps like 'Modern Jeepney' or 'Jeepney Booking'. You just need to register and follow the in-app instructions. This is usually for cashless payments."
-    },
-    {
         "question": "Magkano ang discount sa mga estudyante sa jeep?",
         "answer": "Ang mga estudyante ay may **20% discount** sa jeepney fare. Kaya ang minimum fare na PHP 15.00 ay magiging PHP 12.00 para sa mga estudyante. Siguraduhing may valid ID ka para maipakita sa driver o konduktor."
     },
@@ -158,14 +138,6 @@
     {
         "question": "PWD discount jeep?",
         "answer": "Yes, PWDs get a 20% discount on jeepney fares, making the minimum fare PHP 12.00. Remember to show your valid PWD ID."
-    },
-    {
-        "question": "Paano magbayad sa modern jeep?",
-        "answer": "Sa modern jeepneys, maaari kang magbayad gamit ang **cash** o **electronic payment methods** tulad ng Beep card. Kung gumagamit ka ng Beep card, kailangan mo lamang i-tap ito sa card reader sa loob ng jeep. Tumatanggap din ang iba ng QR code payment."
-    },
-    {
-        "question": "How to pay in modern jeep?",
-        "answer": "You can pay in modern jeepneys using **cash** or **electronic payment methods** like a Beep card. If using a Beep card, just tap it on the card reader. Some also accept QR code payments."
     },
     {
         "question": "Maari bang magdala ng alagang hayop sa jeep?",
@@ -579,42 +551,7 @@
         "question": "Manila public transport curfew?",
         "answer": "Public transport in Manila generally operates until around midnight, but official curfews can be imposed during special events or emergencies. Always check local advisories for late-night travel."
     },
-    {
-        "question": "Magkano ang pamasahe sa Tuktuk?",
-        "answer": "Ang pamasahe sa Tuktuk ay karaniwang nagsisimula sa **PHP 20.00 para sa maikling biyahe**, at maaaring tumaas depende sa distansya at oras ng araw. Ang mga driver ay madalas na tumatanggap ng negosasyon sa pamasahe. Malaking tulong ito sa maiikling lakaran!"
-    },
-    {
-        "question": "How much is the fare for a Tuktuk?",
-        "answer": "The fare for a Tuktuk usually starts at **PHP 20.00 for a short trip**, and may increase depending on the distance and time of day. Drivers often accept fare negotiations. It's handy for quick trips!"
-    },
-    {
-        "question": "Tuktuk fare?",
-        "answer": "Tuktuks start at around PHP 20.00 for short rides. Fares can vary by distance and time, and you can often negotiate with the driver."
-    },
-    {
-        "question": "Paano magbayad sa Tuktuk?",
-        "answer": "Maaari kang magbayad sa Tuktuk gamit ang **cash**. Siguraduhing may sapat na barya o maliliit na bills para sa tamang sukli. Ang ilang Tuktuk ay tumatanggap din ng electronic payments tulad ng GCash o PayMaya, ngunit **hindi ito karaniwan**. Prepare your cash for convenience!"
-    },
-    {
-        "question": "How to pay in Tuktuk?",
-        "answer": "You can pay in Tuktuks using **cash**. Make sure to have enough loose change or small bills for the correct change. While some Tuktuks might accept e-wallets like GCash or PayMaya, it's **not common**, so cash is best."
-    },
-    {
-        "question": "Tuktuk payment options?",
-        "answer": "Cash is the primary payment method for Tuktuks. While some might accept e-wallets, it's always safer to have cash ready for your fare."
-    },
-    {
-        "question": "Saan maaring sumakay ng Tuktuk sa Manila?",
-        "answer": "Sa Manila, ang Tuktuk ay hindi kasing karaniwan ng jeepney o tricycle. Gayunpaman, maaari kang makakita ng Tuktuk sa mga **tourist areas** (tulad ng Intramuros) o sa mga lugar na may mataas na demand para sa mabilis na transportasyon. Madalas silang makikita sa paligid ng mga malls, tourist spots, at ilang residential areas. Subukan kung available sa lugar mo!"
-    },
-    {
-        "question": "Where can I ride a Tuktuk in Manila?",
-        "answer": "In Manila, Tuktuks are not as common as jeepneys or tricycles. However, you can find them in **tourist areas** (like Intramuros) or places with high demand for quick transportation. They are often seen around malls, tourist spots, and some residential areas. See if you can spot one nearby!"
-    },
-    {
-        "question": "Tuktuk spots in Manila?",
-        "answer": "Tuktuks are less common, but you might find them in tourist areas (like Intramuros) or near malls and residential zones where quick transport is needed. They're not as widespread as jeeps or tricycles."
-    },
+
     {
         "question": "Where can I get full tourist experience in Manila?",
         "answer": "For a full tourist experience in Manila, you can visit **Intramuros, Rizal Park, Binondo (Chinatown), and Quiapo**. These areas offer a mix of historical sites, cultural experiences, and local cuisine. You can also explore museums like the National Museums. You can use jeepneys, kalesas, sidecars, or even guided tours to navigate these places. Be cautious of scams and always negotiate fares beforehand. Enjoy your exploration!"
@@ -686,22 +623,6 @@
     {
         "question": "Manila minor curfew?",
         "answer": "Minors in Manila are generally subject to a curfew from around 10 PM or midnight until 4 AM, unless accompanied by an adult or for specific activities. Always check the current local ordinances."
-    },
-    {
-        "question": "What is tuktuks?",
-        "answer": "Tuktuks are small, three-wheeled vehicles commonly used for short-distance transportation in many Asian countries, including the Philippines. They are often used in areas where larger vehicles cannot easily navigate. Tuktuks are known for their compact size, affordability, and ability to maneuver through traffic. They can be a fun and convenient way to get around, especially in crowded urban areas."
-    },
-    {
-        "question": "Ano ang tuktuks?",
-        "answer": "Ang Tuktuks ay maliliit na three-wheeled vehicles na karaniwang ginagamit para sa maikling biyahe sa maraming bansa sa Asya, kabilang ang Pilipinas. Madalas silang ginagamit sa mga lugar kung saan hindi madaling magmaneho ang mas malalaking sasakyan. Kilala ang Tuktuks sa kanilang compact size, affordability, at kakayahang magmaneho sa traffic. Maaari itong maging masaya at convenient na paraan ng pagbiyahe, lalo na sa mga mataong lugar."
-    },
-    {
-        "question": "Are tuktuks safe?",
-        "answer": "Tuktuks are generally considered safe for short trips, but safety can vary depending on the driver and road conditions. Always ensure that the tuktuk is in good condition, wear a helmet if provided, and follow local traffic rules. It's also advisable to use reputable tuktuk services or apps to ensure a safer ride. As with any mode of transport, exercise caution and be aware of your surroundings."
-    },
-    {
-        "question": "Ligtas ba ang tuktuks?",
-        "answer": "Ang Tuktuks ay karaniwang itinuturing na ligtas para sa mga maikling biyahe, ngunit ang kaligtasan ay maaaring mag-iba depende sa driver at kondisyon ng kalsada. Siguraduhing nasa magandang kondisyon ang Tuktuk, magsuot ng helmet kung ibinibigay, at sumunod sa mga lokal na traffic rules. Mainam din na gumamit ng mga kilalang Tuktuk services o apps para sa mas ligtas na biyahe. Tulad ng anumang paraan ng transportasyon, mag-ingat at maging aware sa iyong paligid."
     },
     {
         "question": "Do tricycles have fixed routes?",
@@ -848,18 +769,6 @@
         "answer": "Jeep to Lawton/Pier South from Recto, alight near cathedral. Or walk from Central Terminal LRT-1."
     },
     {
-        "question": "Ano ang pinakamabilis na paraan para bumiyahe sa Manila?",
-        "answer": "Ang pinakamabilis na paraan para bumiyahe sa Manila ay kadalasan ang **train (LRT/MRT)** kung may istasyon sa iyong ruta at destinasyon. Kung walang train, ang ride-hailing apps tulad ng **Angkas (motorsiklo)** ay mabilis din, lalo na sa trapik."
-    },
-    {
-        "question": "What's the fastest way to travel in Manila?",
-        "answer": "The fastest way to travel in Manila is often by **train (LRT/MRT)** if there's a station along your route and destination. If not, ride-hailing apps like **Angkas (motorcycles)** are also fast, especially in traffic."
-    },
-    {
-        "question": "Fastest commute Manila?",
-        "answer": "Train (LRT/MRT) or Angkas (motorcycle ride-hailing) are generally the fastest options."
-    },
-    {
         "question": "Paano mag-commute papuntang Chinese General Hospital mula Divisoria?",
         "answer": "Mula Divisoria, sumakay ng jeep na papuntang **Monumento o Bambang** at bumaba sa Bambang Street, malapit sa Chinese General Hospital. Maaari ka ring sumakay ng jeep papuntang Recto, tapos LRT-2 hanggang Recto Station, transfer sa LRT-1 Doroteo Jose, at bumaba sa Blumentritt Station."
     },
@@ -1002,18 +911,6 @@
     {
         "question": "Paco Church commute?",
         "answer": "Jeep to Paco/Punta from Taft Ave, alight at church. Or tricycle from Pedro Gil LRT-1 Station."
-    },
-    {
-        "question": "Ano ang 'express lane' sa public transport?",
-        "answer": "Ang 'express lane' ay isang daanan o ruta na mayroong **mas kaunting stop** kaysa sa regular na ruta, upang mapabilis ang biyahe. Ito ay karaniwan sa mga bus at modern jeepneys na tumatakbo sa mahahabang distansya."
-    },
-    {
-        "question": "What is 'express lane' in public transport?",
-        "answer": "An 'express lane' in public transport refers to a route or path with **fewer stops** than a regular route, designed to speed up travel. It's common for buses and modern jeepneys covering longer distances."
-    },
-    {
-        "question": "Express lane public transport meaning?",
-        "answer": "A route with fewer stops for faster travel, common for buses and modern jeeps on long distances."
     },
     {
         "question": "May toll fee ba sa mga papunta o galing sa Manila Airport?",
@@ -1328,18 +1225,6 @@
         "answer": "LRT-2 (Recto/Legarda) or jeeps along Recto Ave. and Morayta St."
     },
     {
-        "question": "Ano ang 'ride-hailing apps'?",
-        "answer": "Ang 'ride-hailing apps' ay mga **mobile applications** (tulad ng Grab at Angkas) na nagbibigay-daan sa mga user na mag-book ng transportasyon sa pamamagitan ng kanilang smartphone. Nag-uugnay ito ng mga pasahero sa mga driver ng kotse o motorsiklo."
-    },
-    {
-        "question": "What are 'ride-hailing apps'?",
-        "answer": "'Ride-hailing apps' are **mobile applications** (like Grab and Angkas) that allow users to book transportation via their smartphones. They connect passengers with drivers of cars or motorcycles."
-    },
-    {
-        "question": "Ride-hailing apps meaning?",
-        "answer": "Mobile apps (e.g., Grab, Angkas) to book rides, connecting users with drivers."
-    },
-    {
         "question": "Paano mag-commute papuntang Philippine College of Criminology (PCCR)?",
         "answer": "Ang Philippine College of Criminology (PCCR) ay matatagpuan sa G. Puyat St. (dating Raon), Quiapo, Manila. Maaari kang sumakay ng jeep na papuntang **Quiapo o Divisoria** na dadaan sa lugar. Malapit din ito sa **Carriedo LRT-1 Station** o **Recto LRT-2 Station**."
     },
@@ -1547,7 +1432,6 @@
         "question": "'Carpooling' Manila meaning?",
         "answer": "Sharing a private car with others going the same way to save on costs and reduce traffic. Not public transport."
     },
-
     {
         "question": "Paano mag-commute papuntang UST Museum?",
         "answer": "Ang UST Museum ay nasa loob ng University of Santo Tomas campus. Maaari kang sumakay ng jeep o bus na dadaan sa **España Boulevard** at bumaba sa tapat ng UST. Malapit din ang LRT-1 **Tayuman Station**, pero kailangan mo pang sumakay ng tricycle/jeep mula doon."
@@ -1679,14 +1563,6 @@
     {
         "question": "PUV consolidation meaning?",
         "answer": "Part of modernization program where individual PUV operators form cooperatives/corporations for easier regulation/modernization."
-    },
-    {
-        "question": "Ano ang 'surge pricing' sa ride-hailing apps?",
-        "answer": "Ang 'surge pricing' ay isang **dynamic na pagtaas ng pamasahe** sa ride-hailing apps (tulad ng Grab) kapag mataas ang demand ng pasahero at/o kakaunti ang available na driver. Ito ay awtomatikong ina-apply ng app para hikayatin ang mas maraming driver na lumabas."
-    },
-    {
-        "question": "What is 'surge pricing' in ride-hailing apps?",
-        "answer": "'Surge pricing' is a **dynamic fare increase** in ride-hailing apps (like Grab) when there's high passenger demand and/or limited available drivers. It's automatically applied by the app to incentivize more drivers to go online."
     },
     {
         "question": "'Surge pricing' meaning?",
@@ -3037,18 +2913,6 @@
         "answer": "Short walk from Carriedo LRT-1 Station to Puregold Quiapo on Recto Avenue."
     },
     {
-        "question": "May mga modern jeep ba na tumatakbo sa Tondo, Manila?",
-        "answer": "Opo, unti-unti nang dumarami ang mga modern jeepney routes na dumadaan sa Tondo, lalo na sa mga ruta papuntang **Divisoria, Monumento, o sa mga bus-train terminals**. Magandang tingnan ang signage ng jeep o magtanong sa driver."
-    },
-    {
-        "question": "Are there modern jeepneys operating in Tondo, Manila?",
-        "answer": "Yes, modern jeepney routes are gradually increasing in Tondo, especially on routes going to **Divisoria, Monumento, or to bus-train terminals**. It's best to check the jeepney's signage or ask the driver."
-    },
-    {
-        "question": "Modern jeepneys Tondo Manila?",
-        "answer": "Yes, increasing routes, especially to Divisoria, Monumento, bus-train terminals. Check signage or ask driver."
-    },
-    {
         "question": "Ano ang 'yellow box' sa intersection?",
         "answer": "Ang 'yellow box' sa intersection ay isang **pininturahang kahon sa gitna ng intersection** na dapat panatilihing malinaw. Hindi pinapayagang huminto ang sasakyan sa loob ng yellow box kung makaharang ito sa daloy ng traffic sa kabilang kalsada. May multa ang paglabag dito."
     },
@@ -3145,18 +3009,6 @@
         "answer": "Transfer to LRT-1 (Doroteo Jose) to Central Terminal, then 5-7 minute walk to SM City Manila."
     },
     {
-        "question": "Mayroong ba akong Beep card na magagamit sa lahat ng tren (LRT/MRT) at piling bus sa Manila?",
-        "answer": "Opo, ang **Beep card** ay universal payment card na magagamit sa lahat ng linya ng LRT-1, LRT-2, at MRT-3. Ginagamit din ito sa ilang piling modern jeepneys at EDSA Carousel buses. Napakaconvenient nito para sa cashless commutes."
-    },
-    {
-        "question": "Can I use my Beep card on all trains (LRT/MRT) and selected buses in Manila?",
-        "answer": "Yes, the **Beep card** is a universal payment card that can be used on all lines of LRT-1, LRT-2, and MRT-3. It is also used on selected modern jeepneys and EDSA Carousel buses. It's very convenient for cashless commutes."
-    },
-    {
-        "question": "Beep card usage all trains and select buses Manila?",
-        "answer": "Yes, universal payment for all LRT/MRT lines, plus selected modern jeeps and EDSA Carousel buses. Convenient for cashless commutes."
-    },
-    {
         "question": "Paano mag-commute papuntang University of the Philippines Manila (UP Manila) mula sa Recto LRT-2 Station?",
         "answer": "Mula Recto LRT-2 Station, lumipat sa Doroteo Jose LRT-1 Station. Sumakay ng LRT-1 papuntang **Baclaran** at bumaba sa Pedro Gil Station. Mula doon, maglakad ng maikling distansya (mga 5-7 minuto) papuntang UP Manila."
     },
@@ -3203,18 +3055,6 @@
     {
         "question": "Passenger harm on public transport, what to do?",
         "answer": "Don't intervene directly if dangerous. Inform driver/conductor/security. Call 911. Take video/photo if safe. Note plate/suspect details."
-    },
-    {
-        "question": "Ano ang kasalukuyang minimum fare para sa modern jeepney sa Manila?",
-        "answer": "Ang minimum fare para sa modern jeepney sa Manila ay **PHP 15.00** para sa unang 4km, na may karagdagang PHP 2.50 para sa bawat susunod na kilometro. Tumatanggap ito ng cash at Beep card."
-    },
-    {
-        "question": "What is the current minimum fare for a modern jeepney in Manila?",
-        "answer": "The minimum fare for a modern jeepney in Manila is **PHP 15.00** for the first 4km, with an additional PHP 2.50 for every succeeding kilometer. It accepts cash and Beep card payments."
-    },
-    {
-        "question": "Modern jeepney minimum fare Manila?",
-        "answer": "PHP 15.00 for 4km, plus PHP 2.50/km after. Accepts cash/Beep card."
     },
     {
         "question": "Paano mag-commute papuntang Quiapo Church mula sa Pedro Gil LRT-1 Station?",
@@ -3481,18 +3321,6 @@
         "answer": "Jeep to Baclaran/Vito Cruz via Taft Ave, alight Pedro Gil, walk. Or LRT-2 to Recto, transfer to LRT-1 Pedro Gil."
     },
     {
-        "question": "Saan mas madaling sumakay ng Grab/Angkas sa Manila, sa malls o sa kalsada?",
-        "answer": "Mas madaling sumakay ng Grab/Angkas sa mga **malls o designated pick-up points** dahil may mas malaking chance na may driver na naghihintay doon. Sa kalsada, posible pero maaaring mas matagal maghintay at may risk ng cancellation kung delikado ang pick-up spot."
-    },
-    {
-        "question": "Where is it easier to get a Grab/Angkas in Manila, at malls or on the street?",
-        "answer": "It's easier to get a Grab/Angkas at **malls or designated pick-up points** as drivers are more likely to be waiting there. On the street, it's possible but you might wait longer, and there's a risk of cancellation if the pick-up spot is unsafe."
-    },
-    {
-        "question": "Grab/Angkas pick-up malls vs street Manila?",
-        "answer": "Malls/designated pick-up points are easier/safer. Street pick-up is possible but might take longer/risk cancellation."
-    },
-    {
         "question": "Ano ang concourse level sa train station?",
         "answer": "Ang concourse level sa train station ay ang **level sa pagitan ng street level at platform level** kung saan matatagpuan ang mga ticketing booths, turnstiles, at iba pang pasilidad ng istasyon. Dito rin kadalasang makikita ang entrance/exit."
     },
@@ -3757,18 +3585,6 @@
         "answer": "Exit Recto LRT-2, walk to M.F. Jhocson St./Morayta, then short walk to NU."
     },
     {
-        "question": "May mga GrabShare o Angkas Pabili ba sa Manila?",
-        "answer": "Opo, available ang **GrabShare (carpooling service ng Grab)** at **Angkas Pabili (delivery service ng Angkas)** sa Manila. Makakatulong ang GrabShare para makatipid sa pamasahe, habang ang Angkas Pabili ay para sa pagpapabili at pagpapadala ng items."
-    },
-    {
-        "question": "Are GrabShare or Angkas Pabili available in Manila?",
-        "answer": "Yes, **GrabShare (Grab's carpooling service)** and **Angkas Pabili (Angkas' delivery service)** are available in Manila. GrabShare can help save on fares, while Angkas Pabili is for purchasing and sending items."
-    },
-    {
-        "question": "GrabShare/Angkas Pabili Manila?",
-        "answer": "Yes, both are available. GrabShare for carpooling savings, Angkas Pabili for delivery/purchasing items."
-    },
-    {
         "question": "Paano mag-commute papuntang University of Manila (UM) mula sa Quiapo?",
         "answer": "Ang University of Manila (UM) ay nasa Recto Avenue, Sampaloc. Mula Quiapo, sumakay ng jeep na papuntang **Divisoria o Recto** na dadaan sa Recto Avenue. Bumaba sa tapat ng University of Manila. Maikling lakad lang."
     },
@@ -3865,18 +3681,6 @@
         "answer": "Final reminder that bus is about to depart; announced by conductor/dispatcher to ensure boarding."
     },
     {
-        "question": "Saan ako pwedeng magreklamo tungkol sa Grab/Angkas driver?",
-        "answer": "Maaari kang magreklamo tungkol sa Grab/Angkas driver sa **support section ng kanilang mobile app**. Dapat mayroon kang detalye ng biyahe (driver's name, plate, time, petsa) at ibigay ang iyong reklamo. Maaari ka ring tumawag sa kanilang hotline o mag-email sa support."
-    },
-    {
-        "question": "Where can I complain about a Grab/Angkas driver?",
-        "answer": "You can complain about a Grab/Angkas driver through the **support section of their mobile app**. You should have trip details (driver's name, plate, time, date) and submit your complaint. You can also call their hotline or email their support."
-    },
-    {
-        "question": "Grab/Angkas driver complaint?",
-        "answer": "Complain via mobile app's support section. Provide trip details (driver name, plate, time, date). Hotline/email also options."
-    },
-    {
         "question": "Paano mag-commute papuntang San Sebastian Church mula sa LRT-2 Legarda Station?",
         "answer": "Mula Legarda LRT-2 Station, maglakad patungong Recto Avenue at lumiko sa C.M. Recto. Sumakay ng jeep na papuntang **Quiapo o Divisoria** at bumaba sa Legarda Street, malapit sa San Sebastian Church. O, maikling lakad lang mula Legarda Station papuntang simbahan."
     },
@@ -3887,18 +3691,6 @@
     {
         "question": "LRT-2 Legarda to San Sebastian Church commute?",
         "answer": "Walk to Recto Ave, then jeep to Quiapo/Divisoria (alight Legarda St.). Or short walk from Legarda Station."
-    },
-    {
-        "question": "Ano ang ride-sharing sa Manila?",
-        "answer": "Ang ride-sharing ay isang term na tumutukoy sa **pagsasama-sama ng mga pasahero sa isang sasakyan** (tulad ng GrabShare o Angkas) na may parehong direksyon upang maghati sa pamasahe. Ito ay paraan para makatipid at mabawasan ang sasakyan sa kalsada."
-    },
-    {
-        "question": "What is ride-sharing in Manila?",
-        "answer": "Ride-sharing refers to the **sharing of a vehicle by multiple passengers** (such as GrabShare or Angkas) going in the same direction to split the fare. It's a way to save money and reduce the number of vehicles on the road."
-    },
-    {
-        "question": "Manila ride-sharing meaning?",
-        "answer": "Sharing a vehicle (e.g., GrabShare, Angkas) with other passengers going same direction to split fare; saves money and reduces traffic."
     },
     {
         "question": "Anong oras ang huling biyahe ng LRT-1 mula Roosevelt Station (FPJ Station) papuntang Dr. Santos Station?",
@@ -3971,14 +3763,6 @@
     {
         "question": "Buses on Quezon Boulevard Quiapo?",
         "answer": "Yes, many. Look for Fairview-Baclaran or Monumento-Baclaran routes. Check signage."
-    },
-    {
-        "question": "Ano ang last mile connectivity sa transportasyon?",
-        "answer": "Ang last mile connectivity ay tumutukoy sa **kakayahang kumonekta ang mga tao mula sa malalaking transport hubs** (tulad ng train stations o bus terminals) **patungo sa kanilang eksaktong destinasyon** na madalas ay nasa maikling distansya. Ito ay ginagamitan ng mga tricycle, pedicab, e-scooter, o Grab/Angkas."
-    },
-    {
-        "question": "What is last mile connectivity in transportation?",
-        "answer": "Last mile connectivity refers to the **ability to connect people from major transportation hubs** (like train stations or bus terminals) **to their exact destinations**, which are often short distances away. This is typically facilitated by tricycles, pedicabs, e-scooters, or Grab/Angkas."
     },
     {
         "question": "Last mile connectivity meaning?",
@@ -4091,14 +3875,6 @@
     {
         "question": "Vito Cruz LRT-1 to St. Scholastica's College Manila walk?",
         "answer": "3-5 minute walk from Vito Cruz LRT-1 Station to St. Scholastica's College."
-    },
-    {
-        "question": "Ano ang closed circuit television (CCTV) sa public transport?",
-        "answer": "Ang closed circuit television (CCTV) ay mga **security camera** na naka-install sa mga bus, modern jeepney, train coaches, at sa mga terminal at istasyon. Ginagamit ito para sa seguridad ng pasahero, pag-monitor ng operasyon, at pag-imbestiga sa mga insidente."
-    },
-    {
-        "question": "What is closed circuit television (CCTV) in public transport?",
-        "answer": "Closed circuit television (CCTV) refers to **security cameras** installed in buses, modern jeepneys, train coaches, and at terminals and stations. They are used for passenger security, operational monitoring, and incident investigation."
     },
     {
         "question": "Public transport CCTV meaning?",
@@ -4561,18 +4337,6 @@
         "answer": "Tricycle directly to Tayuman LRT-1. Alt: Walk to Rizal Ave, then jeep to Monumento/Divisoria, alight at Tayuman LRT-1."
     },
     {
-        "question": "Paano mag-commute mula sa National Museum of Fine Arts papuntang Manila Ocean Park?",
-        "answer": "Mula National Museum of Fine Arts, maaari kang sumakay ng tuktuk (e-trike) sa loob ng Rizal Park complex na papuntang Manila Ocean Park. Bilang alternatibo, maglakad (mga 15-20 minuto) papuntang Manila Ocean Park sa Roxas Boulevard. O, sumakay ng jeep na papuntang **Baclaran o Pier South** sa Taft Avenue at bumaba sa Quirino Grandstand."
-    },
-    {
-        "question": "How to commute from National Museum of Fine Arts to Manila Ocean Park?",
-        "answer": "From National Museum of Fine Arts, you can take a tuktuk (e-trike) within the Rizal Park complex towards Manila Ocean Park. As an alternative, walk (about 15-20 minutes) to Manila Ocean Park on Roxas Boulevard. Or, take a jeepney to **Baclaran or Pier South** on Taft Avenue and alight at Quirino Grandstand."
-    },
-    {
-        "question": "National Museum of Fine Arts to Manila Ocean Park commute?",
-        "answer": "Tuktuk/e-trike within Rizal Park. Alt: 15-20 min walk. Or jeep to Baclaran/Pier South via Taft Ave, alight Quirino Grandstand."
-    },
-    {
         "question": "Paano mag-commute mula sa Philippine Red Cross National Headquarters (Bonifacio Drive) papuntang Binondo Church?",
         "answer": "Mula Philippine Red Cross National Headquarters, sumakay ng tricycle papuntang Binondo Church. Maikling biyahe lang ito. Bilang alternatibo, maglakad papuntang Juan Luna Street at sumakay ng jeep na papuntang **Quiapo o Recto** at bumaba sa Binondo Church."
     },
@@ -4587,18 +4351,6 @@
     {
         "question": "Ugbo Tondo",
         "answer": "Ugbo Tondo is famous because of their street foods that goes viral in social media platforms"
-    },
-    {
-        "question": "Paano mag-commute papuntang Ugbo, Tondo (Street Food Hub) mula sa Recto LRT-2 Station?",
-        "answer": "Mula Recto LRT-2 Station, sumakay ng jeep na papuntang **Divisoria** (o Tutuban). Bumaba sa may Juan Luna Street o Velasquez Street. Mula doon, sumakay ng tricycle papuntang Ugbo Street. Bilang alternatibo, mula Recto, sumakay ng jeep na papuntang **Vitas** (kung available) na dadaan sa Ugbo. Maaari ding mag-Grab/Angkas direkta papuntang Ugbo."
-    },
-    {
-        "question": "How to commute to Ugbo, Tondo (Street Food Hub) from Recto LRT-2 Station?",
-        "answer": "From Recto LRT-2 Station, take a jeepney to **Divisoria** (or Tutuban). Alight on Juan Luna Street or Velasquez Street. From there, take a tricycle to Ugbo Street. As an alternative, from Recto, take a jeepney to **Vitas** (if available) that passes through Ugbo. You can also take Grab/Angkas directly to Ugbo."
-    },
-    {
-        "question": "Recto LRT-2 to Ugbo, Tondo commute?",
-        "answer": "Jeep to Divisoria (alight Juan Luna/Velasquez St.), then tricycle to Ugbo. Alt: Vitas jeep (if available), or Grab/Angkas direct."
     },
     {
         "question": "Paano mag-commute papuntang Manila Clock Tower Museum mula sa Divisoria?",
@@ -4757,18 +4509,6 @@
         "answer": "Tricycle to Taft/Pedro Gil, then jeep to Monumento/Divisoria (alight Pedro Gil St., walk). Alt: Jeep to Paco, alight Paco Church, walk to park."
     },
     {
-        "question": "Mayroon bang no-entry policy para sa mga pribadong sasakyan sa loob ng Intramuros?",
-        "answer": "Opo, mayroon nang mga **no-entry zones at restricted access** para sa mga pribadong sasakyan sa ilang bahagi ng Intramuros, lalo na tuwing weekend o special events. Karaniwan, mas madali mag-lakad, magbisikleta, o sumakay ng e-trike/tuktuk sa loob. Laging tingnan ang local advisories."
-    },
-    {
-        "question": "Are there no-entry policies for private vehicles inside Intramuros?",
-        "answer": "Yes, there are now **no-entry zones and restricted access** for private vehicles in some parts of Intramuros, especially on weekends or during special events. It's usually easier to walk, bike, or take an e-trike/tuktuk inside. Always check local advisories."
-    },
-    {
-        "question": "Intramuros private vehicle no-entry?",
-        "answer": "Yes, some areas/times are restricted. Easier to walk, bike, e-trike/tuktuk. Check local advisories."
-    },
-    {
         "question": "Ano ang dapat gawin kung nahulog ang cellphone sa riles ng LRT/MRT?",
         "answer": "Kung nahulog ang cellphone sa riles, **huwag na huwag itong subukang kunin!** Agad na ipagbigay-alam sa pinakamalapit na **station personnel o security guard**. Mayroon silang train stick o designated procedure para kunin ang mga gamit. Delikado ang riles. Ibigay ang detalye ng lokasyon."
     },
@@ -4901,11 +4641,11 @@
         "answer": "Not all, but large terminals/companies often have one. Report immediately to the bus company you rode."
     },
     {
-        "question": "Paano mag-commute papuntang University of Manila (UM) mula sa Central Terminal LRT-1 Station?",
+        "question": "Paano mag-commute papuntang Universidad De Manila (UDM) mula sa Central Terminal LRT-1 Station?",
         "answer": "Ang University of Manila (UM) ay nasa Recto Avenue, Sampaloc. Mula Central Terminal LRT-1 Station, sumakay ng LRT-1 Northbound papuntang **Doroteo Jose Station**. Mula Doroteo Jose, maglakad ng maikling distansya (mga 5-7 minuto) papuntang UM sa Recto Avenue."
     },
     {
-        "question": "How to commute to University of Manila (UM) from Central Terminal LRT-1 Station?",
+        "question": "How to commute to Universidad De Manila (UDM) from Central Terminal LRT-1 Station?",
         "answer": "The University of Manila (UM) is on Recto Avenue, Sampaloc. From Central Terminal LRT-1 Station, take LRT-1 Northbound to **Doroteo Jose Station**. From Doroteo Jose, walk a short distance (about 5-7 minutes) to UM on Recto Avenue."
     },
     {
@@ -5061,10 +4801,6 @@
         "answer": "Pay fare, follow rules, be respectful, don't block aisles, safeguard belongings, report violations."
     },
     {
-        "question": "Mayroon bang no helmet, no ride policy para sa mga motorsiklo sa City of Manila?",
-        "answer": "Opo, mayroong **no helmet, no ride policy** na ipinapatupad ang LTO sa buong Pilipinas, kabilang ang City of Manila. Obligado ang driver at ang angkas (backrider) na magsuot ng standard protective helmet. May kaakibat na multa ang paglabag."
-    },
-    {
         "question": "Is there a no helmet, no ride policy for motorcycles in the City of Manila?",
         "answer": "Yes, there is a **no helmet, no ride policy** enforced by the LTO nationwide, including the City of Manila. Both the driver and the backrider are obligated to wear a standard protective helmet. Violations incur fines."
     },
@@ -5107,18 +4843,6 @@
     {
         "question": "Manila bus exclusive lane?",
         "answer": "Refers to EDSA Carousel Busway (on EDSA). Connected bus routes from Manila lead to its bus stops."
-    },
-    {
-        "question": "Pinapayagan ba ang pagbabayad ng Beep card sa lahat ng jeepney sa City of Manila?",
-        "answer": "Hindi po. Ang pagbabayad gamit ang Beep card ay kasalukuyang pinapayagan lamang sa mga **modern jeepney** at sa piling mga traditional jeepney na bahagi ng **PUV Modernization Program** at mayroong card reader. Karamihan pa rin ng traditional jeepney ay tumatanggap ng cash."
-    },
-    {
-        "question": "Is Beep card payment allowed on all jeepneys in the City of Manila?",
-        "answer": "No. Beep card payment is currently only allowed on **modern jeepneys** and selected traditional jeepneys that are part of the **PUV Modernization Program** and are equipped with a card reader. Most traditional jeepneys still accept cash."
-    },
-    {
-        "question": "Beep card payment all jeepneys Manila?",
-        "answer": "No, only on modern jeeps and selected traditional jeeps with card readers under PUV Modernization Program. Most traditional jeeps are cash only."
     },
     {
         "question": "Mayroon bang no littering policy sa loob ng public transport sa City of Manila?",
@@ -5229,19 +4953,676 @@
         "answer": "Drivers: Strictly prohibited by Anti-Distracted Driving Act. Passengers: No direct law, but avoid loud conversations/speakerphone as courtesy."
     },
     {
-        "question" : "Anong oras madalas ang simula ng pasada ng Jeepney",
-        "answer" : "Nag sisimula ang pasada ng Jeepney ng 4:00am"
+        "question": "Anong oras madalas ang simula ng pasada ng Jeepney",
+        "answer": "Nag sisimula ang pasada ng Jeepney ng 4:00am"
     },
     {
-        "question" : "What time does the Jeepney start operating?",
-        "answer" : "Jeepneys typically start operating at 4:00 AM."
+        "question": "What time does the Jeepney start operating?",
+        "answer": "Jeepneys typically start operating at 4:00 AM."
     },
     {
         "question": "Anong oras ang huling pasada ng jeepney?",
         "answer": "Ang huling pasada ng jeepney ay karaniwang nagaganap sa pagitan ng **10:00 PM at 12:00 AM**, depende sa ruta at lokal na ordinansa. Mahalaga ring tingnan ang signage sa bawat jeepney para sa eksaktong oras ng huling biyahe."
     },
     {
-        "question" : "What are the LRT 1 stations?",
-        "answer" : "Ang mga LRT 1 stations ay: **Baclaran, EDSA, Taft Avenue, Libertad, Gil Puyat (Buendia), Vito Cruz, Quirino Avenue, Pedro Gil, UN Avenue, Central Terminal (Lawton), Carriedo, Recto, Doroteo Jose, Tayuman, Blumentritt, Bambang, and Rizal Avenue.**"
-    }   
+        "question": "Ano ano ang mga stasyon ng LRT 1?",
+        "answer": "Ang mga LRT 1 stations ay: ** Vito Cruz, Quirino Avenue, Pedro Gil, UN Avenue, Central Terminal (Lawton), Carriedo, Recto, Doroteo Jose, Tayuman, Blumentritt, Bambang, and Rizal Avenue.**"
+    },
+    {
+        "question": "What are the LRT 1 stations?",
+        "answer": "The LRT 1 stations are: **Vito Cruz, Quirino Avenue, Pedro Gil, UN Avenue, Central Terminal (Lawton), Carriedo, Recto, Doroteo Jose, Tayuman, Blumentritt, Bambang, and Rizal Avenue.**"
+    },
+     {
+      "question": "What are the common jeepney routes that pass through Divisoria in District 1?",
+      "answer": "Common jeepney routes in Divisoria (District 1) include those going to and from Monumento, Recto, Baclaran, Taft, and various points in Tondo and Binondo. Look for signboards indicating destinations like 'Monumento', 'Recto', 'Baclaran', 'LRT/Taft', 'Pier', 'Tondo', 'Binondo', and specific streets within District 1 like 'Juan Luna' or 'Ilaya'."
+    },
+    {
+      "question": "How can I commute from Tondo (District 1) to Divisoria using a jeepney?",
+      "answer": "From most parts of Tondo, you can find jeepneys with 'Divisoria' or 'Moriones' signboards that will take you directly to Divisoria. If you're deeper in Tondo, you might need to take a tricycle to a main road like Juan Luna or Capulong, then transfer to a Divisoria-bound jeepney."
+    },
+    {
+      "question": "What's the best way to get from Binondo (District 1) to Quiapo using public transport (jeepney or bus)?",
+      "answer": "From Binondo, you can take a jeepney with a 'Quiapo' or 'Baclaran via Quiapo' signboard along Ongpin Street or nearby main roads. Alternatively, some buses might pass through the area on their way to Quiapo, but jeepneys are generally more common and direct for this route."
+    },
+    {
+      "question": "Are tricycles widely available in Tondo, District 1, and what are their operating hours?",
+      "answer": "Yes, tricycles are widely available in almost all areas of Tondo, especially in inner streets and residential areas where jeepneys cannot easily access. While specific operating hours vary by tricycle operators' associations (TODAs), many operate from early morning until late evening, with some even offering 24/7 service in bustling areas, though availability might be scarcer late at night."
+    },
+    {
+      "question": "Which LRT-1 stations are most convenient for accessing District 1 attractions like Divisoria or Binondo?",
+      "answer": "For Divisoria, the nearest LRT-1 station is **Doroteo Jose**. From there, you can take a short jeepney ride or walk to Divisoria. For Binondo, **Carriedo Station** is a good option, providing walking access to Ongpin Street and the heart of Binondo."
+    },
+    {
+      "question": "How do I get to 168 Shopping Mall in Divisoria using public transport?",
+      "answer": "The 168 Shopping Mall is located within Divisoria. You can take any jeepney route that goes to Divisoria (e.g., from Monumento, Recto, or Tondo). The nearest bus stop is Soler St / Reina Regente Intersection, which is a 4-minute walk to 168 Shopping Mall."
+    },
+    {
+      "question": "What is the typical fare range for a jeepney ride within District 1, Manila?",
+      "answer": "The minimum jeepney fare typically starts at **PHP 15.00** for the first four kilometers. Fares increase incrementally for longer distances. Within District 1, most rides would fall within the minimum fare to slightly above it, depending on the exact distance."
+    },
+    {
+      "question": "Are there specific bus stops along Juan Luna Street in District 1, Tondo?",
+      "answer": "Yes, Juan Luna Street has several bus (jeepney-style buses) stops. Notable stops include Velasquez / Navaroo Intersection, Pritil Public Market / Juan Luna / Tayuman Road Intersection, and stops near Dragon8 Mall and Tello / Juan Luna St. Many jeepney routes pass along Juan Luna Street."
+    },
+    {
+      "question": "How can I commute from Pier 4 (Manila Port Area) to Juan Luna Street in District 1?",
+      "answer": "From Pier 4, you can find jeepneys with signboards indicating routes that pass through Juan Luna Street, such as those going to Divisoria or Pritil Market. You might need to walk a short distance from the pier exit to the main road where jeepneys are available."
+    },
+    {
+      "question": "What's the estimated travel time by jeepney from Divisoria to Binondo?",
+      "answer": "The travel time by jeepney from Divisoria to Binondo is relatively short, typically ranging from **5 to 15 minutes**, depending on traffic conditions and the specific drop-off point within Binondo. The two areas are adjacent."
+    },
+    {
+      "question": "Are there bus routes that directly serve destinations within District 1, or do they mostly connect to other districts?",
+      "answer": "Most bus routes that pass through District 1 are inter-district routes, connecting District 1 to other parts of Metro Manila or even provinces. While some modern city buses might offer stops within District 1, jeepneys and tricycles are the primary modes for intra-district travel."
+    },
+    {
+      "question": "How much does a tricycle ride typically cost in District 1 for short distances?",
+      "answer": "Tricycle fares in District 1 for short distances (e.g., within a barangay or to the nearest main road) typically start around **PHP 20-30**. Fares can be higher for longer distances or if you're the sole passenger on a special trip (solo ride)."
+    },
+    {
+      "question": "What are the common pick-up points for tricycles in Tondo, especially near residential areas?",
+      "answer": "Tricycles in Tondo can be found at designated terminals (tricycle stands) at intersections, near markets (like Pritil Market), schools, churches, and often roam residential streets. You can usually flag them down easily."
+    },
+    {
+      "question": "How do I commute from Tondo Medical Center to San Nicolas, Manila using public transport?",
+      "answer": "From Tondo Medical Center, you can take a jeepney going towards Divisoria or Recto. From Divisoria/Recto area, San Nicolas is within walking distance or a short tricycle ride, particularly if you're heading to the inner streets of San Nicolas."
+    },
+    {
+      "question": "Which jeepney routes specifically cater to the Claro M. Recto Avenue area in District 1?",
+      "answer": "Claro M. Recto Avenue is a major thoroughfare. Many jeepney routes pass through it, connecting to areas like Divisoria, Tutuban, Quiapo, and further into Sta. Cruz and Sampaloc. Look for jeepneys with signboards such as 'Divisoria', 'Quiapo', 'Tondo', 'P. Guevarra', 'Tayuman', or 'LRT Recto'."
+    },
+    {
+      "question": "Are there any express bus routes that pass through or have stops in District 1?",
+      "answer": "While the EDSA Carousel bus operates on EDSA, which is not directly within District 1, there might be UV Express routes (van-based public transport) that connect District 1 to other parts of Metro Manila with fewer stops, acting as a form of 'express' service for specific routes. Check specific UV Express terminals or apps for their routes."
+    },
+    {
+      "question": "What are the main jeepney terminals or major transfer points in District 1?",
+      "answer": "Key jeepney terminals and transfer points in District 1 include **Divisoria** (especially around Tutuban Center and 168 Mall), **Pritil Market**, and areas along **Juan Luna Street** and **Claro M. Recto Avenue** where many routes converge."
+    },
+    {
+      "question": "Is it safe to commute at night in District 1 using tricycles or jeepneys?",
+      "answer": "Commuting at night in District 1, like any urban area, requires caution. While tricycles and jeepneys generally operate at night, it's advisable to stick to well-lit and populated areas. Always be aware of your surroundings and consider using ride-hailing apps if available for added safety, especially late at night."
+    },
+    {
+      "question": "How can I commute from Manila Port Area (Pier 1-15) to Divisoria using public transport?",
+      "answer": "From the Manila Port Area, you can find jeepneys or buses (often jeepney-type) near the exits that go to Divisoria or Sto. Cristo. The journey can be as short as 5-11 minutes by bus/jeepney, depending on your exact pier location and traffic."
+    },
+    {
+      "question": "What are the designated loading and unloading areas for jeepneys in District 1?",
+      "answer": "Jeepneys generally follow designated loading and unloading zones, often marked by signs or simply observed as common pick-up/drop-off points at intersections, market entrances, or commercial areas. However, in some less congested areas, jeepneys might stop where passengers signal."
+    },
+    {
+      "question": "Are there specific tricycle zones in Tondo, and how do they affect fares?",
+      "answer": "Yes, Tondo is divided into tricycle zones, with each zone typically serviced by a specific TODA (Tricycle Operators and Drivers Association). Fares are generally standardized within these zones for regular trips, but going beyond a tricycle's designated zone might incur a higher 'special trip' fare or require a transfer to another tricycle."
+    },
+    {
+      "question": "How to get from Tutuban Center to Lucky Chinatown Mall via public transport?",
+      "answer": "Lucky Chinatown Mall is very close to Tutuban Center. You can easily walk (around 1 km, 10-15 minutes) or take a short tricycle ride. Some jeepneys passing by Tutuban might also have routes that go near Lucky Chinatown."
+    },
+    {
+      "question": "What are the common bus companies that have routes passing through or originating in District 1?",
+      "answer": "District 1 is primarily served by city buses and provincial buses that have terminals or pass through Lawton or other key points in Manila that connect to District 1. You might find buses from companies like Genesis Transport, Victory Liner, and others, especially if their routes lead to provincial destinations via central Manila."
+    },
+    {
+      "question": "Is there a direct bus route from Binondo to Manila City Hall?",
+      "answer": "While there might not be a dedicated 'Binondo to City Hall' bus route, you can likely find jeepneys from Binondo (e.g., along Ongpin or Recto) that pass by Manila City Hall or have routes that end near it (e.g., Taft Avenue bound jeepneys)."
+    },
+    {
+      "question": "How can I check the real-time schedules or estimated arrival times for jeepneys and buses in District 1?",
+      "answer": "Unfortunately, real-time tracking for traditional jeepneys and most buses in District 1 is not widely available. Commuters typically rely on frequent availability. However, apps like Moovit or Sakay.ph can provide route information and estimated travel times based on historical data, which can be helpful for planning."
+    },
+    {
+      "question": "What are the common jeepney routes that pass through Smokey Mountain in Tondo?",
+      "answer": "Jeepney routes going to and from Smokey Mountain typically serve the Tondo area, connecting residents to major commercial hubs like Divisoria or areas further south. Look for jeepneys with signboards indicating 'Smokey Mountain', 'Balut', or 'Pier' and 'Divisoria' as their endpoints."
+    },
+    {
+      "question": "Are there any public utility vehicle (PUV) modernization updates or changes affecting jeepney routes in District 1?",
+      "answer": "The PUV Modernization Program is ongoing nationwide. While the program aims to replace old jeepneys with modern units, its implementation in District 1 is gradual. Routes may be consolidated or new modern jeepney units may be introduced. It's best to check with local transport authorities or news for the latest updates specific to Manila District 1."
+    },
+    {
+      "question": "What is the typical fare for an LRT-1 ride from Doroteo Jose Station to Baclaran Station?",
+      "answer": "LRT-1 fares are distance-based. From Doroteo Jose to Baclaran, which is a significant portion of the line, the fare would be higher than the minimum, likely ranging from PHP 20-30 depending on the exact number of stations passed."
+    },
+    {
+      "question": "How accessible is public transportation (tricycle, jeepney, bus) in District 1 for persons with disabilities (PWDs)?",
+      "answer": "Traditional tricycles and jeepneys are generally not PWD-friendly due to their design (high steps, cramped space). While modern buses may have PWD-friendly features, their availability in all District 1 routes might be limited. The LRT-1 stations have elevators and ramps, offering better accessibility for PWDs."
+    },
+    {
+      "question": "How can I commute to Sto. Cristo, Manila, from other areas of District 1?",
+      "answer": "Sto. Cristo is a street and an area within District 1, often associated with Divisoria. You can reach it by taking any jeepney or bus route that goes to Divisoria. From there, it's a short walk or tricycle ride to specific points along Sto. Cristo Street."
+    },
+    {
+      "question": "What are the typical operating hours for jeepneys in District 1?",
+      "answer": "Jeepneys in District 1 typically start operating very early in the morning (around 4:00 AM - 5:00 AM) and continue until late at night (around 10:00 PM - 12:00 AM). Some major routes might have limited service past midnight, especially on weekends."
+    },
+    {
+      "question": "How to get from Pritil Market (Tondo) to Binondo Church using public transport?",
+      "answer": "From Pritil Market, you can take a jeepney going towards Divisoria or Recto. From Divisoria, Binondo Church (Minor Basilica of St. Lorenzo Ruiz) is a short walk away. Alternatively, you might find tricycles that can take you directly from Pritil to Binondo Church, though it might be a special trip fare."
+    },
+    {
+      "question": "Are there specific bus routes that pass by the Del Pan Bridge in District 1?",
+      "answer": "Bus and jeepney routes that connect the Port Area, Intramuros, and parts of Tondo/Binondo would likely pass over or near the Del Pan Bridge. Look for routes indicating 'Pier', 'Intramuros', or 'Divisoria'."
+    },
+    {
+      "question": "What are some general commuting tips for navigating District 1 using public transport?",
+      "answer": "Key tips include: knowing your jeepney signboard (destination), having small bills for fares, being aware of your belongings in crowded areas, using navigation apps like Google Maps or Sakay.ph for route guidance, and being prepared for heavy traffic, especially during peak hours."
+    },
+    {
+      "question": "How do I pay for LRT-1 rides, and are beep cards accepted?",
+      "answer": "Yes, Beep cards are the most convenient way to pay for LRT-1 rides. You can purchase and reload them at any LRT-1 station. Single journey tickets are also available at ticket booths or vending machines for one-time trips."
+    },
+    {
+      "question": "Are there tricycle terminals near Fort Santiago in Intramuros (near District 1)?",
+      "answer": "While Fort Santiago is in Intramuros (technically not District 1 but adjacent), tricycles are often available just outside the walls of Intramuros, particularly around the General Luna Street or Soriano Avenue exits, which can connect you to nearby areas in District 1 like Port Area or Binondo."
+    },
+    {
+      "question": "Which jeepney routes connect District 1 to other parts of Manila, like Quiapo or Ermita?",
+      "answer": "Many jeepney routes from District 1 (e.g., from Divisoria, Tondo, Binondo) extend to other parts of Manila. Common routes include 'Divisoria-Quiapo', 'Tondo-Baclaran via Taft', 'Monumento-Baclaran', which often pass through major thoroughfares like Recto, Quezon Boulevard, and Taft Avenue, connecting to Ermita and other southern areas."
+    },
+    {
+      "question": "What are the operating hours for the LRT-1 system that serves areas near District 1?",
+      "answer": "The LRT-1 typically operates from approximately 4:30 AM to 10:00 PM on weekdays, with slightly different schedules on weekends and holidays. It's always best to check the official LRT-1 website or announcements for the most current operating hours."
+    },
+    {
+      "question": "Are there specific jeepney drivers' associations or tricycle associations I can contact for complaints or inquiries in District 1?",
+      "answer": "Yes, there are various TODAs (Tricycle Operators and Drivers Associations) and jeepney associations (like PISTON or FEJODAP) operating in District 1. Contact information for specific local TODAs might be available through the barangay hall or local government offices, though general public complaints can often be lodged with the LTFRB (Land Transportation Franchising and Regulatory Board)."
+    },
+    {
+      "question": "What is the best way to commute from Binondo to Quiapo for shopping or accessing the church?",
+      "answer": "The most common and convenient way is to take a jeepney from Binondo (e.g., along Ongpin St.) with a 'Quiapo' or 'Baclaran via Quiapo' signboard. The ride is short and will drop you off near Quiapo Church and the surrounding commercial areas."
+    },
+    {
+      "question": "How to commute to San Nicolas, Manila from areas outside District 1?",
+      "answer": "To commute to San Nicolas, Manila from other districts, you'll generally need to take a jeepney or bus that goes towards Divisoria or the Port Area. From these points, San Nicolas is easily accessible by foot, tricycle, or a short jeepney ride, as it's adjacent to Divisoria and the Port Area."
+    },
+    {
+      "question": "Are there public transport options available very early in the morning (e.g., 4 AM) in District 1?",
+      "answer": "Yes, particularly jeepneys and some tricycles start operating very early in the morning (around 4 AM to 5 AM) to accommodate commuters going to work or markets. Major routes and transport hubs in District 1 will have early morning availability."
+    },
+    {
+      "question": "What transportation hubs are located within or very close to District 1?",
+      "answer": "Key transportation hubs near District 1 include **Tutuban Center** (a major jeepney terminal and historical train station), **Divisoria** (a convergence point for many jeepney routes), and **Doroteo Jose LRT-1 Station**, which connects to other train lines."
+    },
+    {
+      "question": "How do I get to Pritil Market in Tondo using jeepney or tricycle?",
+      "answer": "Pritil Market is a well-known landmark in Tondo. Many jeepneys passing through Juan Luna Street or other main roads in Tondo will have 'Pritil Market' on their signboard. Tricycles are also readily available in the surrounding areas to take you directly to the market."
+    },
+    {
+      "question": "What is the typical fare for a bus ride passing through District 1, if any?",
+      "answer": "Bus fares vary depending on the route and distance. For city buses, fares typically start at PHP 15.00 for the first few kilometers, similar to jeepneys, and increase with distance. For point-to-point (P2P) buses, if available, fares are usually fixed and higher."
+    },
+    {
+      "question": "Can I use a Beep card for jeepney or bus rides in District 1?",
+      "answer": "Currently, Beep cards are primarily used for train lines (LRT-1, LRT-2, MRT-3) and some modern buses (like EDSA Carousel). Traditional jeepneys and tricycles in District 1 still operate on cash basis. However, some newer modern jeepneys might accept Beep cards as part of the PUV modernization program."
+    },
+    {
+      "question": "Are there any apps or websites that provide reliable public transportation information for District 1?",
+      "answer": "For general route planning, Google Maps is often helpful, especially for identifying jeepney routes. Sakay.ph is another popular app in the Philippines that can assist with public transport directions, though real-time updates for jeepneys are limited."
+    },
+    {
+      "question": "What are the common jeepney routes that pass through Muelle de la Industria in District 1?",
+      "answer": "Muelle de la Industria is located in the Port Area. Jeepneys serving the Port Area, Divisoria, and parts of Binondo would likely pass through or near Muelle de la Industria. Look for jeepneys with 'Pier', 'Divisoria', or 'Binondo' signboards."
+    },
+    {
+      "question": "Where can I find a tricycle in Isla Puting Bato, Tondo?",
+      "answer": "Isla Puting Bato is an informal settlement in Tondo. Tricycles are generally the most accessible mode of transport within and to this area, connecting residents to main roads or nearby commercial centers. You would typically find tricycle terminals or roaming tricycles at the entrance or main access points to the community."
+    },
+    {
+      "question": "What are the major roads in District 1 where I can easily find public transport?",
+      "answer": "Major roads in District 1 where public transport (jeepneys, tricycles, and some buses) is abundant include **Claro M. Recto Avenue, Juan Luna Street, C.M. Recto Avenue**, and areas surrounding **Divisoria** and **Tutuban Center**."
+    },
+    {
+      "question": "What are the most common jeepney routes in District 1, Manila?",
+      "answer": "District 1 is served by numerous jeepney routes. Key routes include those connecting Divisoria to various points like Monumento, Recto, Baclaran, Taft, and areas within Tondo and Binondo. Always check the signboard for the destination."
+    },
+    {
+      "question": "How much is the typical jeepney fare within District 1?",
+      "answer": "The minimum jeepney fare usually starts at **PHP 15.00** for the first four kilometers. For distances within District 1, most rides will likely fall within this minimum or slightly above it."
+    },
+    {
+      "question": "What are the operating hours for jeepneys in District 1?",
+      "answer": "Jeepneys in District 1 generally operate from early morning (around 4:00 AM - 5:00 AM) until late evening (around 10:00 PM - 12:00 AM). Some busy routes might have limited service past midnight."
+    },
+    {
+      "question": "How can I tell where a jeepney is going?",
+      "answer": "Jeepneys have signboards on their front windshield indicating their primary destination (e.g., 'Divisoria', 'Monumento', 'Recto', 'Baclaran'). Some may also list key stops along the route."
+    },
+    {
+      "question": "Are jeepneys accessible for persons with disabilities (PWDs)?",
+      "answer": "Traditional jeepneys are generally not designed for PWD accessibility due to high steps and limited space. Modern jeepneys, as part of the PUV Modernization Program, may offer better accessibility features, but their availability on all routes is still developing."
+    },
+    {
+      "question": "Are tricycles widely available in Tondo and other parts of District 1?",
+      "answer": "Yes, tricycles are very widely available throughout District 1, particularly in inner streets, residential areas, and places not easily reached by jeepneys. They serve as a crucial last-mile transport option."
+    },
+    {
+      "question": "What is the average tricycle fare for a short ride in District 1?",
+      "answer": "For short distances (e.g., within a barangay or to a main road), tricycle fares typically start around **PHP 20-30**. Fares can vary based on distance, the number of passengers, and if it's a 'special trip' (solo ride)."
+    },
+    {
+      "question": "Do tricycles have fixed routes or can I negotiate the destination?",
+      "answer": "Tricycles often have designated routes within their TODA (Tricycle Operators and Drivers Association) zones. However, for a higher 'special trip' fare, you can often negotiate for direct travel to a specific destination, even if it's slightly off their usual route."
+    },
+    {
+      "question": "Is it safe to take a tricycle late at night in District 1?",
+      "answer": "While tricycles generally operate late, it's advisable to exercise caution when commuting at night. Stick to well-lit areas and designated tricycle stands if possible. Always be aware of your surroundings."
+    },
+    {
+      "question": "Are there many city bus routes that pass through District 1?",
+      "answer": "Many city bus routes in Manila primarily connect major hubs or traverse main thoroughfares. While some may pass through or have stops in District 1, jeepneys and tricycles are generally more prevalent for within-district travel. Provincial buses usually have designated terminals outside the inner districts but may pass through peripheral areas."
+    },
+    {
+      "question": "How do I know which bus to take to my destination in District 1?",
+      "answer": "Like jeepneys, buses also have signboards indicating their route and destination. Online apps like Google Maps or Sakay.ph can help identify bus routes that might serve your specific location in District 1."
+    },
+    {
+      "question": "Which LRT-1 stations are closest to major District 1 areas like Divisoria or Binondo?",
+      "answer": "For Divisoria, the most convenient LRT-1 station is **Doroteo Jose**. From there, you can take a short jeepney ride or walk. For Binondo, **Carriedo Station** is a good option, providing walking access to Ongpin Street and the heart of Binondo."
+    },
+    {
+      "question": "How do I pay for LRT-1 rides?",
+      "answer": "You can pay for LRT-1 rides using a **Beep card**, which can be purchased and reloaded at any LRT-1 station. Single Journey Tickets are also available for one-time trips at ticket booths or vending machines."
+    },
+    {
+      "question": "What are the operating hours for LRT-1?",
+      "answer": "LRT-1 typically operates from approximately **4:30 AM to 10:00 PM** on weekdays, with slightly adjusted schedules on weekends and holidays. Always check the official LRT-1 website for the most current information."
+    },
+    {
+      "question": "What are the peak hours for commuting in District 1, and how does traffic affect travel time?",
+      "answer": "Peak hours for commuting in Metro Manila, including District 1, are generally from **7:00 AM to 9:00 AM** (morning rush) and **5:00 PM to 7:00 PM** (evening rush). Traffic congestion can significantly increase travel times during these periods, sometimes doubling or tripling the usual duration."
+    },
+    {
+      "question": "Are there major public transport terminals or transfer points in District 1?",
+      "answer": "Yes, key transportation hubs and transfer points in District 1 include **Divisoria** (around Tutuban Center and 168 Mall), where many jeepney routes converge, and **Pritil Market** in Tondo, which is also a significant jeepney and tricycle hub. **Doroteo Jose LRT-1 Station** is another important transfer point."
+    },
+    {
+      "question": "What are some general tips for commuting in District 1?",
+      "answer": "Always have **small bills for fares**, be aware of your belongings (especially in crowded areas), clearly state your destination to drivers, and use **navigation apps** (like Google Maps or Sakay.ph) for route planning and estimated travel times. Expect heavy traffic during peak hours."
+    },
+    {
+      "question": "Can I use ride-hailing apps (like Grab) in District 1?",
+      "answer": "Yes, ride-hailing apps like Grab are available in District 1. They can be a convenient option, especially during off-peak hours or if you prefer a direct, air-conditioned ride, though they might be more expensive than traditional public transport and can be affected by traffic."
+    },
+    {
+      "question": "Is it possible to walk between attractions in District 1?",
+      "answer": "Many attractions within District 1, such as parts of Divisoria, Binondo, and San Nicolas, are walkable. However, sidewalks can be crowded and uneven, so comfortable footwear is recommended. For longer distances or during hot weather, public transport is advisable."
+    },
+    {
+      "question": "How has the Public Utility Vehicle (PUV) Modernization Program affected commuting in District 1?",
+      "answer": "The PUV Modernization Program aims to replace old jeepneys with more modern, environmentally friendly units and to consolidate routes. While the program is ongoing, its impact in District 1 is gradual. You may see some modern jeepneys on certain routes, and some routes might be consolidated or changed over time. Stay updated with local transport authority announcements."
+    },
+    {
+      "question": "What are the common jeepney routes that pass through Divisoria in District 1?",
+      "answer": "Common jeepney routes in Divisoria (District 1) include those going to and from Monumento, Recto, Baclaran, Taft, and various points in Tondo and Binondo. Look for signboards indicating destinations like 'Monumento', 'Recto', 'Baclaran', 'LRT/Taft', 'Pier', 'Tondo', 'Binondo', and specific streets within District 1 like 'Juan Luna' or 'Ilaya'."
+    },
+    {
+      "question": "How can I commute from Tondo (District 1) to Divisoria using a jeepney?",
+      "answer": "From most parts of Tondo, you can find jeepneys with 'Divisoria' or 'Moriones' signboards that will take you directly to Divisoria. If you're deeper in Tondo, you might need to take a tricycle to a main road like Juan Luna or Capulong, then transfer to a Divisoria-bound jeepney."
+    },
+    {
+      "question": "What's the best way to get from Binondo (District 1) to Quiapo using public transport (jeepney or bus)?",
+      "answer": "From Binondo, you can take a jeepney with a 'Quiapo' or 'Baclaran via Quiapo' signboard along Ongpin Street or nearby main roads. Alternatively, some buses might pass through the area on their way to Quiapo, but jeepneys are generally more common and direct for this route."
+    },
+    {
+      "question": "Are tricycles widely available in Tondo, District 1, and what are their operating hours?",
+      "answer": "Yes, tricycles are widely available in almost all areas of Tondo, especially in inner streets and residential areas where jeepneys cannot easily access. While specific operating hours vary by tricycle operators' associations (TODAs), many operate from early morning until late evening, with some even offering 24/7 service in bustling areas, though availability might be scarcer late at night."
+    },
+    {
+      "question": "Which LRT-1 stations are most convenient for accessing District 1 attractions like Divisoria or Binondo?",
+      "answer": "For Divisoria, the nearest LRT-1 station is **Doroteo Jose**. From there, you can take a short jeepney ride or walk to Divisoria. For Binondo, **Carriedo Station** is a good option, providing walking access to Ongpin Street and the heart of Binondo."
+    },
+    {
+      "question": "How do I get to 168 Shopping Mall in Divisoria using public transport?",
+      "answer": "The 168 Shopping Mall is located within Divisoria. You can take any jeepney route that goes to Divisoria (e.g., from Monumento, Recto, or Tondo). The nearest bus stop is Soler St / Reina Regente Intersection, which is a 4-minute walk to 168 Shopping Mall."
+    },
+    {
+      "question": "What is the typical fare range for a jeepney ride within District 1, Manila?",
+      "answer": "The minimum jeepney fare typically starts at **PHP 15.00** for the first four kilometers. Fares increase incrementally for longer distances. Within District 1, most rides would fall within the minimum fare to slightly above it, depending on the exact distance."
+    },
+    {
+      "question": "Are there specific bus stops along Juan Luna Street in District 1, Tondo?",
+      "answer": "Yes, Juan Luna Street has several bus (jeepney-style buses) stops. Notable stops include Velasquez / Navaroo Intersection, Pritil Public Market / Juan Luna / Tayuman Road Intersection, and stops near Dragon8 Mall and Tello / Juan Luna St. Many jeepney routes pass along Juan Luna Street."
+    },
+    {
+      "question": "How can I commute from Pier 4 (Manila Port Area) to Juan Luna Street in District 1?",
+      "answer": "From Pier 4, you can find jeepneys with signboards indicating routes that pass through Juan Luna Street, such as those going to Divisoria or Pritil Market. You might need to walk a short distance from the pier exit to the main road where jeepneys are available."
+    },
+    {
+      "question": "What's the estimated travel time by jeepney from Divisoria to Binondo?",
+      "answer": "The travel time by jeepney from Divisoria to Binondo is relatively short, typically ranging from **5 to 15 minutes**, depending on traffic conditions and the specific drop-off point within Binondo. The two areas are adjacent."
+    },
+    {
+      "question": "Are there bus routes that directly serve destinations within District 1, or do they mostly connect to other districts?",
+      "answer": "Most bus routes that pass through District 1 are inter-district routes, connecting District 1 to other parts of Metro Manila or even provinces. While some modern city buses might offer stops within District 1, jeepneys and tricycles are the primary modes for intra-district travel."
+    },
+    {
+      "question": "How much does a tricycle ride typically cost in District 1 for short distances?",
+      "answer": "Tricycle fares in District 1 for short distances (e.g., within a barangay or to the nearest main road) typically start around **PHP 20-30**. Fares can be higher for longer distances or if you're the sole passenger on a special trip (solo ride)."
+    },
+    {
+      "question": "What are the common pick-up points for tricycles in Tondo, especially near residential areas?",
+      "answer": "Tricycles in Tondo can be found at designated terminals (tricycle stands) at intersections, near markets (like Pritil Market), schools, churches, and often roam residential streets. You can usually flag them down easily."
+    },
+    {
+      "question": "How do I commute from Tondo Medical Center to San Nicolas, Manila using public transport?",
+      "answer": "From Tondo Medical Center, you can take a jeepney going towards Divisoria or Recto. From Divisoria/Recto area, San Nicolas is within walking distance or a short tricycle ride, particularly if you're heading to the inner streets of San Nicolas."
+    },
+    {
+      "question": "Which jeepney routes specifically cater to the Claro M. Recto Avenue area in District 1?",
+      "answer": "Claro M. Recto Avenue is a major thoroughfare. Many jeepney routes pass through it, connecting to areas like Divisoria, Tutuban, Quiapo, and further into Sta. Cruz and Sampaloc. Look for jeepneys with signboards such as 'Divisoria', 'Quiapo', 'Tondo', 'P. Guevarra', 'Tayuman', or 'LRT Recto'."
+    },
+    {
+      "question": "Are there any express bus routes that pass through or have stops in District 1?",
+      "answer": "While the EDSA Carousel bus operates on EDSA, which is not directly within District 1, there might be UV Express routes (van-based public transport) that connect District 1 to other parts of Metro Manila with fewer stops, acting as a form of 'express' service for specific routes. Check specific UV Express terminals or apps for their routes."
+    },
+    {
+      "question": "What are the main jeepney terminals or major transfer points in District 1?",
+      "answer": "Key jeepney terminals and transfer points in District 1 include **Divisoria** (especially around Tutuban Center and 168 Mall), **Pritil Market**, and areas along **Juan Luna Street** and **Claro M. Recto Avenue** where many routes converge."
+    },
+    {
+      "question": "Is it safe to commute at night in District 1 using tricycles or jeepneys?",
+      "answer": "Commuting at night in District 1, like any urban area, requires caution. While tricycles and jeepneys generally operate at night, it's advisable to stick to well-lit and populated areas. Always be aware of your surroundings and consider using ride-hailing apps if available for added safety, especially late at night."
+    },
+    {
+      "question": "How can I commute from Manila Port Area (Pier 1-15) to Divisoria using public transport?",
+      "answer": "From the Manila Port Area, you can find jeepneys or buses (often jeepney-type) near the exits that go to Divisoria or Sto. Cristo. The journey can be as short as 5-11 minutes by bus/jeepney, depending on your exact pier location and traffic."
+    },
+    {
+      "question": "What are the designated loading and unloading areas for jeepneys in District 1?",
+      "answer": "Jeepneys generally follow designated loading and unloading zones, often marked by signs or simply observed as common pick-up/drop-off points at intersections, market entrances, or commercial areas. However, in some less congested areas, jeepneys might stop where passengers signal."
+    },
+    {
+      "question": "Are there specific tricycle zones in Tondo, and how do they affect fares?",
+      "answer": "Yes, Tondo is divided into tricycle zones, with each zone typically serviced by a specific TODA (Tricycle Operators and Drivers Association). Fares are generally standardized within these zones for regular trips, but going beyond a tricycle's designated zone might incur a higher 'special trip' fare or require a transfer to another tricycle."
+    },
+    {
+      "question": "How to get from Tutuban Center to Lucky Chinatown Mall via public transport?",
+      "answer": "Lucky Chinatown Mall is very close to Tutuban Center. You can easily walk (around 1 km, 10-15 minutes) or take a short tricycle ride. Some jeepneys passing by Tutuban might also have routes that go near Lucky Chinatown."
+    },
+    {
+      "question": "What are the common bus companies that have routes passing through or originating in District 1?",
+      "answer": "District 1 is primarily served by city buses and provincial buses that have terminals or pass through Lawton or other key points in Manila that connect to District 1. You might find buses from companies like Genesis Transport, Victory Liner, and others, especially if their routes lead to provincial destinations via central Manila."
+    },
+    {
+      "question": "Is there a direct bus route from Binondo to Manila City Hall?",
+      "answer": "While there might not be a dedicated 'Binondo to City Hall' bus route, you can likely find jeepneys from Binondo (e.g., along Ongpin or Recto) that pass by Manila City Hall or have routes that end near it (e.g., Taft Avenue bound jeepneys)."
+    },
+    {
+      "question": "How can I check the real-time schedules or estimated arrival times for jeepneys and buses in District 1?",
+      "answer": "Unfortunately, real-time tracking for traditional jeepneys and most buses in District 1 is not widely available. Commuters typically rely on frequent availability. However, apps like Moovit or Sakay.ph can provide route information and estimated travel times based on historical data, which can be helpful for planning."
+    },
+    {
+      "question": "What are the common jeepney routes that pass through Smokey Mountain in Tondo?",
+      "answer": "Jeepney routes going to and from Smokey Mountain typically serve the Tondo area, connecting residents to major commercial hubs like Divisoria or areas further south. Look for jeepneys with signboards indicating 'Smokey Mountain', 'Balut', or 'Pier' and 'Divisoria' as their endpoints."
+    },
+    {
+      "question": "Are there any public utility vehicle (PUV) modernization updates or changes affecting jeepney routes in District 1?",
+      "answer": "The PUV Modernization Program is ongoing nationwide. While the program aims to replace old jeepneys with modern units, its implementation in District 1 is gradual. Routes may be consolidated or new modern jeepney units may be introduced. It's best to check with local transport authorities or news for the latest updates specific to Manila District 1."
+    },
+    {
+      "question": "What is the typical fare for an LRT-1 ride from Doroteo Jose Station to Baclaran Station?",
+      "answer": "LRT-1 fares are distance-based. From Doroteo Jose to Baclaran, which is a significant portion of the line, the fare would be higher than the minimum, likely ranging from PHP 20-30 depending on the exact number of stations passed."
+    },
+    {
+      "question": "How accessible is public transportation (tricycle, jeepney, bus) in District 1 for persons with disabilities (PWDs)?",
+      "answer": "Traditional tricycles and jeepneys are generally not PWD-friendly due to their design (high steps, cramped space). While modern buses may have PWD-friendly features, their availability in all District 1 routes might be limited. The LRT-1 stations have elevators and ramps, offering better accessibility for PWDs."
+    },
+    {
+      "question": "How can I commute to Sto. Cristo, Manila, from other areas of District 1?",
+      "answer": "Sto. Cristo is a street and an area within District 1, often associated with Divisoria. You can reach it by taking any jeepney or bus route that goes to Divisoria. From there, it's a short walk or tricycle ride to specific points along Sto. Cristo Street."
+    },
+    {
+      "question": "What are the typical operating hours for jeepneys in District 1?",
+      "answer": "Jeepneys in District 1 typically start operating very early in the morning (around 4:00 AM - 5:00 AM) and continue until late at night (around 10:00 PM - 12:00 AM). Some major routes might have limited service past midnight, especially on weekends."
+    },
+    {
+      "question": "How to get from Pritil Market (Tondo) to Binondo Church using public transport?",
+      "answer": "From Pritil Market, you can take a jeepney going towards Divisoria or Recto. From Divisoria, Binondo Church (Minor Basilica of St. Lorenzo Ruiz) is a short walk away. Alternatively, you might find tricycles that can take you directly from Pritil to Binondo Church, though it might be a special trip fare."
+    },
+    {
+      "question": "Are there specific bus routes that pass by the Del Pan Bridge in District 1?",
+      "answer": "Bus and jeepney routes that connect the Port Area, Intramuros, and parts of Tondo/Binondo would likely pass over or near the Del Pan Bridge. Look for routes indicating 'Pier', 'Intramuros', or 'Divisoria'."
+    },
+    {
+      "question": "What are some general commuting tips for navigating District 1 using public transport?",
+      "answer": "Key tips include: knowing your jeepney signboard (destination), having small bills for fares, being aware of your belongings in crowded areas, using navigation apps like Google Maps or Sakay.ph for route guidance, and being prepared for heavy traffic, especially during peak hours."
+    },
+    {
+      "question": "How do I pay for LRT-1 rides, and are beep cards accepted?",
+      "answer": "Yes, Beep cards are the most convenient way to pay for LRT-1 rides. You can purchase and reload them at any LRT-1 station. Single journey tickets are also available at ticket booths or vending machines for one-time trips."
+    },
+    {
+      "question": "Are there tricycle terminals near Fort Santiago in Intramuros (near District 1)?",
+      "answer": "While Fort Santiago is in Intramuros (technically not District 1 but adjacent), tricycles are often available just outside the walls of Intramuros, particularly around the General Luna Street or Soriano Avenue exits, which can connect you to nearby areas in District 1 like Port Area or Binondo."
+    },
+    {
+      "question": "Which jeepney routes connect District 1 to other parts of Manila, like Quiapo or Ermita?",
+      "answer": "Many jeepney routes from District 1 (e.g., from Divisoria, Tondo, Binondo) extend to other parts of Manila. Common routes include 'Divisoria-Quiapo', 'Tondo-Baclaran via Taft', 'Monumento-Baclaran', which often pass through major thoroughfares like Recto, Quezon Boulevard, and Taft Avenue, connecting to Ermita and other southern areas."
+    },
+    {
+      "question": "What are the operating hours for the LRT-1 system that serves areas near District 1?",
+      "answer": "The LRT-1 typically operates from approximately 4:30 AM to 10:00 PM on weekdays, with slightly different schedules on weekends and holidays. It's always best to check the official LRT-1 website or announcements for the most current operating hours."
+    },
+    {
+      "question": "Are there specific jeepney drivers' associations or tricycle associations I can contact for complaints or inquiries in District 1?",
+      "answer": "Yes, there are various TODAs (Tricycle Operators and Drivers Associations) and jeepney associations (like PISTON or FEJODAP) operating in District 1. Contact information for specific local TODAs might be available through the barangay hall or local government offices, though general public complaints can often be lodged with the LTFRB (Land Transportation Franchising and Regulatory Board)."
+    },
+    {
+      "question": "What is the best way to commute from Binondo to Quiapo for shopping or accessing the church?",
+      "answer": "The most common and convenient way is to take a jeepney from Binondo (e.g., along Ongpin St.) with a 'Quiapo' or 'Baclaran via Quiapo' signboard. The ride is short and will drop you off near Quiapo Church and the surrounding commercial areas."
+    },
+    {
+      "question": "How to commute to San Nicolas, Manila from areas outside District 1?",
+      "answer": "To commute to San Nicolas, Manila from other districts, you'll generally need to take a jeepney or bus that goes towards Divisoria or the Port Area. From these points, San Nicolas is easily accessible by foot, tricycle, or a short jeepney ride, as it's adjacent to Divisoria and the Port Area."
+    },
+    {
+      "question": "Are there public transport options available very early in the morning (e.g., 4 AM) in District 1?",
+      "answer": "Yes, particularly jeepneys and some tricycles start operating very early in the morning (around 4 AM to 5 AM) to accommodate commuters going to work or markets. Major routes and transport hubs in District 1 will have early morning availability."
+    },
+    {
+      "question": "What transportation hubs are located within or very close to District 1?",
+      "answer": "Key transportation hubs near District 1 include **Tutuban Center** (a major jeepney terminal and historical train station), **Divisoria** (a convergence point for many jeepney routes), and **Doroteo Jose LRT-1 Station**, which connects to other train lines."
+    },
+    {
+      "question": "How do I get to Pritil Market in Tondo using jeepney or tricycle?",
+      "answer": "Pritil Market is a well-known landmark in Tondo. Many jeepneys passing through Juan Luna Street or other main roads in Tondo will have 'Pritil Market' on their signboard. Tricycles are also readily available in the surrounding areas to take you directly to the market."
+    },
+    {
+      "question": "What is the typical fare for a bus ride passing through District 1, if any?",
+      "answer": "Bus fares vary depending on the route and distance. For city buses, fares typically start at PHP 15.00 for the first few kilometers, similar to jeepneys, and increase with distance. For point-to-point (P2P) buses, if available, fares are usually fixed and higher."
+    },
+    {
+      "question": "Can I use a Beep card for jeepney or bus rides in District 1?",
+      "answer": "Currently, Beep cards are primarily used for train lines (LRT-1, LRT-2, MRT-3) and some modern buses (like EDSA Carousel). Traditional jeepneys and tricycles in District 1 still operate on cash basis. However, some newer modern jeepneys might accept Beep cards as part of the PUV modernization program."
+    },
+    {
+      "question": "Are there any apps or websites that provide reliable public transportation information for District 1?",
+      "answer": "For general route planning, Google Maps is often helpful, especially for identifying jeepney routes. Sakay.ph is another popular app in the Philippines that can assist with public transport directions, though real-time updates for jeepneys are limited."
+    },
+    {
+      "question": "What are the common jeepney routes that pass through Muelle de la Industria in District 1?",
+      "answer": "Muelle de la Industria is located in the Port Area. Jeepneys serving the Port Area, Divisoria, and parts of Binondo would likely pass through or near Muelle de la Industria. Look for jeepneys with 'Pier', 'Divisoria', or 'Binondo' signboards."
+    },
+    {
+      "question": "Where can I find a tricycle in Isla Puting Bato, Tondo?",
+      "answer": "Isla Puting Bato is an informal settlement in Tondo. Tricycles are generally the most accessible mode of transport within and to this area, connecting residents to main roads or nearby commercial centers. You would typically find tricycle terminals or roaming tricycles at the entrance or main access points to the community."
+    },
+    {
+      "question": "What are the major roads in District 1 where I can easily find public transport?",
+      "answer": "Major roads in District 1 where public transport (jeepneys, tricycles, and some buses) is abundant include **Claro M. Recto Avenue, Juan Luna Street, C.M. Recto Avenue**, and areas surrounding **Divisoria** and **Tutuban Center**."
+    },
+    {
+      "question": "What are the most common jeepney routes in District 1, Manila?",
+      "answer": "District 1 is served by numerous jeepney routes. Key routes include those connecting Divisoria to various points like Monumento, Recto, Baclaran, Taft, and areas within Tondo and Binondo. Always check the signboard for the destination."
+    },
+    {
+      "question": "How much is the typical jeepney fare within District 1?",
+      "answer": "The minimum jeepney fare usually starts at **PHP 15.00** for the first four kilometers. For distances within District 1, most rides will likely fall within this minimum or slightly above it."
+    },
+    {
+      "question": "What are the operating hours for jeepneys in District 1?",
+      "answer": "Jeepneys in District 1 generally operate from early morning (around 4:00 AM - 5:00 AM) until late evening (around 10:00 PM - 12:00 AM). Some busy routes might have limited service past midnight."
+    },
+    {
+      "question": "How can I tell where a jeepney is going?",
+      "answer": "Jeepneys have signboards on their front windshield indicating their primary destination (e.g., 'Divisoria', 'Monumento', 'Recto', 'Baclaran'). Some may also list key stops along the route."
+    },
+    {
+      "question": "Are jeepneys accessible for persons with disabilities (PWDs)?",
+      "answer": "Traditional jeepneys are generally not designed for PWD accessibility due to high steps and limited space. Modern jeepneys, as part of the PUV Modernization Program, may offer better accessibility features, but their availability on all routes is still developing."
+    },
+    {
+      "question": "Are tricycles widely available in Tondo and other parts of District 1?",
+      "answer": "Yes, tricycles are very widely available throughout District 1, particularly in inner streets, residential areas, and places not easily reached by jeepneys. They serve as a crucial last-mile transport option."
+    },
+    {
+      "question": "What is the average tricycle fare for a short ride in District 1?",
+      "answer": "For short distances (e.g., within a barangay or to a main road), tricycle fares typically start around **PHP 20-30**. Fares can vary based on distance, the number of passengers, and if it's a 'special trip' (solo ride)."
+    },
+    {
+      "question": "Do tricycles have fixed routes or can I negotiate the destination?",
+      "answer": "Tricycles often have designated routes within their TODA (Tricycle Operators and Drivers Association) zones. However, for a higher 'special trip' fare, you can often negotiate for direct travel to a specific destination, even if it's slightly off their usual route."
+    },
+    {
+      "question": "Is it safe to take a tricycle late at night in District 1?",
+      "answer": "While tricycles generally operate late, it's advisable to exercise caution when commuting at night. Stick to well-lit areas and designated tricycle stands if possible. Always be aware of your surroundings."
+    },
+    {
+      "question": "Are there many city bus routes that pass through District 1?",
+      "answer": "Many city bus routes in Manila primarily connect major hubs or traverse main thoroughfares. While some may pass through or have stops in District 1, jeepneys and tricycles are generally more prevalent for within-district travel. Provincial buses usually have designated terminals outside the inner districts but may pass through peripheral areas."
+    },
+    {
+      "question": "How do I know which bus to take to my destination in District 1?",
+      "answer": "Like jeepneys, buses also have signboards indicating their route and destination. Online apps like Google Maps or Sakay.ph can help identify bus routes that might serve your specific location in District 1."
+    },
+    {
+      "question": "Which LRT-1 stations are closest to major District 1 areas like Divisoria or Binondo?",
+      "answer": "For Divisoria, the most convenient LRT-1 station is **Doroteo Jose**. From there, you can take a short jeepney ride or walk. For Binondo, **Carriedo Station** is a good option, providing walking access to Ongpin Street and the heart of Binondo."
+    },
+    {
+      "question": "How do I pay for LRT-1 rides?",
+      "answer": "You can pay for LRT-1 rides using a **Beep card**, which can be purchased and reloaded at any LRT-1 station. Single Journey Tickets are also available for one-time trips at ticket booths or vending machines."
+    },
+    {
+      "question": "What are the operating hours for LRT-1?",
+      "answer": "LRT-1 typically operates from approximately **4:30 AM to 10:00 PM** on weekdays, with slightly adjusted schedules on weekends and holidays. Always check the official LRT-1 website for the most current information."
+    },
+    {
+      "question": "What are the peak hours for commuting in District 1, and how does traffic affect travel time?",
+      "answer": "Peak hours for commuting in Metro Manila, including District 1, are generally from **7:00 AM to 9:00 AM** (morning rush) and **5:00 PM to 7:00 PM** (evening rush). Traffic congestion can significantly increase travel times during these periods, sometimes doubling or tripling the usual duration."
+    },
+    {
+      "question": "Are there major public transport terminals or transfer points in District 1?",
+      "answer": "Yes, key transportation hubs and transfer points in District 1 include **Divisoria** (around Tutuban Center and 168 Mall), where many jeepney routes converge, and **Pritil Market** in Tondo, which is also a significant jeepney and tricycle hub. **Doroteo Jose LRT-1 Station** is another important transfer point."
+    },
+    {
+      "question": "What are some general tips for commuting in District 1?",
+      "answer": "Always have **small bills for fares**, be aware of your belongings (especially in crowded areas), clearly state your destination to drivers, and use **navigation apps** (like Google Maps or Sakay.ph) for route planning and estimated travel times. Expect heavy traffic during peak hours."
+    },
+    {
+      "question": "Can I use ride-hailing apps (like Grab) in District 1?",
+      "answer": "Yes, ride-hailing apps like Grab are available in District 1. They can be a convenient option, especially during off-peak hours or if you prefer a direct, air-conditioned ride, though they might be more expensive than traditional public transport and can be affected by traffic."
+    },
+    {
+      "question": "Is it possible to walk between attractions in District 1?",
+      "answer": "Many attractions within District 1, such as parts of Divisoria, Binondo, and San Nicolas, are walkable. However, sidewalks can be crowded and uneven, so comfortable footwear is recommended. For longer distances or during hot weather, public transport is advisable."
+    },
+    {
+      "question": "How has the Public Utility Vehicle (PUV) Modernization Program affected commuting in District 1?",
+      "answer": "The PUV Modernization Program aims to replace old jeepneys with more modern, environmentally friendly units and to consolidate routes. While the program is ongoing, its impact in District 1 is gradual. You may see some modern jeepneys on certain routes, and some routes might be consolidated or changed over time. Stay updated with local transport authority announcements."
+    },
+    {
+      "question": "How do I get to Ugbo (Street Food) in Tondo from Divisoria?",
+      "answer": "From Divisoria, you can take a jeepney bound for Velasquez Street in Tondo. Inform the driver to drop you off at Ugbo Street. It's best to confirm the exact drop-off point with locals as you approach the area. A short tricycle ride might be necessary from the main jeepney stop."
+    },
+    {
+      "question": "What's the best way to commute to Binondo Church (Minor Basilica of St. Lorenzo Ruiz)?",
+      "answer": "Binondo Church is easily accessible from various points in District 1. From Divisoria or nearby areas, you can take a jeepney going towards Binondo or Quiapo. If taking the LRT-1, alight at Carriedo Station, and Binondo Church is a short walk away along Ongpin Street."
+    },
+    {
+      "question": "How can I commute to Escolta Street from within District 1?",
+      "answer": "Escolta Street is adjacent to Binondo. From Divisoria or areas along Recto Avenue, you can take a jeepney that passes through Binondo or Sta. Cruz. Many jeepneys with signboards like 'Divisoria-Pier', 'Monumento-Sta. Cruz', or 'Quiapo' will get you close. From LRT-1, alight at Carriedo Station, and Escolta is a short walk away."
+    },
+    {
+      "question": "What's the easiest way to get to the Binondo-Intramuros Bridge by public transport?",
+      "answer": "The Binondo-Intramuros Bridge connects Binondo (District 1) to Intramuros. From Binondo, you can simply walk to the bridge. If coming from other parts of District 1, take a jeepney towards Binondo or a tricycle if you're in a nearby Tondo area. The nearest LRT-1 station that can provide access to Intramuros, from where the bridge is walkable, is Central Terminal Station."
+    },
+    {
+      "question": "How do I commute to the Manila Chinatown Arch (Binondo Welcome Arch)?",
+      "answer": "The Manila Chinatown Arch is located at the entrance to Binondo. From Divisoria, it's a short jeepney ride or even walkable. Many jeepneys passing through Ongpin Street or those going to 'Binondo' will pass by or near the arch. You can also take the LRT-1 to Carriedo Station and walk towards Ongpin."
+    },
+    {
+      "question": "How to get to Lucky Chinatown Mall from other parts of District 1?",
+      "answer": "Lucky Chinatown Mall is located in Binondo. From Tutuban Center or Divisoria, it's a very short walk or a quick tricycle ride. Jeepneys passing through Binondo will also get you close."
+    },
+    {
+      "question": "What's the best way to commute to Tutuban Center?",
+      "answer": "Tutuban Center is a major hub in Divisoria. Many jeepney routes terminate or pass through Tutuban, especially those coming from Monumento, Recto, and various parts of Tondo. It's a key drop-off point for Divisoria-bound commuters."
+    },
+    {
+      "question": "How can I reach Divisoria Market using public transport?",
+      "answer": "Divisoria Market is a central commercial area. Many jeepney routes from across Metro Manila terminate here (e.g., 'Monumento-Divisoria', 'Recto-Divisoria'). The nearest LRT-1 station is Doroteo Jose, from which you can take a short jeepney or tricycle ride to the market. Tricycles are also abundant for short distances within the Divisoria area."
+    },
+    {
+      "question": "How do I commute from District 1 to the National Museum Complex (e.g., National Museum of Fine Arts)?",
+      "answer": "The National Museum Complex is located near Rizal Park, adjacent to District 1. From District 1, take a jeepney route that passes through Taft Avenue or Quiapo (e.g., 'Divisoria-Baclaran via Taft' or 'Monumento-Baclaran'). Alight near the Manila City Hall or Central Terminal LRT-1 Station, from where the museums are walkable. The Central Terminal LRT-1 Station is directly connected to the museum complex via a pedestrian underpass."
+    },
+    {
+      "question": "What's the easiest way to commute to Fort Santiago in Intramuros from District 1?",
+      "answer": "Fort Santiago is within Intramuros, which is adjacent to District 1 (specifically, the Port Area and Binondo). From District 1, you can take a jeepney that passes through the Port Area or those with signboards leading to Intramuros. The nearest LRT-1 station is Central Terminal, from which Fort Santiago is walkable within Intramuros."
+    },
+    {
+      "question": "How to get to San Agustin Church and Museum from District 1?",
+      "answer": "San Agustin Church and Museum are located within Intramuros. Similar to Fort Santiago, you can take a jeepney that leads to Intramuros or the Port Area from District 1. The Central Terminal LRT-1 Station is the closest, providing walking access to Intramuros and its historical sites."
+    },
+    {
+      "question": "How can I commute to Bahay Tsinoy from District 1?",
+      "answer": "Bahay Tsinoy, a museum about Chinese-Filipino history, is located within Intramuros. From District 1, take a jeepney towards Intramuros or the Port Area. The closest LRT-1 station is Central Terminal. From there, Bahay Tsinoy is a short walk within Intramuros."
+    },
+    {
+      "question": "How do I reach the Intramuros Light and Sound Museum from District 1?",
+      "answer": "The Intramuros Light and Sound Museum is located within the walled city. To get there from District 1, take a jeepney or bus towards Intramuros or a route that passes by the Manila City Hall. The LRT-1 Central Terminal Station is the most direct train access, followed by a walk into Intramuros."
+    },
+    {
+      "question": "What's the commute route to Manila Cathedral from District 1?",
+      "answer": "The Manila Cathedral is a prominent landmark within Intramuros. From various points in District 1, you can take a jeepney that heads towards Intramuros or passes through the Port Area. The nearest LRT-1 station is Central Terminal, providing walking access to the cathedral."
+    },
+    {
+      "question": "How can I commute to Paco Park from District 1?",
+      "answer": "Paco Park is located south of District 1. From District 1, you can take a jeepney route that goes along Taft Avenue (e.g., 'Monumento-Baclaran' or 'Divisoria-Baclaran'). Alight near Pedro Gil Street or United Nations Avenue LRT-1 station, then take another short ride or walk to Paco Park."
+    },
+    {
+      "question": "How to get to Binondo Heritage Sites (e.g., Ongpin Street, Binondo Church, Escolta) by public transport?",
+      "answer": "Binondo's heritage sites are clustered and mostly walkable once you're in the area. From Divisoria, it's a short walk or tricycle ride. Many jeepneys pass through Ongpin Street and its vicinity. The LRT-1 Carriedo Station is also a convenient access point for exploring Binondo on foot."
+    },
+    {
+      "question": "How do I commute to Tondo Church (Sto. Niño de Tondo Parish) and Plaza Moriones in Tondo?",
+      "answer": "Tondo Church and Plaza Moriones are central landmarks in Tondo, District 1. Many jeepney routes from Divisoria or other parts of Tondo terminate or pass by these areas. Look for jeepneys with 'Tondo', 'Moriones', or specific street names in Tondo on their signboards. Tricycles are also abundant for direct access within Tondo."
+    },
+    {
+      "question": "How to commute to the Manila Baywalk from District 1?",
+      "answer": "The Manila Baywalk is located along Roxas Boulevard, which is south of District 1. From District 1, take a jeepney or bus that plies Taft Avenue or Roxas Boulevard (e.g., 'Monumento-Baclaran', 'Divisoria-Baclaran'). You can alight near the US Embassy or along the Baywalk area. The nearest LRT-1 stations are United Nations or Vito Cruz, from which you can walk to the Baywalk."
+    },
+    {
+      "question": "How can I get to Malacañang Palace from District 1 using public transport?",
+      "answer": "Malacañang Palace is located in the San Miguel district, northeast of District 1. From District 1, you'll likely need to take a jeepney or bus towards Quiapo or San Miguel. Routes that pass along C.M. Recto Avenue or Legarda Street might get you closer. From Quiapo, you might need another short jeepney or tricycle ride, or a walk depending on the specific gate you're heading to. The nearest LRT-1 station is Carriedo, which is a bit of a distance but connects to areas where Malacañang-bound transport is available."
+    },
+    {
+      "question": "What's the best way to commute to San Lazaro Leisure Park from District 1?",
+      "answer": "San Lazaro Leisure Park (in Sta. Cruz, Manila, not the one in Cavite) is generally accessed via jeepney routes that pass through Rizal Avenue. From District 1 (e.g., Divisoria), take a jeepney with a 'Monumento' or 'Blumentritt' signboard along Rizal Avenue. The San Lazaro LRT-1 station is also directly linked to the area."
+    },
+    {
+      "question": "How do I get to Binondo Public Market and Tondo Public Market?",
+      "answer": "Both Binondo Public Market and Tondo Public Market are major hubs within District 1. Binondo Public Market is easily accessible by walking or short tricycle rides from anywhere in Binondo, or by jeepneys passing through the area. Tondo Public Market (Pritil Market) is a landmark in Tondo, served by numerous jeepney routes that ply Juan Luna Street and is easily accessible by tricycle within Tondo."
+    },
+    {
+      "question": "How can I commute to Manila North Cemetery from District 1?",
+      "answer": "The Manila North Cemetery is located further north from central District 1. From District 1, you can take a jeepney that plies Rizal Avenue or go to the Blumentritt LRT-1 station. Jeepneys with signboards like 'Monumento-Baclaran' or 'Blumentritt-Dimasalang' typically pass near the cemetery. The Blumentritt LRT-1 station is very close to the cemetery's main entrance."
+    },
+    {
+      "question": "What's the public transport route to Manila Zoo from District 1?",
+      "answer": "Manila Zoo is located in Malate, south of District 1. From District 1, take a jeepney or bus route that goes along Taft Avenue (e.g., 'Monumento-Baclaran', 'Divisoria-Baclaran'). Alight at the Vito Cruz or Quirino Avenue LRT-1 station, which are both within walking distance or a short jeepney/tricycle ride to Manila Zoo."
+    }
 ]
+

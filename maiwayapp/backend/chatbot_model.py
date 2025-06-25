@@ -6,7 +6,7 @@ import os
 import re
 
 class ChatbotModel:
-    def __init__(self, data_path='data/faq_data.json', similarity_threshold=0.58):
+    def __init__(self, data_path='data/faq_data.json', similarity_threshold=0.98):
         script_dir = os.path.dirname(__file__)
         self.faq_file_path = os.path.join(script_dir, data_path)
         self.similarity_threshold = similarity_threshold 
