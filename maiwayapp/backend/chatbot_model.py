@@ -6,12 +6,19 @@ import os
 import re
 
 class ChatbotModel:
-    def __init__(self, data_path='data/faq_data.json', similarity_threshold=0.58):
+    def __init__(self, data_path='data/faq_data.json', similarity_threshold=0.78):
         script_dir = os.path.dirname(__file__)
         self.faq_file_path = os.path.join(script_dir, data_path)
         self.similarity_threshold = similarity_threshold 
 
         self.model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+
+        self.map_related_keywords = [
+            "route", "routes", "how to get to", "location", "address", 
+            "map", "direction", "directions", "saan", "paano pumunta",
+            "papunta", "transport",
+            "where is", "find", "locate", "travel", "by foot", "walking"
+        ]
 
         self._load_and_encode_data()
 
@@ -68,11 +75,17 @@ class ChatbotModel:
         """
         Generates a response to the user's query based on semantic similarity.
         Includes debug information for troubleshooting.
+        Prioritizes map-related queries.
         """
         if not user_query:
             return "Wala po kayong tinanong. Paano po ako makakatulong?"
 
         processed_query = self._preprocess_text(user_query)
+
+        for keyword in self.map_related_keywords:
+            if keyword in processed_query:
+                print(f"Detected map-related query with keyword: '{keyword}'. Redirecting to MapScreen.")
+                return "For questions about routes, locations, or directions, please refer to the MapScreen. You can use the search bar there to find places."
 
         if self.corpus_embeddings.numel() == 0: 
             print("Warning: Chatbot corpus embeddings are empty. Cannot generate response.")
