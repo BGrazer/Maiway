@@ -6,20 +6,30 @@ import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
-import 'package:maiwayapp/chatbot_dialog.dart'; 
+import 'package:maiwayapp/chatbot_dialog.dart';
+import 'package:maiwayapp/survey_page.dart' as my_survey;
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final List<String> selectedPreferences;
+  final List<String> selectedModes;
+  final String passengerType;
+  final String? cardType;
+
+  const MapScreen({
+    super.key,
+    required this.selectedPreferences,
+    required this.selectedModes,
+    required this.passengerType,
+    this.cardType,
+  });
 
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen>
-    with AutomaticKeepAliveClientMixin {
+class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixin {
   final MapController _mapController = MapController();
   LatLng? _currentLocation;
-
   late final List<LatLng> _manilaBoundary;
 
   final TextEditingController originController = TextEditingController();
@@ -74,9 +84,9 @@ class _MapScreenState extends State<MapScreen>
         _currentLocation = LatLng(position.latitude, position.longitude);
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error getting location: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error getting location: $e')),
+      );
     }
   }
 
@@ -85,9 +95,9 @@ class _MapScreenState extends State<MapScreen>
       _mapController.move(_currentLocation!, 15.0);
       _mapController.rotate(0);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Unable to fetch location')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to fetch location')),
+      );
     }
   }
 
@@ -95,9 +105,9 @@ class _MapScreenState extends State<MapScreen>
     if (_currentLocation != null) {
       _mapController.rotate(0);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Unable to fetch location')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to fetch location')),
+      );
     }
   }
 
@@ -123,6 +133,35 @@ class _MapScreenState extends State<MapScreen>
       builder: (BuildContext context) {
         return const ChatbotDialog();
       },
+    );
+  }
+
+  void _openSurveyPopup() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: 20,
+          left: 20,
+          right: 20,
+        ),
+        child: my_survey.SurveyPage(
+          distanceKm: 5.0,
+          transportMode: widget.selectedModes.isNotEmpty
+              ? widget.selectedModes.first
+              : 'Jeep',
+          passengerType: widget.passengerType,
+          selectedPreference: widget.selectedPreferences.isNotEmpty
+              ? widget.selectedPreferences.first
+              : 'Fastest',
+        ),
+      ),
     );
   }
 
@@ -178,10 +217,11 @@ class _MapScreenState extends State<MapScreen>
                   ),
                 ],
               ),
-              CurrentLocationLayer(),
+              const CurrentLocationLayer(),
             ],
           ),
 
+          // Search Bar
           Positioned(
             top: 7,
             left: 7,
@@ -215,14 +255,15 @@ class _MapScreenState extends State<MapScreen>
             ),
           ),
 
+          // Buttons
           Positioned(
             bottom: 90,
-            right: 20,
+            left: 20,
             child: FloatingActionButton(
-              heroTag: 'user_location_button',
-              elevation: 4,
-              onPressed: _centerOnUserLocation,
-              child: const Icon(Icons.my_location),
+              heroTag: 'survey_button',
+              onPressed: _openSurveyPopup,
+              tooltip: 'Open Survey Page',
+              child: const Icon(Icons.feedback),
             ),
           ),
           Positioned(
@@ -235,7 +276,16 @@ class _MapScreenState extends State<MapScreen>
               child: const Icon(Icons.explore),
             ),
           ),
-
+          Positioned(
+            bottom: 90,
+            right: 20,
+            child: FloatingActionButton(
+              heroTag: 'user_location_button',
+              elevation: 4,
+              onPressed: _centerOnUserLocation,
+              child: const Icon(Icons.my_location),
+            ),
+          ),
           Positioned(
             bottom: 210,
             right: 20,

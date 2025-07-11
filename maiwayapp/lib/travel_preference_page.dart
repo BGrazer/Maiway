@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 
 class TravelPreferenceScreen extends StatefulWidget {
-  const TravelPreferenceScreen({super.key});
+  final Function(
+    List<String> preferences,
+    List<String> modes,
+    String passengerType,
+    String? cardType,
+  )? onPreferencesSaved;
+
+  const TravelPreferenceScreen({super.key, this.onPreferencesSaved});
 
   @override
-  State<TravelPreferenceScreen> createState() => _TravelPreferenceScreenState();
+  State<TravelPreferenceScreen> createState() =>
+      _TravelPreferenceScreenState();
 }
 
 class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
@@ -22,10 +30,31 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
     'E-Tricycle': false,
   };
 
+  String _passengerType = 'Regular';
+  String? _cardType;
+
   void _selectOnlyOne(String selected) {
     setState(() {
       _preferences.updateAll((key, value) => key == selected);
     });
+  }
+
+  void _applyPreferences() {
+    final selectedPreferences =
+        _preferences.entries.where((e) => e.value).map((e) => e.key).toList();
+    final selectedModes =
+        _modes.entries.where((e) => e.value).map((e) => e.key).toList();
+
+    if (widget.onPreferencesSaved != null) {
+      widget.onPreferencesSaved!(
+        selectedPreferences,
+        selectedModes,
+        _passengerType,
+        _cardType,
+      );
+    }
+
+    Navigator.pop(context); // Return to previous screen
   }
 
   @override
@@ -81,12 +110,62 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
             );
           }).toList(),
 
+          const _SectionHeader(title: 'Passenger Type'),
+          ListTile(
+            title: const Text('Regular', style: TextStyle(fontSize: 13)),
+            leading: Radio<String>(
+              value: 'Regular',
+              groupValue: _passengerType,
+              onChanged: (value) {
+                setState(() {
+                  _passengerType = value!;
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('Senior', style: TextStyle(fontSize: 13)),
+            leading: Radio<String>(
+              value: 'Senior',
+              groupValue: _passengerType,
+              onChanged: (value) {
+                setState(() {
+                  _passengerType = value!;
+                });
+              },
+            ),
+          ),
+
+          const _SectionHeader(title: 'Card Type (optional)'),
+          ListTile(
+            title: const Text('Beep', style: TextStyle(fontSize: 13)),
+            leading: Radio<String>(
+              value: 'Beep',
+              groupValue: _cardType,
+              onChanged: (value) {
+                setState(() {
+                  _cardType = value;
+                });
+              },
+            ),
+          ),
+          ListTile(
+            title: const Text('None', style: TextStyle(fontSize: 13)),
+            leading: Radio<String>(
+              value: '',
+              groupValue: _cardType,
+              onChanged: (value) {
+                setState(() {
+                  _cardType = null;
+                });
+              },
+            ),
+          ),
+
           const SizedBox(height: 20),
           Center(
             child: ElevatedButton.icon(
-              onPressed: () {
-                // Keep on the page, you can handle data transmission elsewhere
-              },
+              onPressed: _applyPreferences,
               icon: const Icon(Icons.check),
               label: const Text("Apply Preferences"),
               style: ElevatedButton.styleFrom(
