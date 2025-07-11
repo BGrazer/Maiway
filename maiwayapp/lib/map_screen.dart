@@ -6,6 +6,7 @@ import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:maiwayapp/chatbot_dialog.dart'; 
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -100,7 +101,6 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  /// Opens the search sheet for origin and destination input.
   void _openSearchSheet() {
     showModalBottomSheet(
       context: context,
@@ -109,11 +109,20 @@ class _MapScreenState extends State<MapScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
-      builder:
-          (context) => SearchSheet(
-            originController: originController,
-            destinationController: destinationController,
-          ),
+      builder: (context) => SearchSheet(
+        originController: originController,
+        destinationController: destinationController,
+      ),
+    );
+  }
+
+  void _openChatbotDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return const ChatbotDialog();
+      },
     );
   }
 
@@ -173,7 +182,6 @@ class _MapScreenState extends State<MapScreen>
             ],
           ),
 
-          // Search Bar
           Positioned(
             top: 7,
             left: 7,
@@ -188,7 +196,7 @@ class _MapScreenState extends State<MapScreen>
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 6,
@@ -196,8 +204,8 @@ class _MapScreenState extends State<MapScreen>
                     ),
                   ],
                 ),
-                child: Row(
-                  children: const [
+                child: const Row(
+                  children: [
                     Icon(Icons.search, color: Colors.grey),
                     SizedBox(width: 10),
                     Text("Where to?", style: TextStyle(color: Colors.grey)),
@@ -207,7 +215,6 @@ class _MapScreenState extends State<MapScreen>
             ),
           ),
 
-          // Buttons for user location and camera orientation
           Positioned(
             bottom: 90,
             right: 20,
@@ -228,13 +235,29 @@ class _MapScreenState extends State<MapScreen>
               child: const Icon(Icons.explore),
             ),
           ),
+
+          Positioned(
+            bottom: 210,
+            right: 20,
+            child: FloatingActionButton(
+              heroTag: 'chatbotBtn',
+              elevation: 4,
+              onPressed: _openChatbotDialog,
+              backgroundColor: const Color(0xFF0084FF),
+              child: Image.asset(
+                'assets/images/chatbot_icon.png',
+                width: 70,
+                height: 70,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   TileLayer get openStreetMapTileLayer => TileLayer(
-    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    userAgentPackageName: 'com.example.maiway',
-  );
+        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        userAgentPackageName: 'com.example.maiway',
+      );
 }
