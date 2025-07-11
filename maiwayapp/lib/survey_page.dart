@@ -71,7 +71,7 @@ class _SurveyPageState extends State<SurveyPage> {
 
    
       // Replace with your actual backend URL every time you use different network
-      final url = Uri.parse("http://192.168.254.124:49945/predict_fare");
+      final url = Uri.parse("http://192.168.254.105:49945/predict_fare");
       final isDiscounted = widget.passengerType.toLowerCase() == 'discounted';
 
       try {

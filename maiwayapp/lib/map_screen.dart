@@ -241,13 +241,13 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
 
           // Floating Buttons
           Positioned(
-            bottom: 210,
-            right: 20,
-            child: FloatingActionButton(
-              heroTag: 'survey_button',
-              onPressed: _openSurveyPopup,
-              tooltip: 'Open Survey Page',
-              child: const Icon(Icons.feedback),
+          bottom: 90,
+          left: 20,
+          child: FloatingActionButton(
+            heroTag: 'survey_button',
+            onPressed: _openSurveyPopup,
+            tooltip: 'Open Survey Page',
+            child: const Icon(Icons.feedback),
             ),
           ),
           Positioned(

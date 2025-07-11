@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: LoginPage(), // <-- Start from LoginPage
+      home: LoginPage(), // Start from login screen
     );
   }
 }
@@ -38,7 +38,21 @@ class _HomeNavigationState extends State<HomeNavigation> {
   List<String> _selectedPreferences = [];
   List<String> _selectedModes = [];
   String _passengerType = 'Regular';
-  String? _cardType; // NEW: LRT/Train Card Type
+  String? _cardType;
+
+  void _updatePreferences(
+    List<String> preferences,
+    List<String> modes,
+    String type,
+    String? cardType,
+  ) {
+    setState(() {
+      _selectedPreferences = preferences;
+      _selectedModes = modes;
+      _passengerType = type;
+      _cardType = cardType;
+    });
+  }
 
   List<Widget> _buildPages() {
     return [
@@ -46,17 +60,10 @@ class _HomeNavigationState extends State<HomeNavigation> {
         selectedPreferences: _selectedPreferences,
         selectedModes: _selectedModes,
         passengerType: _passengerType,
-        cardType: _cardType, // pass cardType to MapScreen
+        cardType: _cardType,
       ),
       TravelPreferenceScreen(
-        onPreferencesSaved: (preferences, modes, type, cardType) {
-          setState(() {
-            _selectedPreferences = preferences;
-            _selectedModes = modes;
-            _passengerType = type;
-            _cardType = cardType;
-          });
-        },
+        onPreferencesSaved: _updatePreferences,
       ),
       const ProfileScreen(),
     ];
@@ -77,10 +84,8 @@ class _HomeNavigationState extends State<HomeNavigation> {
         child: NavigationBar(
           backgroundColor: const Color(0xFF6699CC),
           selectedIndex: _currentIndex,
-          onDestinationSelected: (int index) {
-            setState(() {
-              _currentIndex = index;
-            });
+          onDestinationSelected: (index) {
+            setState(() => _currentIndex = index);
           },
           destinations: const [
             NavigationDestination(

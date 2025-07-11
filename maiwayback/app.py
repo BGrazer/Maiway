@@ -1,54 +1,92 @@
 import numpy as np
+import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
-def analyze_route_simulated():
-    # Dummy crowd survey: 30 samples (16 overcharged, 14 normal)
-    # Format: (distance_km, charged_fare)
-    dummy_data = [
-        # Non-overcharged (based on regular fare ~10 per km)
-        (2.0, 20), (2.5, 25), (1.8, 18), (3.0, 30), (2.2, 22),
-        (1.5, 15), (2.3, 23), (2.1, 21), (1.9, 19), (2.4, 24),
-        (2.0, 20), (2.5, 25), (1.7, 17), (3.0, 30),
+# Init Flask
+app = Flask(__name__)
+CORS(app)
 
-        # Overcharged
-        (2.0, 40), (2.5, 50), (1.8, 35), (3.0, 55), (2.2, 45),
-        (1.5, 30), (2.3, 42), (2.1, 38), (1.9, 36), (2.4, 48),
-        (2.0, 39), (2.5, 49), (1.7, 33), (3.0, 50), (2.6, 47),
-        (2.8, 52)
-    ]
+# -------------------------------
+# Load Fare Matrices
+# -------------------------------
+df_jeep = pd.read_csv("jeep_fare.csv")
+df_lrt1 = pd.read_csv("lrt1_fare.csv")
 
-    distances = [d[0] for d in dummy_data]
-    fares = [d[1] for d in dummy_data]
+models = {
+    'Jeep': {
+        'Regular': RandomForestRegressor(n_estimators=100, random_state=42),
+        'Discounted': RandomForestRegressor(n_estimators=100, random_state=42),
+    },
+    'LRT 1': {
+        'Regular': RandomForestRegressor(n_estimators=100, random_state=42),
+        'Discounted': RandomForestRegressor(n_estimators=100, random_state=42),
+    }
+}
 
-    X = np.array(distances).reshape(-1, 1)
-    y = np.array(fares)
+# Train Jeep model
+X_jeep = df_jeep[['Distance (km)']].values
+y_jeep_regular = df_jeep['Regular Fare (₱)'].values
+y_jeep_discounted = df_jeep['Discounted Fare (₱)'].values
+models['Jeep']['Regular'].fit(X_jeep, y_jeep_regular)
+models['Jeep']['Discounted'].fit(X_jeep, y_jeep_discounted)
 
-    # Train crowd model
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
-    model.fit(X, y)
+# Train LRT 1 model
+X_lrt1 = df_lrt1[['Distance_km']].values
+y_lrt1 = df_lrt1['Fare_PHP'].values
+models['LRT 1']['Regular'].fit(X_lrt1, y_lrt1)
+models['LRT 1']['Discounted'].fit(X_lrt1, y_lrt1)
 
-    # Predict and compute errors
-    predicted = model.predict(X)
-    errors = abs(predicted - y)
+# Calculate thresholds
+def calculate_threshold(model, X, y):
+    predictions = model.predict(X)
+    errors = abs(y - predictions)
+    return np.mean(errors) + 3 * np.std(errors)
 
-    # Dynamic anomaly threshold (same logic as backend)
-    threshold = np.mean(errors) + 3 * np.std(errors)
+thresholds = {
+    'Jeep': {
+        'Regular': calculate_threshold(models['Jeep']['Regular'], X_jeep, y_jeep_regular),
+        'Discounted': calculate_threshold(models['Jeep']['Discounted'], X_jeep, y_jeep_discounted),
+    },
+    'LRT 1': {
+        'Regular': calculate_threshold(models['LRT 1']['Regular'], X_lrt1, y_lrt1),
+        'Discounted': calculate_threshold(models['LRT 1']['Discounted'], X_lrt1, y_lrt1),
+    }
+}
 
-    # Count anomalies
-    overcharged_count = np.sum(errors > threshold)
-    total_count = len(dummy_data)
+# Core logic
+def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
+    fare_type = 'Discounted' if discounted else 'Regular'
+    model = models[vehicle_type][fare_type]
+    threshold = thresholds[vehicle_type][fare_type]
 
-    print(f"\n🚌 [Crowd Validation Result: Jeep - Balut to Divisoria]")
-    print(f"📊 Sample Size: {total_count}")
-    print(f"💸 Community Average Fare: ₱{np.mean(fares):.2f}")
-    print(f"📉 Model Accuracy (R²): {model.score(X, y) * 100:.2f}%")
-    print(f"🚨 Anomaly Threshold: ₱{threshold:.2f}")
-    print(f"⚠️ Detected Overcharged Reports: {overcharged_count}/{total_count}")
+    predicted_fare = model.predict([[distance_km]])[0]
+    difference = abs(charged_fare - predicted_fare)
+    is_anomalous = difference > threshold
 
-    if overcharged_count / total_count >= 0.5:
-        print("🟡 ALERT: Possible systemic overpricing on this route!")
-    else:
-        print("🟢 Route pricing appears within normal range.")
+    return {
+        'vehicle_type': vehicle_type,
+        'fare_type': fare_type,
+        'predicted_fare': str(round(predicted_fare)),
+        'charged_fare': str(round(charged_fare)),
+        'difference': str(round(difference)),
+        'threshold': str(round(threshold)),
+        'is_anomalous': bool(is_anomalous),
+    }
 
-# Run simulation
-analyze_route_simulated()
+# API endpoint
+@app.route('/predict_fare', methods=['POST'])
+def predict_fare():
+    data = request.json
+    vehicle_type = data['vehicle_type']
+    distance_km = float(data['distance_km'])
+    charged_fare = float(data['charged_fare'])
+    discounted = bool(data['discounted'])
+
+    result = check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted)
+    return jsonify(result)
+
+# Run server
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=49945, debug=True)
