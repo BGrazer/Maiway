@@ -69,7 +69,9 @@ class _SurveyPageState extends State<SurveyPage> {
         return;
       }
 
-      final url = Uri.parse("http://192.168.254.105:49945/predict_fare");
+   
+      // Replace with your actual backend URL every time you use different network
+      final url = Uri.parse("http://192.168.254.124:49945/predict_fare");
       final isDiscounted = widget.passengerType.toLowerCase() == 'discounted';
 
       try {
@@ -91,8 +93,8 @@ class _SurveyPageState extends State<SurveyPage> {
         final isAnomalous = data['is_anomalous'];
 
         final alert = isAnomalous
-            ? "🚨 ALERT: Overpricing Detected!"
-            : "✅ Fare is within the acceptable range.";
+            ? " ALERT: Overpricing Detected!"
+            : " Fare is within the acceptable range.";
 
         showDialog(
           context: context,

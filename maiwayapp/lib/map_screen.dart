@@ -6,19 +6,20 @@ import 'package:maiwayapp/city_boundary.dart';
 import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
-import 'package:maiwayapp/survey_page.dart' as my_survey; // Use a prefix to avoid name conflict
+import 'package:maiwayapp/survey_page.dart' as my_survey;
 
-// Nyaw from Travel preference page
 class MapScreen extends StatefulWidget {
   final List<String> selectedPreferences;
   final List<String> selectedModes;
   final String passengerType;
+  final String? cardType; // NEW
 
   const MapScreen({
     super.key,
     required this.selectedPreferences,
     required this.selectedModes,
     required this.passengerType,
+    this.cardType,
   });
 
   @override
@@ -145,8 +146,8 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
           passengerType: widget.passengerType,
           selectedPreference: widget.selectedPreferences.isNotEmpty
               ? widget.selectedPreferences.first
-              : 'Fastest',
-        ),
+              : 'Fastest'
+        )
       ),
     );
   }
@@ -238,7 +239,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
             ),
           ),
 
-          // Floating Buttons for temporary survey pop up
+          // Floating Buttons
           Positioned(
             bottom: 210,
             right: 20,

@@ -1,94 +1,4 @@
 Origin,Destination,Distance_km,Fare_PHP
-Fernando Poe Jr.,Balintawak,1.87,15.55
-Fernando Poe Jr.,Monumento,4.12,18.28
-Fernando Poe Jr.,5th Avenue,5.207,19.59
-Fernando Poe Jr.,R. Papa,6.161,20.74
-Fernando Poe Jr.,Abad Santos,6.821,21.54
-Fernando Poe Jr.,Blumentritt,7.748,22.67
-Fernando Poe Jr.,Tayuman,8.419,23.48
-Fernando Poe Jr.,Bambang,9.037,24.22
-Fernando Poe Jr.,Doroteo Jose,9.685,25.01
-Fernando Poe Jr.,Carriedo,10.37,25.84
-Fernando Poe Jr.,Central Terminal,11.095,26.71
-Fernando Poe Jr.,UN Avenue,12.309,28.18
-Fernando Poe Jr.,Pedro Gil,13.063,29.1
-Fernando Poe Jr.,Quirino Avenue,13.857,30.06
-Fernando Poe Jr.,Vito Cruz,14.684,31.06
-Fernando Poe Jr.,Gil Puyat,15.745,32.34
-Fernando Poe Jr.,Libertad,16.475,33.22
-Fernando Poe Jr.,EDSA,17.485,34.45
-Fernando Poe Jr.,Baclaran,18.073,35.16
-Fernando Poe Jr.,Redemptorist–Aseana,18.942,36.21
-Fernando Poe Jr.,MIA Road,20.245,37.79
-Fernando Poe Jr.,Asia World (PITX),21.386,39.17
-Fernando Poe Jr.,Ninoy Aquino Avenue,22.779,40.85
-Fernando Poe Jr.,Dr. Santos,24.425,42.84
-Balintawak,Monumento,2.25,16.01
-Balintawak,5th Avenue,3.337,17.33
-Balintawak,R. Papa,4.291,18.48
-Balintawak,Abad Santos,4.951,19.28
-Balintawak,Blumentritt,5.878,20.4
-Balintawak,Tayuman,6.549,21.21
-Balintawak,Bambang,7.167,21.96
-Balintawak,Doroteo Jose,7.815,22.75
-Balintawak,Carriedo,8.5,23.57
-Balintawak,Central Terminal,9.225,24.45
-Balintawak,UN Avenue,10.439,25.92
-Balintawak,Pedro Gil,11.193,26.83
-Balintawak,Quirino Avenue,11.987,27.79
-Balintawak,Vito Cruz,12.814,28.79
-Balintawak,Gil Puyat,13.875,30.08
-Balintawak,Libertad,14.605,30.96
-Balintawak,EDSA,15.615,32.18
-Balintawak,Baclaran,16.203,32.9
-Balintawak,Redemptorist–Aseana,17.072,33.95
-Balintawak,MIA Road,18.375,35.52
-Balintawak,Asia World (PITX),19.516,36.9
-Balintawak,Ninoy Aquino Avenue,20.909,38.59
-Balintawak,Dr. Santos,22.555,40.58
-Monumento,5th Avenue,1.087,14.61
-Monumento,R. Papa,2.041,15.76
-Monumento,Abad Santos,2.701,16.56
-Monumento,Blumentritt,3.628,17.68
-Monumento,Tayuman,4.299,18.49
-Monumento,Bambang,4.917,19.24
-Monumento,Doroteo Jose,5.565,20.02
-Monumento,Carriedo,6.25,20.85
-Monumento,Central Terminal,6.975,21.73
-Monumento,UN Avenue,8.189,23.2
-Monumento,Pedro Gil,8.943,24.11
-Monumento,Quirino Avenue,9.737,25.07
-Monumento,Vito Cruz,10.564,26.07
-Monumento,Gil Puyat,11.625,27.36
-Monumento,Libertad,12.355,28.24
-Monumento,EDSA,13.365,29.46
-Monumento,Baclaran,13.953,30.17
-Monumento,Redemptorist–Aseana,14.822,31.22
-Monumento,MIA Road,16.125,32.8
-Monumento,Asia World (PITX),17.266,34.18
-Monumento,Ninoy Aquino Avenue,18.659,35.87
-Monumento,Dr. Santos,20.305,37.86
-5th Avenue,R. Papa,0.954,14.44
-5th Avenue,Abad Santos,1.614,15.24
-5th Avenue,Blumentritt,2.541,16.36
-5th Avenue,Tayuman,3.212,17.18
-5th Avenue,Bambang,3.83,17.92
-5th Avenue,Doroteo Jose,4.478,18.71
-5th Avenue,Carriedo,5.163,19.54
-5th Avenue,Central Terminal,5.888,20.41
-5th Avenue,UN Avenue,7.102,21.88
-5th Avenue,Pedro Gil,7.856,22.8
-5th Avenue,Quirino Avenue,8.65,23.76
-5th Avenue,Vito Cruz,9.477,24.76
-5th Avenue,Gil Puyat,10.538,26.04
-5th Avenue,Libertad,11.268,26.92
-5th Avenue,EDSA,12.278,28.15
-5th Avenue,Baclaran,12.866,28.86
-5th Avenue,Redemptorist–Aseana,13.735,29.91
-5th Avenue,MIA Road,15.038,31.49
-5th Avenue,Asia World (PITX),16.179,32.87
-5th Avenue,Ninoy Aquino Avenue,17.572,34.55
-5th Avenue,Dr. Santos,19.218,36.54
 R. Papa,Abad Santos,0.66,14.09
 R. Papa,Blumentritt,1.587,15.21
 R. Papa,Tayuman,2.258,16.02
@@ -100,15 +10,6 @@ R. Papa,UN Avenue,6.148,20.73
 R. Papa,Pedro Gil,6.902,21.64
 R. Papa,Quirino Avenue,7.696,22.6
 R. Papa,Vito Cruz,8.523,23.6
-R. Papa,Gil Puyat,9.584,24.89
-R. Papa,Libertad,10.314,25.77
-R. Papa,EDSA,11.324,26.99
-R. Papa,Baclaran,11.912,27.7
-R. Papa,Redemptorist–Aseana,12.781,28.76
-R. Papa,MIA Road,14.084,30.33
-R. Papa,Asia World (PITX),15.225,31.71
-R. Papa,Ninoy Aquino Avenue,16.618,33.4
-R. Papa,Dr. Santos,18.264,35.39
 Abad Santos,Blumentritt,0.927,14.41
 Abad Santos,Tayuman,1.598,15.22
 Abad Santos,Bambang,2.216,15.97
@@ -119,15 +20,6 @@ Abad Santos,UN Avenue,5.488,19.93
 Abad Santos,Pedro Gil,6.242,20.84
 Abad Santos,Quirino Avenue,7.036,21.8
 Abad Santos,Vito Cruz,7.863,22.8
-Abad Santos,Gil Puyat,8.924,24.09
-Abad Santos,Libertad,9.654,24.97
-Abad Santos,EDSA,10.664,26.19
-Abad Santos,Baclaran,11.252,26.9
-Abad Santos,Redemptorist–Aseana,12.121,27.96
-Abad Santos,MIA Road,13.424,29.53
-Abad Santos,Asia World (PITX),14.565,30.91
-Abad Santos,Ninoy Aquino Avenue,15.958,32.6
-Abad Santos,Dr. Santos,17.604,34.59
 Blumentritt,Tayuman,0.671,14.1
 Blumentritt,Bambang,1.289,14.85
 Blumentritt,Doroteo Jose,1.937,15.63
@@ -137,15 +29,6 @@ Blumentritt,UN Avenue,4.561,18.81
 Blumentritt,Pedro Gil,5.315,19.72
 Blumentritt,Quirino Avenue,6.109,20.68
 Blumentritt,Vito Cruz,6.936,21.68
-Blumentritt,Gil Puyat,7.997,22.97
-Blumentritt,Libertad,8.727,23.85
-Blumentritt,EDSA,9.737,25.07
-Blumentritt,Baclaran,10.325,25.78
-Blumentritt,Redemptorist–Aseana,11.194,26.83
-Blumentritt,MIA Road,12.497,28.41
-Blumentritt,Asia World (PITX),13.638,29.79
-Blumentritt,Ninoy Aquino Avenue,15.031,31.48
-Blumentritt,Dr. Santos,16.677,33.47
 Tayuman,Bambang,0.618,14.04
 Tayuman,Doroteo Jose,1.266,14.82
 Tayuman,Carriedo,1.951,15.65
@@ -154,15 +37,6 @@ Tayuman,UN Avenue,3.89,18.0
 Tayuman,Pedro Gil,4.644,18.91
 Tayuman,Quirino Avenue,5.438,19.87
 Tayuman,Vito Cruz,6.265,20.87
-Tayuman,Gil Puyat,7.326,22.15
-Tayuman,Libertad,8.056,23.04
-Tayuman,EDSA,9.066,24.26
-Tayuman,Baclaran,9.654,24.97
-Tayuman,Redemptorist–Aseana,10.523,26.02
-Tayuman,MIA Road,11.826,27.6
-Tayuman,Asia World (PITX),12.967,28.98
-Tayuman,Ninoy Aquino Avenue,14.36,30.67
-Tayuman,Dr. Santos,16.006,32.66
 Bambang,Doroteo Jose,0.648,14.07
 Bambang,Carriedo,1.333,14.9
 Bambang,Central Terminal,2.058,15.78
@@ -170,132 +44,25 @@ Bambang,UN Avenue,3.272,17.25
 Bambang,Pedro Gil,4.026,18.16
 Bambang,Quirino Avenue,4.82,19.12
 Bambang,Vito Cruz,5.647,20.12
-Bambang,Gil Puyat,6.708,21.41
-Bambang,Libertad,7.438,22.29
-Bambang,EDSA,8.448,23.51
-Bambang,Baclaran,9.036,24.22
-Bambang,Redemptorist–Aseana,9.905,25.28
-Bambang,MIA Road,11.208,26.85
-Bambang,Asia World (PITX),12.349,28.23
-Bambang,Ninoy Aquino Avenue,13.742,29.92
-Bambang,Dr. Santos,15.388,31.91
 Doroteo Jose,Carriedo,0.685,14.12
 Doroteo Jose,Central Terminal,1.41,15.0
 Doroteo Jose,UN Avenue,2.624,16.47
 Doroteo Jose,Pedro Gil,3.378,17.38
 Doroteo Jose,Quirino Avenue,4.172,18.34
 Doroteo Jose,Vito Cruz,4.999,19.34
-Doroteo Jose,Gil Puyat,6.06,20.62
-Doroteo Jose,Libertad,6.79,21.51
-Doroteo Jose,EDSA,7.8,22.73
-Doroteo Jose,Baclaran,8.388,23.44
-Doroteo Jose,Redemptorist–Aseana,9.257,24.49
-Doroteo Jose,MIA Road,10.56,26.07
-Doroteo Jose,Asia World (PITX),11.701,27.45
-Doroteo Jose,Ninoy Aquino Avenue,13.094,29.13
-Doroteo Jose,Dr. Santos,14.74,31.13
 Carriedo,Central Terminal,0.725,14.17
 Carriedo,UN Avenue,1.939,15.64
 Carriedo,Pedro Gil,2.693,16.55
 Carriedo,Quirino Avenue,3.487,17.51
 Carriedo,Vito Cruz,4.314,18.51
-Carriedo,Gil Puyat,5.375,19.79
-Carriedo,Libertad,6.105,20.68
-Carriedo,EDSA,7.115,21.9
-Carriedo,Baclaran,7.703,22.61
-Carriedo,Redemptorist–Aseana,8.572,23.66
-Carriedo,MIA Road,9.875,25.24
-Carriedo,Asia World (PITX),11.016,26.62
-Carriedo,Ninoy Aquino Avenue,12.409,28.3
-Carriedo,Dr. Santos,14.055,30.3
 Central Terminal,UN Avenue,1.214,14.76
 Central Terminal,Pedro Gil,1.968,15.67
 Central Terminal,Quirino Avenue,2.762,16.63
 Central Terminal,Vito Cruz,3.589,17.63
-Central Terminal,Gil Puyat,4.65,18.92
-Central Terminal,Libertad,5.38,19.8
-Central Terminal,EDSA,6.39,21.02
-Central Terminal,Baclaran,6.978,21.73
-Central Terminal,Redemptorist–Aseana,7.847,22.78
-Central Terminal,MIA Road,9.15,24.36
-Central Terminal,Asia World (PITX),10.291,25.74
-Central Terminal,Ninoy Aquino Avenue,11.684,27.43
-Central Terminal,Dr. Santos,13.33,29.42
 UN Avenue,Pedro Gil,0.754,14.2
 UN Avenue,Quirino Avenue,1.548,15.16
 UN Avenue,Vito Cruz,2.375,16.16
 UN Avenue,Gil Puyat,3.436,17.45
-UN Avenue,Libertad,4.166,18.33
-UN Avenue,EDSA,5.176,19.55
-UN Avenue,Baclaran,5.764,20.26
-UN Avenue,Redemptorist–Aseana,6.633,21.32
-UN Avenue,MIA Road,7.936,22.89
-UN Avenue,Asia World (PITX),9.077,24.27
-UN Avenue,Ninoy Aquino Avenue,10.47,25.96
-UN Avenue,Dr. Santos,12.116,27.95
 Pedro Gil,Quirino Avenue,0.794,14.25
-Pedro Gil,Vito Cruz,1.621,15.25
-Pedro Gil,Gil Puyat,2.682,16.54
-Pedro Gil,Libertad,3.412,17.42
-Pedro Gil,EDSA,4.422,18.64
-Pedro Gil,Baclaran,5.01,19.35
-Pedro Gil,Redemptorist–Aseana,5.879,20.4
-Pedro Gil,MIA Road,7.182,21.98
-Pedro Gil,Asia World (PITX),8.323,23.36
-Pedro Gil,Ninoy Aquino Avenue,9.716,25.05
-Pedro Gil,Dr. Santos,11.362,27.04
+Pedro Gil,Vito Cruz,1.621,15.0
 Quirino Avenue,Vito Cruz,0.827,14.29
-Quirino Avenue,Gil Puyat,1.888,15.57
-Quirino Avenue,Libertad,2.618,16.46
-Quirino Avenue,EDSA,3.628,17.68
-Quirino Avenue,Baclaran,4.216,18.39
-Quirino Avenue,Redemptorist–Aseana,5.085,19.44
-Quirino Avenue,MIA Road,6.388,21.02
-Quirino Avenue,Asia World (PITX),7.529,22.4
-Quirino Avenue,Ninoy Aquino Avenue,8.922,24.09
-Quirino Avenue,Dr. Santos,10.568,26.08
-Vito Cruz,Gil Puyat,1.061,14.57
-Vito Cruz,Libertad,1.791,15.46
-Vito Cruz,EDSA,2.801,16.68
-Vito Cruz,Baclaran,3.389,17.39
-Vito Cruz,Redemptorist–Aseana,4.258,18.44
-Vito Cruz,MIA Road,5.561,20.02
-Vito Cruz,Asia World (PITX),6.702,21.4
-Vito Cruz,Ninoy Aquino Avenue,8.095,23.08
-Vito Cruz,Dr. Santos,9.741,25.08
-Gil Puyat,Libertad,0.73,14.17
-Gil Puyat,EDSA,1.74,15.4
-Gil Puyat,Baclaran,2.328,16.11
-Gil Puyat,Redemptorist–Aseana,3.197,17.16
-Gil Puyat,MIA Road,4.5,18.73
-Gil Puyat,Asia World (PITX),5.641,20.12
-Gil Puyat,Ninoy Aquino Avenue,7.034,21.8
-Gil Puyat,Dr. Santos,8.68,23.79
-Libertad,EDSA,1.01,14.51
-Libertad,Baclaran,1.598,15.22
-Libertad,Redemptorist–Aseana,2.467,16.28
-Libertad,MIA Road,3.77,17.85
-Libertad,Asia World (PITX),4.911,19.23
-Libertad,Ninoy Aquino Avenue,6.304,20.92
-Libertad,Dr. Santos,7.95,22.91
-EDSA,Baclaran,0.588,14.0
-EDSA,Redemptorist–Aseana,1.457,15.05
-EDSA,MIA Road,2.76,16.63
-EDSA,Asia World (PITX),3.901,18.01
-EDSA,Ninoy Aquino Avenue,5.294,19.7
-EDSA,Dr. Santos,6.94,21.69
-Baclaran,Redemptorist–Aseana,0.869,14.34
-Baclaran,MIA Road,2.172,15.92
-Baclaran,Asia World (PITX),3.313,17.3
-Baclaran,Ninoy Aquino Avenue,4.706,18.98
-Baclaran,Dr. Santos,6.352,20.98
-Redemptorist–Aseana,MIA Road,1.303,14.87
-Redemptorist–Aseana,Asia World (PITX),2.444,16.25
-Redemptorist–Aseana,Ninoy Aquino Avenue,3.837,17.93
-Redemptorist–Aseana,Dr. Santos,5.483,19.92
-MIA Road,Asia World (PITX),1.141,14.67
-MIA Road,Ninoy Aquino Avenue,2.534,16.36
-MIA Road,Dr. Santos,4.18,18.35
-Asia World (PITX),Ninoy Aquino Avenue,1.393,14.98
-Asia World (PITX),Dr. Santos,3.039,16.97
-Ninoy Aquino Avenue,Dr. Santos,1.646,15.28

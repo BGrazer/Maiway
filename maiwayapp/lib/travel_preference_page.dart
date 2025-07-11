@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TravelPreferenceScreen extends StatefulWidget {
-  final void Function(List<String> preferences, List<String> modes, String passengerType) onPreferencesSaved;
+  final void Function(List<String> preferences, List<String> modes, String passengerType, String? cardType) onPreferencesSaved;
 
   const TravelPreferenceScreen({
     super.key,
@@ -28,6 +28,7 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
   };
 
   String _passengerType = 'Regular';
+  String? _cardType; // new card type
 
   @override
   void initState() {
@@ -39,6 +40,7 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _passengerType = prefs.getString('passengerType') ?? 'Regular';
+      _cardType = prefs.getString('cardType');
 
       for (var key in _preferences.keys) {
         _preferences[key] = prefs.getBool('pref_$key') ?? _preferences[key]!;
@@ -53,6 +55,7 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
   Future<void> _savePreferences() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('passengerType', _passengerType);
+    if (_cardType != null) await prefs.setString('cardType', _cardType!);
 
     for (var entry in _preferences.entries) {
       await prefs.setBool('pref_${entry.key}', entry.value);
@@ -136,6 +139,26 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
             );
           }).toList(),
 
+          if (_modes['LRT-1'] == true || _modes['Train'] == true) ...[
+            const _SectionHeader(title: 'LRT/Train Card Type'),
+            Column(
+              children: ['Single Journey Card', 'Stored Value Card'].map((type) {
+                return RadioListTile<String>(
+                  dense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  title: Text(type, style: const TextStyle(fontSize: 13)),
+                  value: type,
+                  groupValue: _cardType,
+                  onChanged: (String? value) {
+                    setState(() {
+                      _cardType = value;
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+
           const SizedBox(height: 20),
           Center(
             child: ElevatedButton.icon(
@@ -156,6 +179,7 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
                   selectedPreferences,
                   selectedModes,
                   _passengerType,
+                  _cardType,
                 );
 
                 ScaffoldMessenger.of(context).showSnackBar(

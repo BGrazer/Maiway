@@ -4,7 +4,6 @@ import 'package:maiwayapp/profile_screen.dart';
 import 'package:maiwayapp/map_screen.dart';
 import 'package:maiwayapp/travel_preference_page.dart';
 
-
 void main() {
   runApp(const MyApp());
 }
@@ -36,26 +35,26 @@ class HomeNavigation extends StatefulWidget {
 class _HomeNavigationState extends State<HomeNavigation> {
   int _currentIndex = 0;
 
-  // ✅ Hold state here
   List<String> _selectedPreferences = [];
   List<String> _selectedModes = [];
   String _passengerType = 'Regular';
+  String? _cardType; // NEW: LRT/Train Card Type
 
-  // ✅ Build screens with data
-  // From travel pref
   List<Widget> _buildPages() {
     return [
       MapScreen(
         selectedPreferences: _selectedPreferences,
         selectedModes: _selectedModes,
         passengerType: _passengerType,
+        cardType: _cardType, // pass cardType to MapScreen
       ),
       TravelPreferenceScreen(
-        onPreferencesSaved: (preferences, modes, type) {
+        onPreferencesSaved: (preferences, modes, type, cardType) {
           setState(() {
             _selectedPreferences = preferences;
             _selectedModes = modes;
             _passengerType = type;
+            _cardType = cardType;
           });
         },
       ),
