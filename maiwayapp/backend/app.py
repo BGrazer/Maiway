@@ -5,31 +5,38 @@ import pandas as pd
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from sklearn.ensemble import RandomForestRegressor
-from chatbot_model import ChatbotModel  # Make sure this file exists
+from chatbot_model import ChatbotModel
+import socket
 
-# -------------------------------
+# ----------------------------------
+# Auto-get local IP for printing
+# ----------------------------------
+hostname = socket.gethostname()
+local_ip = socket.gethostbyname(hostname)
+
+# ----------------------------------
 # Initialize Flask App
-# -------------------------------
+# ----------------------------------
 app = Flask(__name__, static_folder='../frontend', static_url_path='/')
 CORS(app)
 
-# -------------------------------
-# Chatbot Initialization
-# -------------------------------
+# ----------------------------------
+# Initialize Chatbot
+# ----------------------------------
 chatbot = ChatbotModel()
 
-# -------------------------------
-# Load Fare Matrices & Train Models
-# -------------------------------
+# ----------------------------------
+# Load Fare Matrices and Train Models
+# ----------------------------------
 df_jeep = pd.read_csv("jeep_fare.csv")
-df_lrt1 = pd.read_csv("lrt1_fare.csv")
+df_bus = pd.read_csv("bus_fare.csv")
 
 models = {
     'Jeep': {
         'Regular': RandomForestRegressor(n_estimators=100, random_state=42),
         'Discounted': RandomForestRegressor(n_estimators=100, random_state=42),
     },
-    'LRT 1': {
+    'Bus': {
         'Regular': RandomForestRegressor(n_estimators=100, random_state=42),
         'Discounted': RandomForestRegressor(n_estimators=100, random_state=42),
     }
@@ -42,12 +49,16 @@ y_jeep_discounted = df_jeep['Discounted Fare (₱)'].values
 models['Jeep']['Regular'].fit(X_jeep, y_jeep_regular)
 models['Jeep']['Discounted'].fit(X_jeep, y_jeep_discounted)
 
-# Train LRT 1 model
-X_lrt1 = df_lrt1[['Distance_km']].values
-y_lrt1 = df_lrt1['Fare_PHP'].values
-models['LRT 1']['Regular'].fit(X_lrt1, y_lrt1)
-models['LRT 1']['Discounted'].fit(X_lrt1, y_lrt1)
+# Train Bus model
+X_bus = df_bus[['Distance (km)']].values
+y_bus_regular = df_bus['Regular Fare (₱)'].values
+y_bus_discounted = df_bus['Discounted Fare (₱)'].values
+models['Bus']['Regular'].fit(X_bus, y_bus_regular)
+models['Bus']['Discounted'].fit(X_bus, y_bus_discounted)
 
+# ----------------------------------
+# Threshold Calculation
+# ----------------------------------
 def calculate_threshold(model, X, y):
     predictions = model.predict(X)
     errors = abs(y - predictions)
@@ -58,12 +69,15 @@ thresholds = {
         'Regular': calculate_threshold(models['Jeep']['Regular'], X_jeep, y_jeep_regular),
         'Discounted': calculate_threshold(models['Jeep']['Discounted'], X_jeep, y_jeep_discounted),
     },
-    'LRT 1': {
-        'Regular': calculate_threshold(models['LRT 1']['Regular'], X_lrt1, y_lrt1),
-        'Discounted': calculate_threshold(models['LRT 1']['Discounted'], X_lrt1, y_lrt1),
+    'Bus': {
+        'Regular': calculate_threshold(models['Bus']['Regular'], X_bus, y_bus_regular),
+        'Discounted': calculate_threshold(models['Bus']['Discounted'], X_bus, y_bus_discounted),
     }
 }
 
+# ----------------------------------
+# Fare Anomaly Checker
+# ----------------------------------
 def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
     fare_type = 'Discounted' if discounted else 'Regular'
     model = models[vehicle_type][fare_type]
@@ -83,9 +97,9 @@ def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
         'is_anomalous': bool(is_anomalous),
     }
 
-# -------------------------------
-# Fare Prediction API
-# -------------------------------
+# ----------------------------------
+# API ROUTES: FARE
+# ----------------------------------
 @app.route('/predict_fare', methods=['POST'])
 def predict_fare():
     data = request.json
@@ -97,9 +111,9 @@ def predict_fare():
     result = check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted)
     return jsonify(result)
 
-# -------------------------------
-# Chatbot API Endpoints
-# -------------------------------
+# ----------------------------------
+# API ROUTES: CHATBOT
+# ----------------------------------
 @app.route('/chat', methods=['POST'])
 def chat():
     if request.json is None:
@@ -112,12 +126,12 @@ def chat():
     response = chatbot.get_response(user_message)
     return jsonify({"response": response})
 
-@app.route('/dynamic_suggestions', methods=['GET']) 
+@app.route('/dynamic_suggestions', methods=['GET'])
 def get_dynamic_suggestions():
     try:
-        query = request.args.get('query', '') 
+        query = request.args.get('query', '')
         if not query:
-            return jsonify({"suggestions": []}) 
+            return jsonify({"suggestions": []})
         suggestions = chatbot.get_matching_questions(query)
         return jsonify({"suggestions": suggestions})
     except Exception as e:
@@ -150,8 +164,9 @@ def reload_chatbot():
 def serve_faq_data():
     return send_from_directory(os.path.join(app.root_path, 'data'), 'faq_data.json')
 
-# -------------------------------
-# Run the Combined Server
-# -------------------------------
+# ----------------------------------
+# Server Entry Point
+# ----------------------------------
 if __name__ == '__main__':
+    print(f"\n🚀 MAIWAY backend running at: http://{local_ip}:5000\n")
     app.run(host='0.0.0.0', port=5000, debug=True)

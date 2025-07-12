@@ -145,7 +145,7 @@ final String _dynamicSuggestionsUrl = 'http://127.0.0.1:5000/dynamic_suggestions
                       ),
                       ClipOval(
                         child: Image.asset(
-                          'assets/images/maiway_logo.png',
+                          'assets/images/chatbot_icon.png',
                           width: 30,
                           height: 30,
                           fit: BoxFit.cover,
@@ -153,7 +153,7 @@ final String _dynamicSuggestionsUrl = 'http://127.0.0.1:5000/dynamic_suggestions
                       ),
                       const SizedBox(width: 10),
                       const Text(
-                        'MAIWAY Support',
+                        'MAIWAY FAQs',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
