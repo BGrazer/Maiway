@@ -7,10 +7,12 @@ class TravelPreferenceScreen extends StatefulWidget {
     List<String> modes,
     String passengerType,
     String? cardType,
-  )
-  onPreferencesSaved;
+  ) onPreferencesSaved;
 
-  const TravelPreferenceScreen({super.key, required this.onPreferencesSaved});
+  const TravelPreferenceScreen({
+    super.key,
+    required this.onPreferencesSaved,
+  });
 
   @override
   State<TravelPreferenceScreen> createState() => _TravelPreferenceScreenState();
@@ -107,37 +109,29 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
       body: SafeArea(
         child: ListView(
           controller: _scrollController,
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            100,
-          ), // <--- BOTTOM SPACE ADDED
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // <--- BOTTOM SPACE ADDED
           children: [
             const _SectionHeader(title: 'Passenger Type'),
             Column(
-              children:
-                  ['Regular', 'Discounted'].map((type) {
-                    return RadioListTile<String>(
-                      dense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                      ),
-                      title: Text(type, style: const TextStyle(fontSize: 13)),
-                      value: type,
-                      groupValue: _passengerType,
-                      onChanged: (String? value) {
-                        setState(() {
-                          _passengerType = value!;
-                          if (_passengerType == 'Discounted') {
-                            _cardType = 'Student Discount';
-                          } else {
-                            _cardType = null;
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
+              children: ['Regular', 'Discounted'].map((type) {
+                return RadioListTile<String>(
+                  dense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  title: Text(type, style: const TextStyle(fontSize: 13)),
+                  value: type,
+                  groupValue: _passengerType,
+                  onChanged: (String? value) {
+                    setState(() {
+                      _passengerType = value!;
+                      if (_passengerType == 'Discounted') {
+                        _cardType = 'Student Discount';
+                      } else {
+                        _cardType = null;
+                      }
+                    });
+                  },
+                );
+              }).toList(),
             ),
 
             const _SectionHeader(title: 'Travel Preferences'),
@@ -190,37 +184,26 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
               if (_passengerType == 'Discounted')
                 ListTile(
                   dense: true,
-                  title: const Text(
-                    'Student Discount',
-                    style: TextStyle(fontSize: 13),
-                  ),
+                  title: const Text('Student Discount', style: TextStyle(fontSize: 13)),
                   trailing: const Icon(Icons.lock, size: 16),
                 )
               else
                 Column(
-                  children:
-                      [
-                        'Single Journey Card',
-                        'Stored Value Card (Beep Card)',
-                      ].map((type) {
-                        return RadioListTile<String>(
-                          dense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8.0,
-                          ),
-                          title: Text(
-                            type,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          value: type,
-                          groupValue: _cardType,
-                          onChanged: (String? value) {
-                            setState(() {
-                              _cardType = value;
-                            });
-                          },
-                        );
-                      }).toList(),
+                  children: ['Single Journey Card', 'Stored Value Card (Beep Card)']
+                      .map((type) {
+                    return RadioListTile<String>(
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      title: Text(type, style: const TextStyle(fontSize: 13)),
+                      value: type,
+                      groupValue: _cardType,
+                      onChanged: (String? value) {
+                        setState(() {
+                          _cardType = value;
+                        });
+                      },
+                    );
+                  }).toList(),
                 ),
             ],
 
@@ -230,17 +213,15 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
                 onPressed: () async {
                   await _savePreferences();
 
-                  final selectedPreferences =
-                      _preferences.entries
-                          .where((e) => e.value)
-                          .map((e) => e.key)
-                          .toList();
+                  final selectedPreferences = _preferences.entries
+                      .where((e) => e.value)
+                      .map((e) => e.key)
+                      .toList();
 
-                  final selectedModes =
-                      _modes.entries
-                          .where((e) => e.value)
-                          .map((e) => e.key)
-                          .toList();
+                  final selectedModes = _modes.entries
+                      .where((e) => e.value)
+                      .map((e) => e.key)
+                      .toList();
 
                   widget.onPreferencesSaved(
                     selectedPreferences,
