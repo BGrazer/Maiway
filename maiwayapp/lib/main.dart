@@ -3,8 +3,20 @@ import 'package:maiwayapp/loginpage.dart';
 import 'package:maiwayapp/profile_screen.dart';
 import 'package:maiwayapp/map_screen.dart';
 import 'package:maiwayapp/travel_preference_page.dart';
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase only once
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
   runApp(const MyApp());
 }
 
@@ -13,6 +25,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    User? user = FirebaseAuth.instance.currentUser;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MaiWay',
@@ -20,7 +34,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: LoginPage(), // Start from login screen
+      home: user != null ? const HomeNavigation() : LoginPage(),
     );
   }
 }
@@ -62,9 +76,7 @@ class _HomeNavigationState extends State<HomeNavigation> {
         passengerType: _passengerType,
         cardType: _cardType,
       ),
-      TravelPreferenceScreen(
-        onPreferencesSaved: _updatePreferences,
-      ),
+      TravelPreferenceScreen(onPreferencesSaved: _updatePreferences),
       const ProfileScreen(),
     ];
   }
@@ -117,8 +129,6 @@ class PlaceholderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(title, style: const TextStyle(fontSize: 28)),
-    );
+    return Center(child: Text(title, style: const TextStyle(fontSize: 28)));
   }
 }
