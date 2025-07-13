@@ -10,12 +10,15 @@ import '../models/transport_mode.dart';
 import '../screens/navigation_screen.dart';
 import '../services/geocoding_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:maiwayapp/utils/polyline_utils.dart';
 
+/// RouteModeScreen displays available route alternatives and lets the user select one to navigate.
 class RouteModeScreen extends StatefulWidget {
   @override
   _RouteModeScreenState createState() => _RouteModeScreenState();
 }
 
+/// State for RouteModeScreen, manages route fetching and selection.
 class _RouteModeScreenState extends State<RouteModeScreen> {
   MapController _mapController = MapController();
   
@@ -82,6 +85,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     return selectedModes.isEmpty ? ['jeepney', 'bus', 'lrt'] : selectedModes;
   }
 
+    /// Fetches all selected route alternatives from the backend and processes them for display.
   Future<void> _fetchRoutesFromBackend() async {
     setState(() {
       _isLoading = true;
@@ -179,11 +183,25 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
 
   Future<Map<String, dynamic>?> _fetchRoute(String mode, List<String> modes) async {
     try {
+      // Get selected preferences from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      List<String> selectedPrefs = [];
+      
+      if (prefs.getBool('pref_fastest') == true) selectedPrefs.add('fastest');
+      if (prefs.getBool('pref_cheapest') == true) selectedPrefs.add('cheapest');
+      if (prefs.getBool('pref_convenient') == true) selectedPrefs.add('convenient');
+      
+      // Use all preferences if none are saved
+      if (selectedPrefs.isEmpty) {
+        selectedPrefs = ['fastest', 'cheapest', 'convenient'];
+      }
+      
       final response = await RoutingService.getRoute(
         startLocation: _originLocation,
         endLocation: _destinationLocation,
         mode: mode,
         modes: modes,
+        preferences: selectedPrefs,
       );
       
       print('🟦 $mode RAW RESPONSE: $response');
@@ -208,35 +226,11 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
   }
 
   List<LatLng> parsePolyline(dynamic polyline) {
-    if (polyline is List<LatLng>) return polyline;
-    if (polyline is List) {
-      return polyline.map((p) {
-        if (p is LatLng) return p;
-        if (p is List && p.length == 2) {
-          return LatLng(p[1].toDouble(), p[0].toDouble());
-        }
-        if (p is Map && p.containsKey('latitude') && p.containsKey('longitude')) {
-          return LatLng((p['latitude'] as num).toDouble(), (p['longitude'] as num).toDouble());
-        }
-        throw Exception('Invalid polyline point: $p');
-      }).toList();
-    }
-    return [];
+    return PolylineUtils.parsePolyline(polyline);
   }
 
   List<LatLng> robustPolyline(dynamic polyline, LatLng origin, LatLng destination) {
-    final parsed = parsePolyline(polyline);
-    if (parsed.isEmpty) {
-      print('🟥 Polyline empty, using fallback [origin, destination]');
-      return [origin, destination];
-    }
-    final first = parsed.first;
-    final allSame = parsed.every((p) => p.latitude == first.latitude && p.longitude == first.longitude);
-    if (allSame) {
-      print('🟥 Polyline all points same, using fallback [origin, destination]');
-      return [origin, destination];
-    }
-    return parsed;
+    return PolylineUtils.robustPolyline(polyline, origin, destination);
   }
 
   void _setupMapData() {
@@ -268,11 +262,21 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       ),
     ];
 
-    // Add route polyline
+    // Draw a single polyline for the selected route (not per-segment)
     if (_routes.isNotEmpty && _selectedRouteIndex < _routes.length) {
       final selectedRoute = _routes[_selectedRouteIndex];
-      final polylinePoints = robustPolyline(selectedRoute['polylinePoints'], _originLocation, _destinationLocation);
-      print('🟦 Setting up polyline with ${polylinePoints.length} points');
+      final segments = selectedRoute['segments'] as List<RouteSegment>;
+      // Aggregate all segment polylines
+      List<LatLng> polylinePoints = segments.expand((s) => s.polyline).toList();
+      // Fallback if empty
+      if (polylinePoints.isEmpty) {
+        polylinePoints = [_originLocation, _destinationLocation];
+      }
+      print('🟦 Setting up polyline with \\${polylinePoints.length} points');
+      print('🟦 Polyline points:');
+      for (final p in polylinePoints) {
+        print('  \\${p.latitude}, \\${p.longitude}');
+      }
       _polylines = [
         Polyline(
           points: polylinePoints,
@@ -362,7 +366,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       context,
       '/navigation',
       arguments: {
-        'route': selectedRoute,
+        'route': selectedRoute['routeData'], // Pass the actual route data
         'origin': _originLocation,
         'destination': _destinationLocation,
         'polyline': polylinePoints,
@@ -680,120 +684,271 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
             itemCount: _routes.length,
             itemBuilder: (context, index) {
               final route = _routes[index];
-              final isSelected = index == _selectedRouteIndex;
-              return GestureDetector(
-                onTap: () => _onRouteSelected(index),
-                child: Container(
-                  margin: EdgeInsets.only(bottom: 12),
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? route['color'] : Colors.grey[300]!,
-                      width: isSelected ? 2 : 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: route['color'],
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              route['icon'],
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  route['title'],
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: route['color'],
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 100,
-                                      height: 4,
-                                      decoration: BoxDecoration(
-                                        color: route['color'].withOpacity(0.3),
-                                        borderRadius: BorderRadius.circular(2),
-                                      ),
-                                      child: FractionallySizedBox(
-                                        alignment: Alignment.centerLeft,
-                                        widthFactor: 0.6,
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: route['color'],
-                                            borderRadius: BorderRadius.circular(2),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '₱ ${route['totalCost'].toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: route['color'],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${(route['segments'] as List).length} segments',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
+              return _buildRouteCard(route, index);
             },
           ),
         ),
       ],
     );
   }
-} 
+
+  Widget _buildRouteCard(Map<String, dynamic> route, int index) {
+    final isSelected = index == _selectedRouteIndex;
+    final routeData = route['routeData'] as Map<String, dynamic>?;
+    final segments = route['segments'] as List<RouteSegment>? ?? [];
+    final totalCost = route['totalCost'] as double? ?? 0.0;
+    
+    // Calculate route statistics
+    double totalDistance = 0.0;
+    Map<String, double> modeBreakdown = {};
+    Map<String, int> modeCount = {};
+    
+    for (final segment in segments) {
+      totalDistance += segment.distance;
+      final mode = segment.mode.name;
+      modeBreakdown[mode] = (modeBreakdown[mode] ?? 0.0) + segment.fare;
+      modeCount[mode] = (modeCount[mode] ?? 0) + 1;
+    }
+    
+    // Estimate time (rough calculation: 30 km/h for transit, 5 km/h for walking)
+    double estimatedTime = 0.0;
+    for (final segment in segments) {
+      if (segment.mode.name.toLowerCase() == 'walking') {
+        estimatedTime += segment.distance / 5.0; // 5 km/h walking
+      } else {
+        estimatedTime += segment.distance / 30.0; // 30 km/h transit
+      }
+    }
+    
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: isSelected ? 8 : 2,
+      color: isSelected ? route['color'].withOpacity(0.1) : Colors.white,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedRouteIndex = index;
+          });
+          _setupMapData();
+        },
+        child: Padding(
+          padding: EdgeInsets.all(16),
+                  child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+              // Route header
+                      Row(
+                        children: [
+                  Icon(route['icon'], color: route['color'], size: 24),
+                          SizedBox(width: 12),
+                          Expanded(
+                    child: Text(
+                                  route['title'],
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                                    color: route['color'],
+                                  ),
+                                ),
+                  ),
+                  if (isSelected)
+                    Icon(Icons.check_circle, color: route['color'], size: 24),
+                ],
+              ),
+              
+              SizedBox(height: 12),
+              
+              // Route statistics
+                                Row(
+                                  children: [
+                  Expanded(
+                    child: _buildStatItem(
+                      Icons.attach_money,
+                      '₱${totalCost.toStringAsFixed(2)}',
+                      'Total Cost',
+                      Colors.green,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatItem(
+                      Icons.straighten,
+                      '${totalDistance.toStringAsFixed(1)} km',
+                      'Distance',
+                      Colors.blue,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatItem(
+                      Icons.access_time,
+                      '${estimatedTime.toStringAsFixed(0)} min',
+                      'Est. Time',
+                      Colors.orange,
+                    ),
+                                ),
+                              ],
+                            ),
+              
+              SizedBox(height: 12),
+              
+              // Mode breakdown
+              if (modeBreakdown.isNotEmpty) ...[
+                Text(
+                  'Transport Modes:',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: modeBreakdown.entries.map((entry) {
+                    final mode = entry.key;
+                    final fare = entry.value;
+                    final count = modeCount[mode] ?? 0;
+                    return Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getModeColor(mode).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _getModeColor(mode).withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                            children: [
+                          Icon(
+                            _getModeIcon(mode),
+                            size: 16,
+                            color: _getModeColor(mode),
+                          ),
+                          SizedBox(width: 4),
+                              Text(
+                            '$mode ($count)',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: _getModeColor(mode),
+                                ),
+                              ),
+                            ],
+                          ),
+                    );
+                  }).toList(),
+                      ),
+              ],
+              
+                      SizedBox(height: 12),
+              
+              // Fare breakdown
+              if (modeBreakdown.length > 1) ...[
+                Text(
+                  'Fare Breakdown:',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 8),
+                ...modeBreakdown.entries.map((entry) {
+                  final mode = entry.key;
+                  final fare = entry.value;
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                        Row(
+                          children: [
+                            Icon(
+                              _getModeIcon(mode),
+                              size: 16,
+                              color: _getModeColor(mode),
+                            ),
+                            SizedBox(width: 8),
+                          Text(
+                              mode,
+                              style: GoogleFonts.montserrat(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '₱${fare.toStringAsFixed(2)}',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                  );
+                }).toList(),
+              ],
+                    ],
+          ),
+                  ),
+                ),
+              );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, String label, Color color) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 20),
+        SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.montserrat(
+            fontSize: 10,
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _getModeColor(String mode) {
+    switch (mode.toLowerCase()) {
+      case 'lrt':
+        return Colors.red;
+      case 'bus':
+        return Colors.blue;
+      case 'jeep':
+        return Colors.orange;
+      case 'tricycle':
+        return Colors.purple;
+      case 'walking':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getModeIcon(String mode) {
+    switch (mode.toLowerCase()) {
+      case 'lrt':
+        return Icons.train;
+      case 'bus':
+        return Icons.directions_bus;
+      case 'jeep':
+        return Icons.local_taxi;
+      case 'tricycle':
+        return Icons.motorcycle;
+      case 'walking':
+        return Icons.directions_walk;
+      default:
+        return Icons.directions;
+    }
+  }
+}

@@ -3,9 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/foundation.dart';
 
+/// RoutingService handles all backend API calls for routing, stop search, and health checks.
+/// It expects the backend to return route responses with keys: segments, shapes, summary, fare_breakdown.
 class RoutingService {
   // QUICK FIX: Using static URL to ensure consistent IP address
-  static const String baseUrl = 'http://172.20.96.139:5000'; // Your IP address
+  static const String baseUrl = 'http://127.0.0.1:5000'; // Your IP address
   
   // ALTERNATIVE IP: If the above doesn't work, try this one:
   // static const String baseUrl = 'http://192.168.225.1:5000'; // Alternative IP
@@ -41,17 +43,22 @@ class RoutingService {
   }
   
   // Get route from backend with improved error handling
+  /// Request a route from the backend. Expects backend to return a JSON with keys:
+  /// - fastest/cheapest/convenient: List of segments
+  /// - shapes: List of [lon, lat] coordinates
+  /// - summary: Map with total_cost, total_distance, etc.
+  /// - fare_breakdown: Map of mode to fare
   static Future<Map<String, dynamic>?> getRoute({
     required LatLng startLocation,
     required LatLng endLocation,
     required String mode,
     required List<String> modes,
     String passengerType = 'regular',
+    List<String> preferences = const ['fastest', 'cheapest', 'convenient'],
   }) async {
     try {
       final url = Uri.parse('$baseUrl/route');
-      print('🟦 ROUTE URL: $url');
-      
+      print('[ROUTE] URL: $url');
       final requestBody = {
         'start': {
           'lat': startLocation.latitude,
@@ -64,9 +71,9 @@ class RoutingService {
         'mode': mode,
         'modes': modes,
         'passenger_type': passengerType,
+        'preferences': preferences,
       };
-      print('🟦 ROUTE REQUEST BODY: ' + json.encode(requestBody));
-      
+      print('[ROUTE] REQUEST BODY: ' + json.encode(requestBody));
       final response = await http.post(
         url,
         headers: {
@@ -75,11 +82,25 @@ class RoutingService {
         },
         body: json.encode(requestBody),
       ).timeout(const Duration(seconds: 45)); // Increased timeout
-      
-      print('🟩 ROUTE RESPONSE: ${response.statusCode} ${response.body}');
-
+      print('[ROUTE] RESPONSE: ${response.statusCode} ${response.body}');
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
+        // Check for backend error
+        if (data.containsKey('error')) {
+          return {
+            'error': data['error'],
+            'type': 'backend_error',
+            'details': data,
+          };
+        }
+        // Only check for the requested mode key and summary
+        if (!data.containsKey(mode) || !data.containsKey('summary')) {
+          return {
+            'error': 'Incomplete route data from backend',
+            'type': 'incomplete_response',
+            'details': data,
+          };
+        }
         return data;
       } else if (response.statusCode == 400) {
         final errorData = json.decode(response.body);
@@ -101,21 +122,21 @@ class RoutingService {
         };
       }
     } on http.ClientException catch (e) {
-      print('🟥 ClientException: $e');
+      print('[ROUTE] ClientException: $e');
       return {
         'error': 'Cannot connect to server. Check your network connection and ensure the Flask server is running.',
         'type': 'connection_error',
         'details': e.toString(),
       };
     } on FormatException catch (e) {
-      print('🟥 FormatException: $e');
+      print('[ROUTE] FormatException: $e');
       return {
         'error': 'Invalid response format from server',
         'type': 'parse_error',
         'details': e.toString(),
       };
     } catch (e) {
-      print('🟥 Unexpected error: $e');
+      print('[ROUTE] Unexpected error: $e');
       return {
         'error': 'Unexpected error: ${e.toString()}',
         'type': 'unknown_error',

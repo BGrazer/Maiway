@@ -247,9 +247,9 @@ class _MapScreenState extends State<MapScreen> {
                 polygons: [
                   Polygon(
                     points: getManilaBoundary(),
-                    color: Colors.transparent,
-                    borderColor: Colors.grey,
-                    borderStrokeWidth: 1.0,
+                    color: Colors.red.withOpacity(0.15), // semi-transparent red fill
+                    borderColor: Colors.red,             // red border
+                    borderStrokeWidth: 2.5,               // thicker border for visibility
                   ),
                 ],
               ),
