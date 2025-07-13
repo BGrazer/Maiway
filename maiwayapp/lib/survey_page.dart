@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class SurveyPage extends StatefulWidget {
-  final double distanceKm; 
-  final String transportMode; 
+  final double distanceKm;
+  final String transportMode;
   final String passengerType;
   final String selectedPreference;
 
@@ -19,7 +19,6 @@ class SurveyPage extends StatefulWidget {
   @override
   State<SurveyPage> createState() => _SurveyPageState();
 }
-
 
 class _SurveyPageState extends State<SurveyPage> {
   String? _fareFeedback;
@@ -90,10 +89,7 @@ class _SurveyPageState extends State<SurveyPage> {
         return;
       }
 
-   
-      // Replace with your actual backend URL every time you use different network
       final url = Uri.parse("http://192.168.254.105:49945/predict_fare");
-      final isDiscounted = widget.passengerType.toLowerCase() == 'discounted';
 
       try {
         final response = await http.post(
@@ -101,9 +97,9 @@ class _SurveyPageState extends State<SurveyPage> {
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             "vehicle_type": _selectedTransportMode,
+            "passenger_type": widget.passengerType, // ✅ FIXED
             "distance_km": distance,
             "charged_fare": chargedFare,
-            "discounted": isDiscounted,
           }),
         );
 
@@ -159,7 +155,6 @@ class _SurveyPageState extends State<SurveyPage> {
             const Text("Fare Survey", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
-            // Distance input
             TextField(
               controller: _distanceController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -171,7 +166,6 @@ class _SurveyPageState extends State<SurveyPage> {
 
             const SizedBox(height: 12),
 
-            // Vehicle dropdown
             DropdownButtonFormField<String>(
               value: _selectedTransportMode,
               decoration: const InputDecoration(labelText: "Vehicle Type"),
@@ -183,7 +177,6 @@ class _SurveyPageState extends State<SurveyPage> {
 
             const SizedBox(height: 12),
 
-            // Passenger Type (display only)
             Row(
               children: [
                 const Text("Passenger Type: "),
@@ -193,7 +186,6 @@ class _SurveyPageState extends State<SurveyPage> {
 
             const SizedBox(height: 20),
 
-            // Fare Feedback (Yes/No)
             const Text("Do you feel you were charged the right amount?"),
             const SizedBox(height: 10),
             Row(
