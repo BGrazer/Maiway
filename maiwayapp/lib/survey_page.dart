@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 class SurveyPage extends StatefulWidget {
-  final double distanceKm; 
-  final String transportMode; 
+  final double distanceKm;
+  final String transportMode;
   final String passengerType;
   final String selectedPreference;
 
@@ -20,7 +23,6 @@ class SurveyPage extends StatefulWidget {
   State<SurveyPage> createState() => _SurveyPageState();
 }
 
-
 class _SurveyPageState extends State<SurveyPage> {
   String? _fareFeedback;
   final TextEditingController _chargedFareController = TextEditingController();
@@ -30,10 +32,54 @@ class _SurveyPageState extends State<SurveyPage> {
   final List<String> _transportOptions = ['Jeep', 'Bus'];
 
   @override
+  void initState() {
+    super.initState();
+    _selectedTransportMode = widget.transportMode;
+    _distanceController.text = widget.distanceKm.toStringAsFixed(2);
+  }
+
+  @override
   void dispose() {
     _chargedFareController.dispose();
     _distanceController.dispose();
     super.dispose();
+  }
+
+  Future<void> pushSurveyToFirestore({
+    required double distance,
+    required String vehicleType,
+    required String passengerType,
+    required double fareGiven,
+    required double predictedFare,
+    required double difference,
+    required bool isAnomalous,
+    required String route,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      print("No user logged in.");
+      return;
+    }
+
+    final userId = user.uid;
+    final name = user.displayName ?? 'Anonymous';
+
+    final surveyData = {
+      'userId': userId,
+      'name': name,
+      'distance': distance.toString(),
+      'vehicleType': vehicleType,
+      'passenger_type': passengerType,
+      'fare_given': fareGiven,
+      'original_fare': predictedFare,
+      'fare_difference': difference,
+      'anomalous': isAnomalous,
+      'route': route,
+      'timestamp': FieldValue.serverTimestamp(),
+    };
+
+    await FirebaseFirestore.instance.collection('surveys').add(surveyData);
   }
 
   Future<void> _submitSurvey() async {
@@ -53,14 +99,26 @@ class _SurveyPageState extends State<SurveyPage> {
     }
 
     if (_fareFeedback == 'yes') {
+      // ✅ Optional: Also store "yes" responses
+      await pushSurveyToFirestore(
+        distance: distance,
+        vehicleType: _selectedTransportMode!,
+        passengerType: widget.passengerType,
+        fareGiven: 0.0,
+        predictedFare: 0.0,
+        difference: 0.0,
+        isAnomalous: false,
+        route: widget.selectedPreference,
+      );
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text("Nice!"),
           content: Text(
             "Thank you and have a safe trip.\n\n"
-            "distanceKm: $distance km\n"
-            "transportMode: $_selectedTransportMode\n"
+            "Distance: $distance km\n"
+            "Transport Mode: $_selectedTransportMode\n"
             "Passenger Type: ${widget.passengerType}",
           ),
           actions: [
@@ -91,7 +149,6 @@ class _SurveyPageState extends State<SurveyPage> {
       }
 
       final url = Uri.parse("http://127.0.0.1:5000/predict_fare");
-      final isDiscounted = widget.passengerType.toLowerCase() == 'discounted';
 
       try {
         final response = await http.post(
@@ -99,21 +156,41 @@ class _SurveyPageState extends State<SurveyPage> {
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             "vehicle_type": _selectedTransportMode,
+            "passenger_type": widget.passengerType,
             "distance_km": distance,
             "charged_fare": chargedFare,
-            "discounted": isDiscounted,
           }),
         );
 
         final data = jsonDecode(response.body);
+
+        if (data.containsKey('error')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${data['error']}')),
+          );
+          return;
+        }
+
         final predictedFare = data['predicted_fare'];
         final difference = data['difference'];
         final chargedFareFormatted = data['charged_fare'];
         final isAnomalous = data['is_anomalous'];
 
+        // ✅ Push to Firebase
+        await pushSurveyToFirestore(
+          distance: distance,
+          vehicleType: _selectedTransportMode!,
+          passengerType: widget.passengerType,
+          fareGiven: chargedFare,
+          predictedFare: predictedFare.toDouble(),
+          difference: difference.toDouble(),
+          isAnomalous: isAnomalous,
+          route: widget.selectedPreference,
+        );
+
         final alert = isAnomalous
-            ? "ALERT: Overpricing Detected!"
-            : "Fare is within the acceptable range.";
+            ? "⚠️ ALERT: Overpricing Detected!"
+            : "✅ Fare is within the acceptable range.";
 
         showDialog(
           context: context,
@@ -157,7 +234,6 @@ class _SurveyPageState extends State<SurveyPage> {
             const Text("Fare Survey", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
-            // Distance input
             TextField(
               controller: _distanceController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -169,7 +245,6 @@ class _SurveyPageState extends State<SurveyPage> {
 
             const SizedBox(height: 12),
 
-            // Vehicle dropdown
             DropdownButtonFormField<String>(
               value: _selectedTransportMode,
               decoration: const InputDecoration(labelText: "Vehicle Type"),
@@ -181,7 +256,6 @@ class _SurveyPageState extends State<SurveyPage> {
 
             const SizedBox(height: 12),
 
-            // Passenger Type (display only)
             Row(
               children: [
                 const Text("Passenger Type: "),
@@ -189,9 +263,17 @@ class _SurveyPageState extends State<SurveyPage> {
               ],
             ),
 
+            const SizedBox(height: 12),
+
+            Row(
+              children: [
+                const Text("Route: "),
+                Flexible(child: Text(widget.selectedPreference, style: const TextStyle(fontWeight: FontWeight.bold))),
+              ],
+            ),
+
             const SizedBox(height: 20),
 
-            // Fare Feedback (Yes/No)
             const Text("Do you feel you were charged the right amount?"),
             const SizedBox(height: 10),
             Row(
