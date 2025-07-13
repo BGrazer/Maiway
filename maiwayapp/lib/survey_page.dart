@@ -82,6 +82,11 @@ class _SurveyPageState extends State<SurveyPage> {
     await FirebaseFirestore.instance.collection('surveys').add(surveyData);
   }
 
+  bool isDiscountedPassenger(String passengerType) {
+    final lower = passengerType.toLowerCase();
+    return lower != 'regular';
+  }
+
   Future<void> _submitSurvey() async {
     if (_fareFeedback == null || _selectedTransportMode == null || _distanceController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -98,8 +103,9 @@ class _SurveyPageState extends State<SurveyPage> {
       return;
     }
 
+    final discounted = isDiscountedPassenger(widget.passengerType);
+
     if (_fareFeedback == 'yes') {
-      // ✅ Optional: Also store "yes" responses
       await pushSurveyToFirestore(
         distance: distance,
         vehicleType: _selectedTransportMode!,
@@ -159,6 +165,7 @@ class _SurveyPageState extends State<SurveyPage> {
             "passenger_type": widget.passengerType,
             "distance_km": distance,
             "charged_fare": chargedFare,
+            "discounted": discounted, // ✅ REQUIRED BY BACKEND
           }),
         );
 
@@ -171,19 +178,18 @@ class _SurveyPageState extends State<SurveyPage> {
           return;
         }
 
-        final predictedFare = data['predicted_fare'];
-        final difference = data['difference'];
-        final chargedFareFormatted = data['charged_fare'];
-        final isAnomalous = data['is_anomalous'];
+        final predictedFare = double.tryParse(data['predicted_fare'].toString()) ?? 0.0;
+        final difference = double.tryParse(data['difference'].toString()) ?? 0.0;
+        final chargedFareFormatted = data['charged_fare'].toString();
+        final isAnomalous = data['is_anomalous'] ?? false;
 
-        // ✅ Push to Firebase
         await pushSurveyToFirestore(
           distance: distance,
           vehicleType: _selectedTransportMode!,
           passengerType: widget.passengerType,
           fareGiven: chargedFare,
-          predictedFare: predictedFare.toDouble(),
-          difference: difference.toDouble(),
+          predictedFare: predictedFare,
+          difference: difference,
           isAnomalous: isAnomalous,
           route: widget.selectedPreference,
         );

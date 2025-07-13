@@ -106,7 +106,7 @@ def predict_fare():
     vehicle_type = data['vehicle_type']
     distance_km = float(data['distance_km'])
     charged_fare = float(data['charged_fare'])
-    discounted = bool(data['discounted'])
+    discounted = bool(data.get('discounted', False))  # ✅ FIXED
 
     result = check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted)
     return jsonify(result)
