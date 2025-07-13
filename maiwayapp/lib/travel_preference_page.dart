@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TravelPreferenceScreen extends StatefulWidget {
-  final void Function(List<String> preferences, List<String> modes, String passengerType, String? cardType) onPreferencesSaved;
+  final void Function(
+    List<String> preferences,
+    List<String> modes,
+    String passengerType,
+    String? cardType,
+  ) onPreferencesSaved;
 
   const TravelPreferenceScreen({
     super.key,
@@ -28,12 +33,21 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
   };
 
   String _passengerType = 'Regular';
-  String? _cardType; // new card type
+  String? _cardType;
+
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     _loadPreferences();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadPreferences() async {
@@ -49,7 +63,13 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
       for (var key in _modes.keys) {
         _modes[key] = prefs.getBool('mode_$key') ?? _modes[key]!;
       }
+
+      if (_passengerType == 'Discounted') {
+        _cardType = 'Student Discount';
+      }
     });
+
+    _scrollToBottom();
   }
 
   Future<void> _savePreferences() async {
@@ -66,135 +86,164 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
     }
   }
 
+  Future<void> _scrollToBottom() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isTrainSelected = _modes['LRT-1'] == true || _modes['Train'] == true;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('PREFERENCE'),
         backgroundColor: const Color(0xFF6699CC),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          const _SectionHeader(title: 'Passenger Type'),
-          Column(
-            children: ['Regular', 'Discounted'].map((type) {
-              return RadioListTile<String>(
-                dense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-                title: Text(type, style: const TextStyle(fontSize: 13)),
-                value: type,
-                groupValue: _passengerType,
-                onChanged: (String? value) {
-                  setState(() {
-                    _passengerType = value!;
-                  });
-                },
-              );
-            }).toList(),
-          ),
-
-          const _SectionHeader(title: 'Travel Preferences'),
-          ..._preferences.entries.map((entry) {
-            return ListTile(
-              dense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-              title: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(entry.key, style: const TextStyle(fontSize: 13)),
-              ),
-              trailing: Switch(
-                value: entry.value,
-                onChanged: (bool value) {
-                  setState(() {
-                    _preferences[entry.key] = value;
-                  });
-                },
-                activeColor: Colors.green,
-              ),
-            );
-          }).toList(),
-
-          const _SectionHeader(title: 'Mode Priority'),
-          ..._modes.entries.map((entry) {
-            return CheckboxListTile(
-              dense: true,
-              controlAffinity: ListTileControlAffinity.trailing,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-              title: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(entry.key, style: const TextStyle(fontSize: 13)),
-              ),
-              value: entry.value,
-              onChanged: (bool? value) {
-                setState(() {
-                  _modes[entry.key] = value!;
-                });
-              },
-              checkColor: Colors.white,
-              activeColor: Colors.green,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            );
-          }).toList(),
-
-          if (_modes['LRT-1'] == true || _modes['Train'] == true) ...[
-            const _SectionHeader(title: 'LRT/Train Card Type'),
+      body: SafeArea(
+        child: ListView(
+          controller: _scrollController,
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // <--- BOTTOM SPACE ADDED
+          children: [
+            const _SectionHeader(title: 'Passenger Type'),
             Column(
-              children: ['Single Journey Card', 'Stored Value Card'].map((type) {
+              children: ['Regular', 'Discounted'].map((type) {
                 return RadioListTile<String>(
                   dense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
                   title: Text(type, style: const TextStyle(fontSize: 13)),
                   value: type,
-                  groupValue: _cardType,
+                  groupValue: _passengerType,
                   onChanged: (String? value) {
                     setState(() {
-                      _cardType = value;
+                      _passengerType = value!;
+                      if (_passengerType == 'Discounted') {
+                        _cardType = 'Student Discount';
+                      } else {
+                        _cardType = null;
+                      }
                     });
                   },
                 );
               }).toList(),
             ),
-          ],
 
-          const SizedBox(height: 20),
-          Center(
-            child: ElevatedButton.icon(
-              onPressed: () async {
-                await _savePreferences();
+            const _SectionHeader(title: 'Travel Preferences'),
+            ..._preferences.entries.map((entry) {
+              return ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+                title: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(entry.key, style: const TextStyle(fontSize: 13)),
+                ),
+                trailing: Switch(
+                  value: entry.value,
+                  onChanged: (bool value) {
+                    setState(() {
+                      _preferences[entry.key] = value;
+                    });
+                  },
+                  activeColor: Colors.green,
+                ),
+              );
+            }).toList(),
 
-                final selectedPreferences = _preferences.entries
-                    .where((e) => e.value)
-                    .map((e) => e.key)
-                    .toList();
+            const _SectionHeader(title: 'Mode Priority'),
+            ..._modes.entries.map((entry) {
+              return CheckboxListTile(
+                dense: true,
+                controlAffinity: ListTileControlAffinity.trailing,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+                title: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(entry.key, style: const TextStyle(fontSize: 13)),
+                ),
+                value: entry.value,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _modes[entry.key] = value!;
+                  });
+                },
+                checkColor: Colors.white,
+                activeColor: Colors.green,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              );
+            }).toList(),
 
-                final selectedModes = _modes.entries
-                    .where((e) => e.value)
-                    .map((e) => e.key)
-                    .toList();
+            if (isTrainSelected) ...[
+              const _SectionHeader(title: 'LRT/Train Card Type'),
+              if (_passengerType == 'Discounted')
+                ListTile(
+                  dense: true,
+                  title: const Text('Student Discount', style: TextStyle(fontSize: 13)),
+                  trailing: const Icon(Icons.lock, size: 16),
+                )
+              else
+                Column(
+                  children: ['Single Journey Card', 'Stored Value Card (Beep Card)']
+                      .map((type) {
+                    return RadioListTile<String>(
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      title: Text(type, style: const TextStyle(fontSize: 13)),
+                      value: type,
+                      groupValue: _cardType,
+                      onChanged: (String? value) {
+                        setState(() {
+                          _cardType = value;
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+            ],
 
-                widget.onPreferencesSaved(
-                  selectedPreferences,
-                  selectedModes,
-                  _passengerType,
-                  _cardType,
-                );
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  await _savePreferences();
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Preferences saved.")),
-                );
-              },
-              icon: const Icon(Icons.check),
-              label: const Text("Apply Preferences"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
+                  final selectedPreferences = _preferences.entries
+                      .where((e) => e.value)
+                      .map((e) => e.key)
+                      .toList();
+
+                  final selectedModes = _modes.entries
+                      .where((e) => e.value)
+                      .map((e) => e.key)
+                      .toList();
+
+                  widget.onPreferencesSaved(
+                    selectedPreferences,
+                    selectedModes,
+                    _passengerType,
+                    _cardType,
+                  );
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Preferences saved.")),
+                  );
+                },
+                icon: const Icon(Icons.check),
+                label: const Text("Apply Preferences"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
