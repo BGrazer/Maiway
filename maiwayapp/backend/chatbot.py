@@ -66,4 +66,4 @@ if __name__ == '__main__':
     import socket
     local_ip = socket.gethostbyname(socket.gethostname())
     print(f"\n🤖 Chatbot backend running at: http://{local_ip}:5001\n")
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5001)

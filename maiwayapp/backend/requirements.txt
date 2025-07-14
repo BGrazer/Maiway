@@ -19,3 +19,7 @@ Pillow
 requests
 
 Flask-Cors
+
+torch
+torchvision
+torchaudio
