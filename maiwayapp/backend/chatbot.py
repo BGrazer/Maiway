@@ -63,7 +63,4 @@ def serve_faq_data():
     return send_from_directory(os.path.join(app.root_path, 'data'), 'faq_data.json')
 
 if __name__ == '__main__':
-    import socket
-    local_ip = socket.gethostbyname(socket.gethostname())
-    print(f"\n🤖 Chatbot backend running at: http://{local_ip}:5001\n")
     app.run(host='0.0.0.0', port=5001, debug=True)
