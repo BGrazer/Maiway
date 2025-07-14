@@ -11,7 +11,7 @@ class ChatbotModel:
         self.faq_file_path = os.path.join(script_dir, data_path)
         self.similarity_threshold = similarity_threshold 
 
-        self.model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+        self.model = SentenceTransformer('./model')
 
         self.map_related_keywords = [
             "route", "routes", "how to get to", "location", "address", 
