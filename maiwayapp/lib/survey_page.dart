@@ -26,7 +26,8 @@ class _SurveyPageState extends State<SurveyPage> {
   void initState() {
     super.initState();
     _fareFeedbacks.addAll(List.filled(widget.rides.length, null));
-    _chargedFareControllers.addAll(List.generate(widget.rides.length, (_) => TextEditingController()));
+    _chargedFareControllers.addAll(
+        List.generate(widget.rides.length, (_) => TextEditingController()));
   }
 
   @override
@@ -74,7 +75,8 @@ class _SurveyPageState extends State<SurveyPage> {
 
       if (feedback == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Please answer fare question for Ride ${i + 1}")),
+          SnackBar(
+              content: Text("Please answer fare question for Ride ${i + 1}")),
         );
         return;
       }
@@ -113,7 +115,7 @@ class _SurveyPageState extends State<SurveyPage> {
 
         try {
           final response = await http.post(
-            Uri.parse("http://127.0.0.1:5000/predict_fare"),
+            Uri.parse("https://maiway-production.up.railway.app/predict_fare"),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               "vehicle_type": vehicleType,
@@ -151,7 +153,8 @@ class _SurveyPageState extends State<SurveyPage> {
           if (chargedFare > predictedFare) {
             alert = "⚠️ ALERT: Overpricing Detected!";
           } else if (chargedFare < predictedFare) {
-            alert = "✅ Fare is fair.\n\nNote: The charged fare is lower than expected.\nThe correct fare should be ₱${predictedFare.toStringAsFixed(2)}";
+            alert =
+                "✅ Fare is fair.\n\nNote: The charged fare is lower than expected.\nThe correct fare should be ₱${predictedFare.toStringAsFixed(2)}";
           } else {
             alert = "✅ Fare is within the acceptable range.";
           }
@@ -214,10 +217,13 @@ class _SurveyPageState extends State<SurveyPage> {
         child: Column(
           children: [
             for (int i = 0; i < widget.rides.length; i++) ...[
-              Text("Ride ${i + 1}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text("Ride ${i + 1}",
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 8),
               Text("Vehicle: ${widget.rides[i]['vehicleType']}"),
-              Text("Distance: ${widget.rides[i]['distanceKm'].toStringAsFixed(2)} km"),
+              Text(
+                  "Distance: ${widget.rides[i]['distanceKm'].toStringAsFixed(2)} km"),
               Text("Route: ${widget.rides[i]['route']}"),
               const SizedBox(height: 10),
               const Text("Do you feel you were charged the right amount?"),
@@ -249,7 +255,8 @@ class _SurveyPageState extends State<SurveyPage> {
                 const SizedBox(height: 10),
                 TextField(
                   controller: _chargedFareControllers[i],
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(
                     labelText: "Charged Fare (₱)",
                     hintText: "Enter charged fare",
