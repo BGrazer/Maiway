@@ -1,15 +1,9 @@
 import numpy as np
 import pandas as pd
-import firebase_admin
-from firebase_admin import credentials, firestore
-from sklearn.ensemble import RandomForestRegressor
+import json
 from datetime import datetime
 from collections import defaultdict
-
-# 🔐 Firebase initialization
-cred = credentials.Certificate("data/crowd_analysisjson.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+from sklearn.ensemble import RandomForestRegressor
 
 def analyze_route_with_reference_model():
     print("🔍 Running crowd anomaly analysis using RFR and grouping by route...")
@@ -36,18 +30,18 @@ def analyze_route_with_reference_model():
 
     print(f"✅ Anomaly threshold based on fare matrix: ₱{threshold:.2f}")
 
-    # 🧩 Fetch survey documents
+    # 🧩 Fetch survey documents from local JSON file
     try:
-        docs = db.collection('surveys').stream()
+        with open('data/crowd_analysisjson.json', 'r') as f:
+            surveys = json.load(f)
     except Exception as e:
-        print(f"❌ Failed to fetch surveys: {e}")
+        print(f"❌ Failed to fetch surveys from local file: {e}")
         return
 
     # 📦 Group entries by route
     route_data = defaultdict(list)
 
-    for doc in docs:
-        data = doc.to_dict()
+    for data in surveys:
         try:
             route = data.get("route")
             distance = float(data.get("distance"))
