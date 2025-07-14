@@ -14,3 +14,5 @@ flask
 firebase-admin
 
 Flask-Cors
+
+sentence-transformers

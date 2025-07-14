@@ -7,11 +7,9 @@ from datetime import datetime
 from collections import defaultdict
 
 # 🔐 Firebase initialization
-# Use environment variables for credentials in production
-cred = credentials.ApplicationDefault()
-firebase_admin.initialize_app(cred, {
-    'projectId': 'maiway-7a76d',
-})
+# 🔐 Firebase initialization
+cred = credentials.Certificate("data/crowd_analysisjson.json")
+firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 def analyze_route_with_reference_model():
