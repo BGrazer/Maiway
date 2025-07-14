@@ -12,3 +12,5 @@ tzdata==2025.2
 
 flask
 firebase-admin
+
+Flask-Cors
