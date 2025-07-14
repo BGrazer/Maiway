@@ -20,11 +20,9 @@ class _ChatbotDialogState extends State<ChatbotDialog>
   late AnimationController _typingAnimationController;
 
   final String _chatBackendUrl =
-      //'https://maiway-production.up.railway.app/chat';
       'https://spontaneous-bienenstitch-10e0f7.netlify.app/chat';
 
   final String _dynamicSuggestionsUrl =
-      //'https://maiway-production.up.railway.app/dynamic_suggestions';
       'https://spontaneous-bienenstitch-10e0f7.netlify.app/dynamic_suggestions';
 
   @override

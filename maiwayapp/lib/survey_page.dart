@@ -117,7 +117,6 @@ class _SurveyPageState extends State<SurveyPage> {
 
         try {
           final response = await http.post(
-            //Uri.parse("https://maiway-production.up.railway.app/predict_fare"),
             Uri.parse(
               "https://spontaneous-bienenstitch-10e0f7.netlify.app/predict_fare",
             ),
