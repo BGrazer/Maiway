@@ -1,0 +1,8 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "backend/Dockerfile"
+
+[deploy]
+startCommand = "python backend/main.py"
+healthcheckPath = "/"
+healthcheckTimeout = 100
