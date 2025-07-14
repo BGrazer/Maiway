@@ -1,6 +1,6 @@
 [build]
 builder = "dockerfile"
-dockerfilePath = "backend/Dockerfile"
+dockerfilePath = "maiwayapp/Dockerfile"
 
 [deploy]
 startCommand = "python backend/main.py"
