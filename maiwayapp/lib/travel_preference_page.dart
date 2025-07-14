@@ -20,15 +20,15 @@ class TravelPreferenceScreen extends StatefulWidget {
 
 class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
   final Map<String, bool> _preferences = {
-    'Fastest': false,
+    'Fastest': true,
     'Cheapest': false,
     'Convenient': false,
   };
 
   final Map<String, bool> _modes = {
-    'Jeep': false,
-    'Bus': false,
-    'LRT-1': false,
+    'Jeepney': false,
+    'Bus': true,
+    'LRT-1': true,
     'Tricycle': false,
   };
 

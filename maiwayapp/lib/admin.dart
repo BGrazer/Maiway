@@ -1,5 +1,4 @@
-// ✅ Merged version of both Admin Panels
-// Includes clickable Report details and enhanced Survey grouping
+// ✅ Merged Admin Panel with Reports and Surveys working together
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,6 +21,8 @@ class _AdminScreenState extends State<AdminScreen>
   String searchQueryReports = '';
   String selectedStatus = 'All';
   String selectedVehicle = 'All';
+  int? selectedMonth;
+  int? selectedYear;
 
   @override
   void initState() {
@@ -96,122 +97,174 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  Widget _buildSurveysTab() {
-    return Column(
+ Widget _buildSurveysTab() {
+  return SingleChildScrollView(
+    padding: const EdgeInsets.all(10),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search route (e.g., R. Papa to Tayuman)',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+        // Search bar
+        TextField(
+          decoration: InputDecoration(
+            hintText: 'Search route...',
+            prefixIcon: const Icon(Icons.search),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          onChanged: (value) => setState(() => searchQuerySurveys = value.toLowerCase()),
+        ),
+        const SizedBox(height: 10),
+        
+        // Filters Row
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: IntrinsicWidth(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Vehicle Type Filter
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedVehicle,
+                          decoration: const InputDecoration(
+                            labelText: 'Vehicle Type',
+                            border: OutlineInputBorder(),
+                            // Adjust size or add padding
+                            contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'All', child: Text('All')),
+                            DropdownMenuItem(value: 'Jeepney', child: Text('Jeepney')),
+                            DropdownMenuItem(value: 'Bus', child: Text('Bus')),
+                          ],
+                          onChanged: (value) => setState(() => selectedVehicle = value!),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      
+                      // Month Filter
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          value: selectedMonth,
+                          decoration: const InputDecoration(
+                            labelText: 'Month',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding
+                          ),
+                          items: List.generate(12, (index) => DropdownMenuItem(
+                            value: index + 1,
+                            child: Text(_monthName(index + 1)),
+                          ))..insert(0, const DropdownMenuItem( value: null, child: Text('All'))),
+                          onChanged: (value) => setState(() => selectedMonth = value),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      
+                      // Year Filter
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          value: selectedYear,
+                          decoration: const InputDecoration(
+                            labelText: 'Year',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding
+                          ),
+                          items: List.generate(5, (index) => DropdownMenuItem(
+                            value: DateTime.now().year - index,
+                            child: Text((DateTime.now().year - index).toString()),
+                          ))..insert(0, const DropdownMenuItem(value: null, child: Text('All'))),
+                          onChanged: (value) => setState(() => selectedYear = value),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    searchQuerySurveys = value.toLowerCase();
-                  });
-                },
               ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                value: selectedVehicle,
-                decoration: const InputDecoration(
-                  labelText: 'Filter by Vehicle',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'All', child: Text('All')),
-                  DropdownMenuItem(value: 'Jeepney', child: Text('Jeepney')),
-                  DropdownMenuItem(value: 'Bus', child: Text('Bus')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    selectedVehicle = value!;
-                  });
-                },
-              ),
-            ],
-          ),
+            );
+          },
         ),
-        Expanded(
-          child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('surveys')
-                .orderBy('timestamp', descending: true)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const Center(child: Text('No surveys found.'));
-              }
-
-              final grouped = <String, Map<String, List<Map<String, dynamic>>>>{};
-
-              for (var doc in snapshot.data!.docs) {
-                final data = doc.data() as Map<String, dynamic>;
-                final route = (data['route'] ?? 'Unknown') as String;
-                final vehicle = data['vehicleType'] ?? 'Unknown';
-
-                if (selectedVehicle != 'All' && vehicle != selectedVehicle) continue;
-
-                final timestamp = data['timestamp'];
-                final date = timestamp is Timestamp ? timestamp.toDate() : DateTime.now();
-                final monthYear = "${_monthName(date.month)} ${date.year}";
-
-                grouped.putIfAbsent(route, () => {});
-                grouped[route]!.putIfAbsent(monthYear, () => []);
-                grouped[route]![monthYear]!.add(data);
-              }
-
-              final filteredRoutes = grouped.keys
-                  .where((r) => r.toLowerCase().contains(searchQuerySurveys))
-                  .toList()
-                ..sort();
-
-              return ListView.builder(
-                itemCount: filteredRoutes.length,
-                itemBuilder: (context, index) {
-                  final route = filteredRoutes[index];
-                  return ExpansionTile(
-                    title: Text("🚏 Route: $route"),
-                    children: grouped[route]!.entries.map((entry) {
-                      final monthYear = entry.key;
-                      final entries = entry.value;
-                      final total = entries.length;
-                      final overcharged = entries.where((d) => d['anomalous'] == true).length;
-                      final avgFare = entries.map((e) => (e['fare_given'] ?? 0).toDouble()).fold(0.0, (a, b) => a + b) / total;
-                      final avgDistance = entries.map((e) => double.tryParse('${e['distance']}') ?? 0.0).fold(0.0, (a, b) => a + b) / total;
-
-                      return ListTile(
-                        title: Text("📅 $monthYear"),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("🧑 Participants: $total"),
-                            Text("⚠️ Overcharged: $overcharged"),
-                            Text("💰 Avg Fare: ₱${avgFare.toStringAsFixed(2)}"),
-                            Text("📏 Avg Distance: ${avgDistance.toStringAsFixed(2)} km"),
-                          ],
-                        ),
-                        onTap: () => _showRouteDetails(context, "$route ($monthYear)", entries),
-                      );
-                    }).toList(),
-                  );
-                },
-              );
-            },
-          ),
-        )
+        const SizedBox(height: 10),
+        // Surveys List
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: _buildSurveyList(),
+        ),
       ],
+    ),
+  );
+}
+  Widget _buildSurveyList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('surveys').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No surveys found.'));
+        }
+
+        final grouped = <String, Map<String, List<Map<String, dynamic>>>>{};
+
+        for (var doc in snapshot.data!.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final route = (data['route'] ?? 'Unknown') as String;
+          final vehicle = data['vehicleType'] ?? 'Unknown';
+          final timestamp = data['timestamp'];
+          final date = timestamp is Timestamp ? timestamp.toDate() : DateTime.now();
+
+          if (selectedVehicle != 'All' && vehicle != selectedVehicle) continue;
+          if ((selectedMonth != null && date.month != selectedMonth) ||
+              (selectedYear != null && date.year != selectedYear)) {
+            continue;
+          }
+
+          final monthYear = "${_monthName(date.month)} ${date.year}";
+          grouped.putIfAbsent(route, () => {});
+          grouped[route]!.putIfAbsent(monthYear, () => []);
+          grouped[route]![monthYear]!.add(data);
+        }
+
+        final filteredRoutes = grouped.keys.where((r) => r.toLowerCase().contains(searchQuerySurveys)).toList()..sort();
+
+        return ListView.builder(
+          itemCount: filteredRoutes.length,
+          itemBuilder: (context, index) {
+            final route = filteredRoutes[index];
+            return ExpansionTile(
+              title: Text("🚏 Route: $route"),
+              children: grouped[route]!.entries.map((entry) {
+                final monthYear = entry.key;
+                final entries = entry.value;
+                final total = entries.length;
+                final overcharged = entries.where((d) => d['anomalous'] == true).length;
+                final avgFare = entries.map((e) => (e['fare_given'] ?? 0).toDouble()).fold(0.0, (a, b) => a + b) / total;
+                final avgDistance = entries.map((e) => double.tryParse('${e['distance']}') ?? 0.0).fold(0.0, (a, b) => a + b) / total;
+
+                return ListTile(
+                  title: Text("📅 $monthYear"),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("🧑 Participants: $total"),
+                      Text("⚠️ Overcharged: $overcharged"),
+                      Text("💰 Avg Fare: ₱${avgFare.toStringAsFixed(2)}"),
+                      Text("📏 Avg Distance: ${avgDistance.toStringAsFixed(2)} km"),
+                    ],
+                  ),
+                  onTap: () => _showSurveyDetails(context, "$route ($monthYear)", entries),
+                );
+              }).toList(),
+            );
+          },
+        );
+      },
     );
   }
 
-  void _showRouteDetails(
-      BuildContext context, String route, List<Map<String, dynamic>> entries) {
+  void _showSurveyDetails(BuildContext context, String title, List<Map<String, dynamic>> entries) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -221,7 +274,7 @@ class _AdminScreenState extends State<AdminScreen>
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              Text("Surveys: $route", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text("Surveys: $title", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const Divider(),
               Expanded(
                 child: ListView.builder(
@@ -243,14 +296,11 @@ class _AdminScreenState extends State<AdminScreen>
                           Text("Vehicle: ${e['vehicleType'] ?? 'N/A'}"),
                         ],
                       ),
-                      trailing: Icon(
-                        e['anomalous'] == true ? Icons.warning : Icons.check_circle,
-                        color: e['anomalous'] == true ? Colors.red : Colors.green,
-                      ),
+                      trailing: Icon(e['anomalous'] == true ? Icons.warning : Icons.check_circle, color: e['anomalous'] == true ? Colors.red : Colors.green),
                     );
                   },
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -273,11 +323,7 @@ class _AdminScreenState extends State<AdminScreen>
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    searchQueryReports = value.toLowerCase();
-                  });
-                },
+                onChanged: (value) => setState(() => searchQueryReports = value.toLowerCase()),
               ),
               const SizedBox(height: 10),
               Row(
@@ -295,11 +341,7 @@ class _AdminScreenState extends State<AdminScreen>
                         DropdownMenuItem(value: 'Submitted', child: Text('Submitted')),
                         DropdownMenuItem(value: 'Under Review', child: Text('Under Review')),
                       ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedStatus = value!;
-                        });
-                      },
+                      onChanged: (value) => setState(() => selectedStatus = value!),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -315,11 +357,7 @@ class _AdminScreenState extends State<AdminScreen>
                         DropdownMenuItem(value: 'Jeepney', child: Text('Jeepney')),
                         DropdownMenuItem(value: 'Bus', child: Text('Bus')),
                       ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedVehicle = value!;
-                        });
-                      },
+                      onChanged: (value) => setState(() => selectedVehicle = value!),
                     ),
                   ),
                 ],
@@ -406,7 +444,7 @@ class _AdminScreenState extends State<AdminScreen>
               const SizedBox(height: 10),
               const Text('Details:'),
               Text(report['details'] ?? 'No details'),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: currentStatus,
                 decoration: const InputDecoration(labelText: 'Update Status'),
