@@ -94,9 +94,9 @@ class _SurveyPageState extends State<SurveyPage> {
 
     final distance = double.tryParse(_distanceController.text);
     if (distance == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid distance input')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid distance input')));
       return;
     }
 
@@ -116,25 +116,26 @@ class _SurveyPageState extends State<SurveyPage> {
 
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Nice!"),
-          content: Text(
-            "Thank you and have a safe trip.\n\n"
-            "Distance: $distance km\n"
-            "Transport Mode: $_selectedTransportMode\n"
-            "Passenger Type: ${widget.passengerType}\n"
-            "Route: $route",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              child: const Text("OK"),
-            )
-          ],
-        ),
+        builder:
+            (context) => AlertDialog(
+              title: const Text("Nice!"),
+              content: Text(
+                "Thank you and have a safe trip.\n\n"
+                "Distance: $distance km\n"
+                "Transport Mode: $_selectedTransportMode\n"
+                "Passenger Type: ${widget.passengerType}\n"
+                "Route: $route",
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  },
+                  child: const Text("OK"),
+                ),
+              ],
+            ),
       );
     } else if (_fareFeedback == 'no') {
       if (_chargedFareController.text.isEmpty) {
@@ -146,13 +147,15 @@ class _SurveyPageState extends State<SurveyPage> {
 
       final chargedFare = double.tryParse(_chargedFareController.text);
       if (chargedFare == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid fare input')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Invalid fare input')));
         return;
       }
 
-      final url = Uri.parse("http://127.0.0.1:5000/predict_fare");
+      final url = Uri.parse(
+        "https://maiway-production.up.railway.app/predict_fare",
+      );
 
       try {
         final response = await http.post(
@@ -169,9 +172,9 @@ class _SurveyPageState extends State<SurveyPage> {
         final data = jsonDecode(response.body);
 
         if (data.containsKey('error')) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${data['error']}')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: ${data['error']}')));
           return;
         }
 
@@ -195,33 +198,35 @@ class _SurveyPageState extends State<SurveyPage> {
         if (chargedFare > predictedFare) {
           alert = "⚠️ ALERT: Overpricing Detected!";
         } else if (chargedFare < predictedFare) {
-          alert = "✅ Fare is fair.\n\nNote: The charged fare is lower than expected.\nThe correct fare should be ₱${predictedFare.toStringAsFixed(2)}";
+          alert =
+              "✅ Fare is fair.\n\nNote: The charged fare is lower than expected.\nThe correct fare should be ₱${predictedFare.toStringAsFixed(2)}";
         } else {
           alert = "✅ Fare is within the acceptable range.";
         }
 
         showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Fare Validation Result"),
-            content: Text(
-              "Distance: $distance km\n"
-              "Predicted Fare: ₱${predictedFare.toStringAsFixed(2)}\n"
-              "Charged Fare: ₱$chargedFareFormatted\n"
-              "Difference: ₱${difference.toStringAsFixed(2)}\n"
-              "Route: $route\n\n"
-              "$alert",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                child: const Text("OK"),
-              )
-            ],
-          ),
+          builder:
+              (context) => AlertDialog(
+                title: const Text("Fare Validation Result"),
+                content: Text(
+                  "Distance: $distance km\n"
+                  "Predicted Fare: ₱${predictedFare.toStringAsFixed(2)}\n"
+                  "Charged Fare: ₱$chargedFareFormatted\n"
+                  "Difference: ₱${difference.toStringAsFixed(2)}\n"
+                  "Route: $route\n\n"
+                  "$alert",
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: const Text("OK"),
+                  ),
+                ],
+              ),
         );
       } catch (e) {
         print("Error connecting to backend: $e");
@@ -236,25 +241,31 @@ class _SurveyPageState extends State<SurveyPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        final isSurveyComplete = _fareFeedback != null &&
+        final isSurveyComplete =
+            _fareFeedback != null &&
             _selectedTransportMode != null &&
             _distanceController.text.isNotEmpty &&
             _routeController.text.isNotEmpty &&
-            (_fareFeedback == 'yes' || (_fareFeedback == 'no' && _chargedFareController.text.isNotEmpty));
+            (_fareFeedback == 'yes' ||
+                (_fareFeedback == 'no' &&
+                    _chargedFareController.text.isNotEmpty));
 
         if (!isSurveyComplete) {
           await showDialog(
             context: context,
-            builder: (context) => AlertDialog(
-              title: const Text("Survey Incomplete"),
-              content: const Text("Please complete the survey before exiting."),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("OK"),
+            builder:
+                (context) => AlertDialog(
+                  title: const Text("Survey Incomplete"),
+                  content: const Text(
+                    "Please complete the survey before exiting.",
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text("OK"),
+                    ),
+                  ],
                 ),
-              ],
-            ),
           );
           return false;
         }
@@ -267,12 +278,17 @@ class _SurveyPageState extends State<SurveyPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Fare Survey", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                "Fare Survey",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
 
               TextField(
                 controller: _distanceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: "Distance (km)",
                   hintText: "Enter estimated distance",
@@ -284,10 +300,12 @@ class _SurveyPageState extends State<SurveyPage> {
               DropdownButtonFormField<String>(
                 value: _selectedTransportMode,
                 decoration: const InputDecoration(labelText: "Vehicle Type"),
-                items: _transportOptions.map((mode) {
-                  return DropdownMenuItem(value: mode, child: Text(mode));
-                }).toList(),
-                onChanged: (value) => setState(() => _selectedTransportMode = value),
+                items:
+                    _transportOptions.map((mode) {
+                      return DropdownMenuItem(value: mode, child: Text(mode));
+                    }).toList(),
+                onChanged:
+                    (value) => setState(() => _selectedTransportMode = value),
               ),
 
               const SizedBox(height: 12),
@@ -295,7 +313,10 @@ class _SurveyPageState extends State<SurveyPage> {
               Row(
                 children: [
                   const Text("Passenger Type: "),
-                  Text(widget.passengerType, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    widget.passengerType,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
 
@@ -320,7 +341,8 @@ class _SurveyPageState extends State<SurveyPage> {
                       title: const Text("Yes"),
                       value: 'yes',
                       groupValue: _fareFeedback,
-                      onChanged: (value) => setState(() => _fareFeedback = value),
+                      onChanged:
+                          (value) => setState(() => _fareFeedback = value),
                     ),
                   ),
                   Expanded(
@@ -328,7 +350,8 @@ class _SurveyPageState extends State<SurveyPage> {
                       title: const Text("No"),
                       value: 'no',
                       groupValue: _fareFeedback,
-                      onChanged: (value) => setState(() => _fareFeedback = value),
+                      onChanged:
+                          (value) => setState(() => _fareFeedback = value),
                     ),
                   ),
                 ],
@@ -339,8 +362,12 @@ class _SurveyPageState extends State<SurveyPage> {
                 const Text("How much was the charged fare?"),
                 TextField(
                   controller: _chargedFareController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(hintText: "Enter fare in PHP"),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    hintText: "Enter fare in PHP",
+                  ),
                 ),
               ],
 
