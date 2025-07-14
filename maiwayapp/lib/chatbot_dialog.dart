@@ -20,8 +20,8 @@ class _ChatbotDialogState extends State<ChatbotDialog> with SingleTickerProvider
   late AnimationController _typingAnimationController;
 
 
-final String _chatBackendUrl = 'http://127.0.0.1:5000/chat';
-final String _dynamicSuggestionsUrl = 'http://127.0.0.1:5000/dynamic_suggestions'; 
+final String _chatBackendUrl = 'http://192.168.254.105:5001/chat';
+final String _dynamicSuggestionsUrl = 'http://192.168.254.105:5001/dynamic_suggestions'; 
 
   @override
 
