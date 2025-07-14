@@ -1,5 +1,5 @@
 # Stage 1: Build the Flutter application
-FROM cirrusci/flutter:3.22.2 AS build
+FROM cirrusci/flutter:stable AS build
 
 WORKDIR /app
 
