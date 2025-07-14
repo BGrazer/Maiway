@@ -96,6 +96,5 @@ def predict_fare():
     return jsonify(result)
 
 if __name__ == '__main__':
-    local_ip = socket.gethostbyname(socket.gethostname())
-    print(f"\n🧮 RFR backend running at: http://{local_ip}:5002\n")
-    app.run(host='0.0.0.0', port=5002, debug=True)
+    print(f"\n🧮 RFR backend running at: http://0.0.0.0:5002\n")
+    app.run(host='0.0.0.0', port=5002)
