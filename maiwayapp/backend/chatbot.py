@@ -1,18 +1,16 @@
 # chatbot.py
 
 import os
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
+from flask import Blueprint, request, jsonify, send_from_directory
 from chatbot_model import ChatbotModel
 
 # Initialize Flask App
-app = Flask(__name__)
-CORS(app)
+chatbot_bp = Blueprint('chatbot_bp', __name__)
 
 # Initialize Chatbot
 chatbot = ChatbotModel()
 
-@app.route('/chat', methods=['POST'])
+@chatbot_bp.route('/chat', methods=['POST'])
 def chat():
     if request.json is None:
         return jsonify({"error": "Request body must be JSON"}), 400
@@ -24,7 +22,7 @@ def chat():
     response = chatbot.get_response(user_message)
     return jsonify({"response": response})
 
-@app.route('/dynamic_suggestions', methods=['GET'])
+@chatbot_bp.route('/dynamic_suggestions', methods=['GET'])
 def get_dynamic_suggestions():
     try:
         query = request.args.get('query', '')
@@ -35,7 +33,7 @@ def get_dynamic_suggestions():
     except Exception as e:
         return jsonify({"error": f"An unexpected server error occurred: {e}"}), 500
 
-@app.route('/admin/add_faq', methods=['POST'])
+@chatbot_bp.route('/admin/add_faq', methods=['POST'])
 def add_faq():
     if request.json is None:
         return jsonify({"error": "Request body must be JSON for FAQ addition"}), 400
@@ -53,17 +51,12 @@ def add_faq():
     else:
         return jsonify({"message": "FAQ (or similar question) already exists."}), 200
 
-@app.route('/admin/reload_chatbot', methods=['POST'])
+@chatbot_bp.route('/admin/reload_chatbot', methods=['POST'])
 def reload_chatbot():
     chatbot.reload_data()
     return jsonify({"message": "Chatbot data reloaded successfully."})
 
-@app.route('/data/faq_data.json')
+@chatbot_bp.route('/data/faq_data.json')
 def serve_faq_data():
     return send_from_directory(os.path.join(app.root_path, 'data'), 'faq_data.json')
 
-if __name__ == '__main__':
-    import socket
-    local_ip = socket.gethostbyname(socket.gethostname())
-    print(f"\n🤖 Chatbot backend running at: http://{local_ip}:5001\n")
-    app.run(host='0.0.0.0', port=5001, debug=True)
