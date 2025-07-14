@@ -1,18 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:maiwayapp/forgot_password_page.dart';
 import 'signup.dart';
 import 'main.dart';
-import 'forgot_password_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final Color backgroundColor = Color(0xFF3F7399);
   final Color textBoxColor = Color(0xFF292929);
   final Color buttonColor = Color(0xFFBFCBCE);
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  void _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeNavigation()),
+      );
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Login failed';
+
+      if (e.code == 'user-not-found') {
+        errorMessage = 'No user found with this email';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Incorrect password';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'Invalid email format';
+      } else if (e.code == 'user-disabled') {
+        errorMessage = 'This account has been disabled';
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Something went wrong')));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28.0),
@@ -33,40 +87,41 @@ class LoginPage extends StatelessWidget {
                 style: TextStyle(fontSize: 16, color: Colors.white),
               ),
               Spacer(),
-              //Enter Email
-              _customTextField(label: 'Enter Your Email', icon: Icons.email),
+              //EMAIL
+              _customTextField(
+                label: 'Enter Your Email',
+                icon: Icons.email,
+                controller: _emailController,
+              ),
               SizedBox(height: 16),
-              //Enter Password
+              //PASSWORD
               _customTextField(
                 label: 'Enter Your Password',
                 icon: Icons.lock,
                 obscure: true,
+                controller: _passwordController,
               ),
-              //Alignment for Forgot Pass
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                  Navigator.push(
-                   context,
-                    MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
-                      );
-                     },
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => forgotpassword()),
+                    );
+                  },
                   child: Text(
                     'Forgot Password?',
                     style: TextStyle(color: Colors.white70),
                   ),
                 ),
               ),
-              // Redirect to home screen of app
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => HomeNavigation()),
-                  );
-                },
-                child: Text('Login'),
+                onPressed: _isLoading ? null : _login,
+                child:
+                    _isLoading
+                        ? CircularProgressIndicator(color: Colors.black)
+                        : Text('Login'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: buttonColor,
                   foregroundColor: Colors.black,
@@ -74,7 +129,6 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20),
-              // Sign Up
               RichText(
                 text: TextSpan(
                   text: "Don't have an account? ",
@@ -103,15 +157,16 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  //For the texts
   Widget _customTextField({
     required String label,
     required IconData icon,
     bool obscure = false,
+    required TextEditingController controller,
   }) {
     return Container(
       width: double.infinity,
       child: TextField(
+        controller: controller,
         obscureText: obscure,
         style: TextStyle(color: Colors.white),
         decoration: InputDecoration(

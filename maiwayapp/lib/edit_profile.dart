@@ -1,218 +1,188 @@
-// lib/edit_profile.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
-
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _nameController = TextEditingController(text: 'Jhon');
-  final TextEditingController _emailController = TextEditingController(text: 'Jhon2490@xyz.com');
-  final TextEditingController _phoneController = TextEditingController(text: '+91 9898989898');
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _contactNumberController = TextEditingController();
+  bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final doc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final data = doc.data();
+      if (data != null) {
+        _nameController.text = data['name'] ?? '';
+        final contact = data['contactNumber'] ?? '';
+        if (contact.startsWith('+63')) {
+          _contactNumberController.text = contact.substring(3);
+        }
+      }
+    }
+  }
+
+  bool _isValidFullName(String name) {
+    final regex = RegExp(r"^[a-zA-Z\s\.]+$");
+    return regex.hasMatch(name.trim()) && name.trim().split(' ').length >= 2;
+  }
+
+  Future<void> _updateProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final name = _nameController.text.trim();
+      final contactNumber = '+63${_contactNumberController.text.trim()}';
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'name': name,
+        'contactNumber': contactNumber,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully')),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update profile: $e')));
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  InputDecoration _buildInputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.blue),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(25),
+        borderSide: const BorderSide(color: Colors.blue),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(25),
+        borderSide: const BorderSide(color: Colors.blue, width: 2),
+      ),
+    );
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
+    _contactNumberController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: const Color(0xFF6699CC),
+        elevation: 5,
+        title: const Text('Edit Profile'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Edit Profile'),
-        backgroundColor: const Color(0xFF4C7B8D),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Form(
+          key: _formKey,
           child: Column(
-            children: <Widget>[
-              Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.grey[300],
-                    child: Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        print('Change profile picture tapped');
-                      },
-                      child: const Icon(
-                        Icons.edit,
-                        color: Color(0xFFFFFFFF),
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Change profile',
-                    style: TextStyle(color: Colors.blueGrey),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.edit, size: 16, color: Colors.blueGrey),
-                ],
-              ),
-              const SizedBox(height: 30),
-
-
-              _buildTextField(
+            children: [
+              TextFormField(
                 controller: _nameController,
-                labelText: 'Name',
+                decoration: _buildInputDecoration('Full Name'),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Enter your name';
+                  }
+                  if (!_isValidFullName(value)) {
+                    return 'Only letters, spaces, and dots allowed (at least 2 words)';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 20),
-
-
-              _buildTextField(
-                controller: _emailController,
-                labelText: 'Email',
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 20),
-              _buildTextField(
-                controller: _phoneController,
-                labelText: 'Phone',
-                keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly
+              Row(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(right: 8),
+                    child: Text(
+                      '+63',
+                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                    ),
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      keyboardType: TextInputType.phone,
+                      controller: _contactNumberController,
+                      decoration: _buildInputDecoration('Contact Number'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Enter your contact number';
+                        }
+                        if (!RegExp(r'^9\d{9}$').hasMatch(value)) {
+                          return 'Enter valid PH number (e.g. 9123456789)';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 40),
-
-
               SizedBox(
                 width: double.infinity,
+                height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    _showUpdateConfirmationDialog(context);
-                  },
+                  onPressed: _isLoading ? null : _updateProfile,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4C7B8D),
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    backgroundColor: const Color(0xFF457B9D),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(25),
                     ),
                   ),
-                  child: const Text(
-                    'Update Profile',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
+                  child:
+                      _isLoading
+                          ? const CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          )
+                          : const Text(
+                            'Save Changes',
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          ),
                 ),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String labelText,
-    TextInputType keyboardType = TextInputType.text,
-    List<TextInputFormatter>? inputFormatters,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 12.0, bottom: 4.0),
-          child: Text(
-            labelText,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: TextField(
-            controller: controller,
-            keyboardType: keyboardType,
-            inputFormatters: inputFormatters,
-            decoration: const InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-              border: InputBorder.none,
-            ),
-            style: const TextStyle(fontSize: 16),
-          ),
-        ),
-      ],
-    );
-  }
-
-
-  void _showUpdateConfirmationDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Confirm Update'),
-          content: const Text('Are you sure you want to update your profile?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-
-
-                print('Name: ${_nameController.text}');
-                print('Email: ${_emailController.text}');
-                print('Phone: ${_phoneController.text}');
-
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Your profile has been successfully updated!'),
-                    backgroundColor: Colors.green,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-
-
-              },
-              child: const Text('Yes'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

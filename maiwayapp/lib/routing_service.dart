@@ -145,6 +145,64 @@ class RoutingService {
     }
   }
 
+  static Future<Map<String, dynamic>?> getMultiCriteriaRoutes({
+    required LatLng startLocation,
+    required LatLng endLocation,
+    required List<String> modes,
+    List<String> preferences = const ['fastest', 'cheapest', 'convenient'],
+    String passengerType = 'regular',
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/routes-multicriteria');
+      print('[ROUTES-MULTI] URL: $url');
+      final requestBody = {
+        'start': {
+          'lat': startLocation.latitude,
+          'lon': startLocation.longitude,
+        },
+        'end': {
+          'lat': endLocation.latitude,
+          'lon': endLocation.longitude,
+        },
+        'modes': modes,
+        'preferences': preferences,
+        'passenger_type': passengerType,
+      };
+      print('[ROUTES-MULTI] REQUEST BODY: ' + json.encode(requestBody));
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode(requestBody),
+      ).timeout(const Duration(seconds: 60));
+      print('[ROUTES-MULTI] RESPONSE: ${response.statusCode} ${response.body}');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        return data;
+      } else {
+        return {
+          'error': 'Server returned ${response.statusCode}: ${response.reasonPhrase}',
+          'type': 'http_error',
+          'details': response.body,
+        };
+      }
+    } on http.ClientException catch (e) {
+      return {
+        'error': 'Cannot connect to server. Ensure it is running.',
+        'type': 'connection_error',
+        'details': e.toString(),
+      };
+    } catch (e) {
+      return {
+        'error': 'Unexpected error: ${e.toString()}',
+        'type': 'unknown_error',
+        'details': e.toString(),
+      };
+    }
+  }
+
   // Search for stops/places with improved error handling
   static Future<List<Map<String, dynamic>>> searchStops(String query) async {
     try {

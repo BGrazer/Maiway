@@ -8,6 +8,12 @@ import 'controllers/map_screen_controller.dart';
 import 'city_boundary.dart';
 import 'services/geocoding_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:maiwayapp/chatbot_dialog.dart';
+import 'package:maiwayapp/widgets/labeled_marker.dart';
+import 'package:maiwayapp/survey_page.dart' as my_survey;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'models/transport_mode.dart';
 
 class MapScreen extends StatefulWidget {
   @override
@@ -103,7 +109,7 @@ class _MapScreenState extends State<MapScreen> {
         if (_isPinningOrigin) {
           controller.originPin = pinnedLocation;
           controller.originController.text = fallbackAddress;
-        } else {
+    } else {
           controller.destinationPin = pinnedLocation;
           controller.destinationController.text = fallbackAddress;
         }
@@ -208,7 +214,7 @@ class _MapScreenState extends State<MapScreen> {
           'MAIWAY',
           style: GoogleFonts.notoSerif(
             fontSize: 24,
-            color: Colors.black,
+              color: Colors.black,
             fontWeight: FontWeight.bold,
             letterSpacing: 2,
           ),
@@ -236,6 +242,12 @@ class _MapScreenState extends State<MapScreen> {
               onTap: _onMapTap,
               minZoom: 5.0,
               maxZoom: 18.0,
+              cameraConstraint: CameraConstraint.contain(
+                bounds: LatLngBounds(
+                  LatLng(14.66, 120.92),
+                  LatLng(14.54, 121.05),
+                ),
+              ),
             ),
             children: [
               TileLayer(
@@ -261,9 +273,10 @@ class _MapScreenState extends State<MapScreen> {
                       points: controller.routePolyline,
                       strokeWidth: 4.0,
                       color: Colors.blue,
-                    ),
-                  ],
+                  ),
+                ],
               ),
+              const CurrentLocationLayer(),
             ],
           ),
 
@@ -273,10 +286,21 @@ class _MapScreenState extends State<MapScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.location_on,
-                      color: _isPinningOrigin ? Colors.blue : Colors.red,
-                      size: 50,
+                    Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 6,
+                            offset: Offset(0, 3),
+                          )
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.location_on,
+                        color: _isPinningOrigin ? Colors.blue : Colors.red,
+                        size: 50,
+                      ),
                     ),
                     Container(
                       width: 2,
@@ -323,59 +347,70 @@ class _MapScreenState extends State<MapScreen> {
 
           if (_isPinningMode)
             Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
+              bottom: 80,
+              left: 16,
+              right: 16,
               child: Center(
                 child: Container(
-                  width: 360,
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
-                  color: Colors.white,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Pan map to choose a location',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                    width: 280,
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          icon: Icon(Icons.location_on),
-                          label: Text(
-                            _isPinningOrigin ? 'Set as Origin' : 'Set as Destination',
-                            style: TextStyle(fontSize: 16),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Pan map to choose a location',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
-                          onPressed: _confirmPinAndReturnToSearch,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _isPinningOrigin ? Colors.green : Colors.red,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                        ),
+                        SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            icon: Icon(Icons.location_on, size: 18),
+                            label: Text(
+                              _isPinningOrigin ? 'Set as Origin' : 'Set as Destination',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            onPressed: _confirmPinAndReturnToSearch,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _isPinningOrigin ? Color(0xFF6699CC) : Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              minimumSize: Size(0, 36),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: 10),
-                      TextButton(
-                        child: Text('Cancel'),
-                        onPressed: () {
-                          if (mounted) {
-                            setState(() {
-                              _isPinningMode = false;
-                            });
-                          }
-                        },
-                      ),
-                    ],
+                        SizedBox(height: 6),
+                        TextButton(
+                          child: Text('Cancel', style: TextStyle(fontSize: 12)),
+                          onPressed: () {
+                            if (mounted) {
+                              setState(() {
+                                _isPinningMode = false;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ),
 
           if (_isLoading || controller.isLoadingRoute)
@@ -408,6 +443,32 @@ class _MapScreenState extends State<MapScreen> {
               child: const Icon(Icons.explore),
             ),
           ),
+          Positioned(
+            bottom: 90,
+            left: 20,
+            child: FloatingActionButton(
+              heroTag: 'survey_button',
+              onPressed: _openSurveyPopup,
+              tooltip: 'Open Survey Page',
+              child: const Icon(Icons.feedback),
+            ),
+          ),
+          // Chatbot button
+          Positioned(
+            bottom: 210,
+            right: 20,
+            child: FloatingActionButton(
+              heroTag: 'chatbotBtn',
+              elevation: 4,
+              onPressed: _openChatbotDialog,
+              backgroundColor: const Color(0xFF0084FF),
+              child: Image.asset(
+                'assets/images/chatbot_icon.png',
+                width: 70,
+                height: 70,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -431,31 +492,29 @@ class _MapScreenState extends State<MapScreen> {
       );
     }
     
-    if (controller.originPin != null) {
+    if (controller.originPin != null && !(_isPinningMode && _isPinningOrigin)) {
       markers.add(
         Marker(
           width: 80.0,
           height: 80.0,
           point: controller.originPin!,
-          child: Icon(
-            Icons.location_on,
+          child: LabeledMarker(
+            label: 'Start',
             color: Colors.blue,
-            size: 40,
           ),
         ),
       );
     }
-    
-    if (controller.destinationPin != null) {
+
+    if (controller.destinationPin != null && !(_isPinningMode && !_isPinningOrigin)) {
       markers.add(
         Marker(
           width: 80.0,
           height: 80.0,
           point: controller.destinationPin!,
-          child: Icon(
-            Icons.location_on,
+          child: LabeledMarker(
+            label: 'End',
             color: Colors.red,
-            size: 40,
           ),
         ),
       );
@@ -463,4 +522,58 @@ class _MapScreenState extends State<MapScreen> {
     
     return markers;
   }
+
+  void _openChatbotDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) => const ChatbotDialog(),
+    );
+  }
+
+  Future<void> _openSurveyPopup() async {
+    // Retrieve preferences
+    final prefs = await SharedPreferences.getInstance();
+    final selectedPrefs = <String>[];
+    if (prefs.getBool('pref_fastest') == true) selectedPrefs.add('Fastest');
+    if (prefs.getBool('pref_cheapest') == true) selectedPrefs.add('Cheapest');
+    if (prefs.getBool('pref_convenient') == true) selectedPrefs.add('Convenient');
+
+    final passengerType = prefs.getString('passenger_type') ?? 'Regular';
+
+    // Find first jeepney or bus segment
+    String chosenMode = 'Jeep';
+    double distanceKm = 5.0;
+    for (final seg in controller.routeSegments) {
+      final m = seg.mode.type;
+      if (m == TransportModeType.jeepney || m == TransportModeType.bus) {
+        chosenMode = m == TransportModeType.jeepney ? 'Jeep' : 'Bus';
+        distanceKm = seg.distance / 1000.0;
+        break;
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: 20,
+          left: 20,
+          right: 20,
+        ),
+        child: my_survey.SurveyPage(
+          distanceKm: distanceKm,
+          transportMode: chosenMode,
+          passengerType: passengerType,
+          selectedPreference: selectedPrefs.isNotEmpty ? selectedPrefs.first : 'Fastest',
+        ),
+      ),
+      );
+}
 }

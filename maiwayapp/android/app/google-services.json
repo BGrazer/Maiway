@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "712466241107",
+    "project_id": "maiwaykate2",
+    "storage_bucket": "maiwaykate2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:712466241107:android:38e086b08182b8ea0dd8a6",
+        "android_client_info": {
+          "package_name": "com.example.maiwayapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAv4dzmaHPHErGZJt31YokR8HvxNLNoYxk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

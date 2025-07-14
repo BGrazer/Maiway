@@ -10,7 +10,7 @@ class TransportPoliciesPage extends StatelessWidget {
       body: const Padding(
         padding: EdgeInsets.all(16.0),
         child: Text(
-          'This page outlines the general policies followed by different modes of transportation such as jeepneys, buses, LRT, and tricycles within Manila city limits.',
+          'This page outlines the general policies followed by different modes of transportation such as jeepneys, buses, LRTs, and tricycles.',
           style: TextStyle(fontSize: 16),
         ),
       ),

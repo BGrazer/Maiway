@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import '../utils/route_processor.dart';
 import '../utils/polyline_utils.dart';
+import '../widgets/labeled_marker.dart';
 
 Map<String, dynamic> fixMap(dynamic map) {
   if (map is Map<String, dynamic>) return map;
@@ -64,7 +65,9 @@ class _NavigationScreenState extends State<NavigationScreen> {
   int _currentStep = 0;
   bool _loading = true;
   String? _error;
+  bool _tripStarted = false;
   MapController _mapController = MapController();
+  Color _routeColor = Colors.blue; // Default color, will be overridden by selected route
 
   @override
   void didChangeDependencies() {
@@ -78,6 +81,11 @@ class _NavigationScreenState extends State<NavigationScreen> {
       final map = fixMap(args);
       final route = fixMap(map['route']);
       final summary = fixMap(map['summary']);
+      
+      // Get route color from arguments
+      if (map['routeColor'] != null) {
+        _routeColor = map['routeColor'] as Color;
+      }
       
       // Robustly handle origin and destination
       if (map['origin'] is LatLng) {
@@ -104,23 +112,18 @@ class _NavigationScreenState extends State<NavigationScreen> {
       } else {
         throw Exception('Invalid destination format: ' + map['destination'].toString());
       }
-      
       // Get segments from the selected route type
       final segmentsRaw = (route['segments'] ?? route['fastest'] ?? route['cheapest'] ?? route['convenient']) as List?;
-      
       if (segmentsRaw != null) {
-        print('🟦 NavigationScreen: Processing ${segmentsRaw.length} raw segments');
         _segments = segmentsRaw.map((seg) {
           if (seg is RouteSegment) {
             return seg;
           } else {
             final s = fixMap(seg);
-            // Create polyline for this segment
             List<LatLng> segPolyline = [];
             if (s['polyline'] != null) {
               segPolyline = PolylineUtils.parsePolyline(s['polyline']);
             } else {
-              // Create simple polyline from stop coordinates
               final fromLat = s['from_stop']?['lat'] ?? _origin.latitude;
               final fromLon = s['from_stop']?['lon'] ?? _origin.longitude;
               final toLat = s['to_stop']?['lat'] ?? _destination.latitude;
@@ -142,7 +145,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
           }
         }).toList();
       } else {
-        print('🟦 NavigationScreen: No segments found, creating fallback');
         _segments = [
           RouteSegment(
             mode: TransportMode.fromString('walking'),
@@ -158,21 +160,15 @@ class _NavigationScreenState extends State<NavigationScreen> {
           )
         ];
       }
-      
-      // Build the full route polyline from all segments
       _fullPolyline = _segments.expand((seg) => seg.polyline).toList();
       if (_fullPolyline.isEmpty) {
         _fullPolyline = [_origin, _destination];
       }
-      
-      print('🟦 NavigationScreen: Final segments count = ${_segments.length}');
-      
       setState(() {
         _loading = false;
         _error = null;
       });
     } catch (e, st) {
-      print('🟦 NavigationScreen error: $e\n$st');
       setState(() {
         _loading = false;
         _error = 'Failed to load navigation data: $e';
@@ -244,7 +240,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
         ),
       );
     }
-    
     if (_error != null) {
       return Scaffold(
         appBar: AppBar(
@@ -285,8 +280,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
         ),
       );
     }
-    
-    if (_segments.isEmpty || _currentStep >= _segments.length) {
+    if (_segments.isEmpty) {
       return Scaffold(
         appBar: AppBar(
           title: Text('Navigation'),
@@ -301,21 +295,132 @@ class _NavigationScreenState extends State<NavigationScreen> {
         ),
       );
     }
-    
+    if (!_tripStarted) {
+      // First page: show all segments and GET STARTED button in a fixed bottom panel
+      return Scaffold(
+        body: Stack(
+          children: [
+            FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: _origin,
+                initialZoom: 14,
+                onMapReady: () => _mapController.fitCamera(CameraFit.coordinates(coordinates: _fullPolyline, padding: EdgeInsets.all(40))),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  subdomains: ['a','b','c'],
+                ),
+                PolylineLayer(polylines: [Polyline(points: _fullPolyline, color: _routeColor, strokeWidth: 4)]),
+                MarkerLayer(markers: [
+                  Marker(
+                    point: _origin,
+                    width: 80,
+                    height: 80,
+                    child: LabeledMarker(label: 'Start', color: Colors.blue),
+                  ),
+                  Marker(
+                    point: _destination,
+                    width: 80,
+                    height: 80,
+                    child: LabeledMarker(label: 'End', color: Colors.red),
+                  ),
+                ])
+              ],
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(0, -3),
+                    ),
+                  ],
+                ),
+                height: 340,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Drag handle (visual only)
+                    Container(
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text('${_segments.length} steps', style: GoogleFonts.montserrat(fontSize:16,fontWeight:FontWeight.w600, color: Color(0xFF6699CC))),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF6699CC),
+                            padding: const EdgeInsets.symmetric(vertical:14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Color(0xFF6699CC), width: 2)),
+                          ),
+                          onPressed: () async {
+                            setState(()=> _tripStarted=true);
+                            _centerMapOnCurrentSegment();
+                          },
+                          child: const Text('GET STARTED ON THIS TRIP',style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _segments.length,
+                        itemBuilder: (context,index){
+                          final s=_segments[index];
+                          return Card(
+                            margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            color: TransportModeHelper.getColor(s.mode).withOpacity(0.08),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: TransportModeHelper.getColor(s.mode).withOpacity(0.15),
+                                child: Icon(TransportModeHelper.getIcon(s.mode),color: TransportModeHelper.getColor(s.mode)),
+                              ),
+                              title: Text(
+                                s.mode.name.toUpperCase(),
+                                style: GoogleFonts.montserrat(fontSize: 16,fontWeight:FontWeight.w700, color: TransportModeHelper.getColor(s.mode)),
+                              ),
+                              subtitle: Text(
+                                s.instruction,
+                                style: GoogleFonts.montserrat(fontSize:13),
+                              ),
+                              trailing: Text(
+                                '${(s.distance/1000).toStringAsFixed(1)} km',
+                                style: GoogleFonts.montserrat(fontSize: 14,color: Colors.grey[700],fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    // Step-by-step navigation
     final segment = _segments[_currentStep];
-    
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Navigation'),
-        backgroundColor: const Color(0xFF6699CC),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
       body: Column(
         children: [
           // Map Section
@@ -335,7 +440,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                   subdomains: ['a', 'b', 'c'],
                 ),
-                // Current segment polyline (highlighted) - only this one
                 PolylineLayer(
                   polylines: [
                     Polyline(
@@ -345,24 +449,20 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     ),
                   ],
                 ),
-                // Markers
                 MarkerLayer(
                   markers: [
-                    // Origin marker
                     Marker(
                       point: _origin,
                       width: 40,
                       height: 40,
-                      child: Icon(Icons.location_on, color: Colors.green, size: 32),
+                      child: LabeledMarker(label: 'Start', color: Colors.blue),
                     ),
-                    // Destination marker
                     Marker(
                       point: _destination,
                       width: 40,
                       height: 40,
-                      child: Icon(Icons.flag, color: Colors.red, size: 32),
+                      child: LabeledMarker(label: 'End', color: Colors.red),
                     ),
-                    // Current segment markers
                     if (segment.polyline.isNotEmpty) ...[
                       Marker(
                         point: segment.polyline.first,
@@ -382,7 +482,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
               ],
             ),
           ),
-          
           // Navigation Info Section
           Expanded(
             flex: 1,
@@ -402,7 +501,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Progress indicator and segment info
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -441,10 +539,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                         ),
                       ],
                     ),
-                    
                     SizedBox(height: 12),
-                    
-                    // Instruction
                     Container(
                       width: double.infinity,
                       padding: EdgeInsets.all(16),
@@ -466,10 +561,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                         ),
                       ),
                     ),
-                    
                     SizedBox(height: 12),
-                    
-                    // Distance and fare
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -509,10 +601,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                         ),
                       ],
                     ),
-                    
                     SizedBox(height: 12),
-                    
-                    // From and to stops
                     Container(
                       width: double.infinity,
                       padding: EdgeInsets.all(12),
@@ -550,10 +639,24 @@ class _NavigationScreenState extends State<NavigationScreen> {
                         ],
                       ),
                     ),
-                    
                     SizedBox(height: 12),
-                    
-                    // Navigation controls
+                    if (_currentStep == _segments.length - 1)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                            icon: Icon(Icons.flag),
+                            label: Text('End Trip'),
+                          ),
+                        ),
+                      ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -567,34 +670,21 @@ class _NavigationScreenState extends State<NavigationScreen> {
                             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           ),
                         ),
-                        ElevatedButton.icon(
-                          onPressed: _currentStep < _segments.length - 1 ? _nextStep : null,
-                          icon: Icon(Icons.arrow_forward),
-                          label: Text('Next'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _currentStep < _segments.length - 1 ? const Color(0xFF6699CC) : Colors.grey,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          ),
-                        ),
+                        if (_currentStep < _segments.length - 1)
+                          ElevatedButton.icon(
+                            onPressed: _nextStep,
+                            icon: Icon(Icons.arrow_forward),
+                            label: Text('Next'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6699CC),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            ),
+                          )
+                        else
+                          SizedBox(width: 0),
                       ],
                     ),
-                    
-                    // End trip button for last step
-                    if (_currentStep == _segments.length - 1)
-                      Container(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: Icon(Icons.flag),
-                          label: Text('End Trip'),
-                        ),
-                      ),
                   ],
                 ),
               ),

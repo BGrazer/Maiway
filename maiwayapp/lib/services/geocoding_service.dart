@@ -7,9 +7,9 @@ class GeocodingService {
   /// Get address from coordinates (reverse geocoding)
   /// (Optional: implement with Mapbox if needed, or leave as is for now)
   static Future<String> getAddressFromLocation(LatLng location) async {
-    const String mapboxToken = 'pk.eyJ1IjoibWFpd2F5YWRtaW4iLCJhIjoiY21jOG5tdDY1MWZrcTJrcHl4c2lrZTJuaSJ9.fEoTCb7zqrsJuCLOjcabXg';
+    const String mapTilerKey = '9sGwFJJGdK67dsBostdO';
     final String url =
-        'https://api.mapbox.com/geocoding/v5/mapbox.places/${location.longitude},${location.latitude}.json?access_token=$mapboxToken&limit=1&country=PH';
+        'https://api.maptiler.com/geocoding/${location.longitude},${location.latitude}.json?key=$mapTilerKey&limit=1&language=en&country=PH';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -34,11 +34,11 @@ class GeocodingService {
 
   /// Search for places matching a query using Mapbox
   static Future<List<Map<String, dynamic>>> searchPlaces(String query) async {
-    const String mapboxToken = 'pk.eyJ1IjoibWFpd2F5YWRtaW4iLCJhIjoiY21jOG5tdDY1MWZrcTJrcHl4c2lrZTJuaSJ9.fEoTCb7zqrsJuCLOjcabXg';
+    const String mapTilerKey = '9sGwFJJGdK67dsBostdO';
     // Manila bounding box: 120.95,14.55,121.02,14.65
     // Proximity: 120.9842,14.5995 (center of Manila)
     final String url =
-        'https://api.mapbox.com/geocoding/v5/mapbox.places/${Uri.encodeComponent(query)}.json?access_token=$mapboxToken&autocomplete=true&limit=8&country=PH&bbox=120.95,14.55,121.02,14.65&proximity=120.9842,14.5995';
+        'https://api.maptiler.com/geocoding/${Uri.encodeComponent(query)}.json?key=$mapTilerKey&autocomplete=true&limit=8&language=en&country=PH&bbox=120.95,14.55,121.02,14.65&proximity=120.9842,14.5995';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
