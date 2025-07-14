@@ -152,7 +152,7 @@ class _SurveyPageState extends State<SurveyPage> {
         return;
       }
 
-      final url = Uri.parse("http://192.168.254.105:5002/predict_fare");
+      final url = Uri.parse("http://127.0.0.1:5000/predict_fare");
 
       try {
         final response = await http.post(
