@@ -1,0 +1,21 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "services": [
+    {
+      "name": "backend",
+      "build": {
+        "builder": "dockerfile",
+        "dockerfilePath": "backend/Dockerfile",
+        "dockerContext": "."
+      }
+    },
+    {
+      "name": "frontend",
+      "build": {
+        "builder": "dockerfile",
+        "dockerfilePath": "flutter.Dockerfile",
+        "dockerContext": "."
+      }
+    }
+  ]
+}
