@@ -137,13 +137,8 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
   }
 
 void _openSurveyPopup() {
-  final List<Map<String, dynamic>> rides = widget.selectedModes.map((mode) {
-    return {
-      'distanceKm': 5.0, // you can replace this with actual distance calculation later
-      'vehicleType': mode,
-      'route': '${originController.text} to ${destinationController.text}',
-    };
-  }).toList();
+  // fallback to 'Jeep' if no mode selected
+  final selectedMode = widget.selectedModes.isNotEmpty ? widget.selectedModes.first : 'Jeep';
 
   showModalBottomSheet(
     context: context,
@@ -160,12 +155,15 @@ void _openSurveyPopup() {
         right: 20,
       ),
       child: my_survey.SurveyPage(
-        rides: rides,
+        distanceKm: 5.0, // or use a real computed distance
+        transportMode: selectedMode,
         passengerType: widget.passengerType,
       ),
     ),
   );
 }
+
+
 
   @override
   bool get wantKeepAlive => true;

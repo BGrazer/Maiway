@@ -26,7 +26,7 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
   };
 
   final Map<String, bool> _modes = {
-    'Jeepney': false,
+    'Jeep': false,
     'Bus': true,
     'LRT-1': true,
     'Tricycle': false,
