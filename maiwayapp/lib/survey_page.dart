@@ -27,7 +27,8 @@ class _SurveyPageState extends State<SurveyPage> {
     super.initState();
     _fareFeedbacks.addAll(List.filled(widget.rides.length, null));
     _chargedFareControllers.addAll(
-        List.generate(widget.rides.length, (_) => TextEditingController()));
+      List.generate(widget.rides.length, (_) => TextEditingController()),
+    );
   }
 
   @override
@@ -76,7 +77,8 @@ class _SurveyPageState extends State<SurveyPage> {
       if (feedback == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text("Please answer fare question for Ride ${i + 1}")),
+            content: Text("Please answer fare question for Ride ${i + 1}"),
+          ),
         );
         return;
       }
@@ -115,7 +117,10 @@ class _SurveyPageState extends State<SurveyPage> {
 
         try {
           final response = await http.post(
-            Uri.parse("https://maiway-production.up.railway.app/predict_fare"),
+            //Uri.parse("https://maiway-production.up.railway.app/predict_fare"),
+            Uri.parse(
+              "https://spontaneous-bienenstitch-10e0f7.netlify.app/predict_fare",
+            ),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               "vehicle_type": vehicleType,
@@ -128,9 +133,9 @@ class _SurveyPageState extends State<SurveyPage> {
           final data = jsonDecode(response.body);
 
           if (data.containsKey('error')) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Error: ${data['error']}")),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Error: ${data['error']}")));
             return;
           }
 
@@ -161,24 +166,25 @@ class _SurveyPageState extends State<SurveyPage> {
 
           await showDialog(
             context: context,
-            builder: (_) => AlertDialog(
-              title: Text("Ride ${i + 1} Result"),
-              content: Text(
-                "Distance: ${distance.toStringAsFixed(2)} km\n"
-                "Vehicle: $vehicleType\n"
-                "Route: $route\n\n"
-                "Predicted Fare: ₱${predictedFare.toStringAsFixed(2)}\n"
-                "Charged Fare: ₱${chargedFare.toStringAsFixed(2)}\n"
-                "Difference: ₱${difference.toStringAsFixed(2)}\n\n"
-                "$alert",
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Continue"),
-                )
-              ],
-            ),
+            builder:
+                (_) => AlertDialog(
+                  title: Text("Ride ${i + 1} Result"),
+                  content: Text(
+                    "Distance: ${distance.toStringAsFixed(2)} km\n"
+                    "Vehicle: $vehicleType\n"
+                    "Route: $route\n\n"
+                    "Predicted Fare: ₱${predictedFare.toStringAsFixed(2)}\n"
+                    "Charged Fare: ₱${chargedFare.toStringAsFixed(2)}\n"
+                    "Difference: ₱${difference.toStringAsFixed(2)}\n\n"
+                    "$alert",
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Continue"),
+                    ),
+                  ],
+                ),
           );
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -192,19 +198,20 @@ class _SurveyPageState extends State<SurveyPage> {
     // All rides complete
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("All Rides Submitted"),
-        content: const Text("Thank you! Your survey has been submitted."),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text("OK"),
-          )
-        ],
-      ),
+      builder:
+          (_) => AlertDialog(
+            title: const Text("All Rides Submitted"),
+            content: const Text("Thank you! Your survey has been submitted."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: const Text("OK"),
+              ),
+            ],
+          ),
     );
   }
 
@@ -217,13 +224,18 @@ class _SurveyPageState extends State<SurveyPage> {
         child: Column(
           children: [
             for (int i = 0; i < widget.rides.length; i++) ...[
-              Text("Ride ${i + 1}",
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(
+                "Ride ${i + 1}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
               const SizedBox(height: 8),
               Text("Vehicle: ${widget.rides[i]['vehicleType']}"),
               Text(
-                  "Distance: ${widget.rides[i]['distanceKm'].toStringAsFixed(2)} km"),
+                "Distance: ${widget.rides[i]['distanceKm'].toStringAsFixed(2)} km",
+              ),
               Text("Route: ${widget.rides[i]['route']}"),
               const SizedBox(height: 10),
               const Text("Do you feel you were charged the right amount?"),
@@ -255,8 +267,9 @@ class _SurveyPageState extends State<SurveyPage> {
                 const SizedBox(height: 10),
                 TextField(
                   controller: _chargedFareControllers[i],
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: const InputDecoration(
                     labelText: "Charged Fare (₱)",
                     hintText: "Enter charged fare",
@@ -268,7 +281,7 @@ class _SurveyPageState extends State<SurveyPage> {
             ElevatedButton(
               onPressed: _submitSurvey,
               child: const Text("Submit Survey"),
-            )
+            ),
           ],
         ),
       ),
