@@ -17,3 +17,5 @@ tensorflow
 nltk
 Pillow
 requests
+
+Flask-Cors
