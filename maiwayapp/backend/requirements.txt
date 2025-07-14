@@ -9,3 +9,6 @@ scipy==1.15.3
 six==1.17.0
 threadpoolctl==3.6.0
 tzdata==2025.2
+
+Flask==3.0.3
+Flask-Cors==4.0.1
