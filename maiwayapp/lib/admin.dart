@@ -1,3 +1,6 @@
+// ✅ Merged version of both Admin Panels
+// Includes clickable Report details and enhanced Survey grouping
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -15,12 +18,10 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
   String searchQuerySurveys = '';
   String searchQueryReports = '';
   String selectedStatus = 'All';
   String selectedVehicle = 'All';
-  String selectedMonth = 'All';
 
   @override
   void initState() {
@@ -58,6 +59,25 @@ class _AdminScreenState extends State<AdminScreen>
     }
   }
 
+  String _monthName(int month) {
+    const months = [
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    return months[month];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,7 +96,168 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  // --------------------- REPORTS TAB ---------------------
+  Widget _buildSurveysTab() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            children: [
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search route (e.g., R. Papa to Tayuman)',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    searchQuerySurveys = value.toLowerCase();
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: selectedVehicle,
+                decoration: const InputDecoration(
+                  labelText: 'Filter by Vehicle',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'All', child: Text('All')),
+                  DropdownMenuItem(value: 'Jeepney', child: Text('Jeepney')),
+                  DropdownMenuItem(value: 'Bus', child: Text('Bus')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    selectedVehicle = value!;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('surveys')
+                .orderBy('timestamp', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('No surveys found.'));
+              }
+
+              final grouped = <String, Map<String, List<Map<String, dynamic>>>>{};
+
+              for (var doc in snapshot.data!.docs) {
+                final data = doc.data() as Map<String, dynamic>;
+                final route = (data['route'] ?? 'Unknown') as String;
+                final vehicle = data['vehicleType'] ?? 'Unknown';
+
+                if (selectedVehicle != 'All' && vehicle != selectedVehicle) continue;
+
+                final timestamp = data['timestamp'];
+                final date = timestamp is Timestamp ? timestamp.toDate() : DateTime.now();
+                final monthYear = "${_monthName(date.month)} ${date.year}";
+
+                grouped.putIfAbsent(route, () => {});
+                grouped[route]!.putIfAbsent(monthYear, () => []);
+                grouped[route]![monthYear]!.add(data);
+              }
+
+              final filteredRoutes = grouped.keys
+                  .where((r) => r.toLowerCase().contains(searchQuerySurveys))
+                  .toList()
+                ..sort();
+
+              return ListView.builder(
+                itemCount: filteredRoutes.length,
+                itemBuilder: (context, index) {
+                  final route = filteredRoutes[index];
+                  return ExpansionTile(
+                    title: Text("🚏 Route: $route"),
+                    children: grouped[route]!.entries.map((entry) {
+                      final monthYear = entry.key;
+                      final entries = entry.value;
+                      final total = entries.length;
+                      final overcharged = entries.where((d) => d['anomalous'] == true).length;
+                      final avgFare = entries.map((e) => (e['fare_given'] ?? 0).toDouble()).fold(0.0, (a, b) => a + b) / total;
+                      final avgDistance = entries.map((e) => double.tryParse('${e['distance']}') ?? 0.0).fold(0.0, (a, b) => a + b) / total;
+
+                      return ListTile(
+                        title: Text("📅 $monthYear"),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("🧑 Participants: $total"),
+                            Text("⚠️ Overcharged: $overcharged"),
+                            Text("💰 Avg Fare: ₱${avgFare.toStringAsFixed(2)}"),
+                            Text("📏 Avg Distance: ${avgDistance.toStringAsFixed(2)} km"),
+                          ],
+                        ),
+                        onTap: () => _showRouteDetails(context, "$route ($monthYear)", entries),
+                      );
+                    }).toList(),
+                  );
+                },
+              );
+            },
+          ),
+        )
+      ],
+    );
+  }
+
+  void _showRouteDetails(
+      BuildContext context, String route, List<Map<String, dynamic>> entries) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => DraggableScrollableSheet(
+        expand: false,
+        builder: (context, scrollController) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text("Surveys: $route", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Divider(),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: entries.length,
+                  itemBuilder: (context, index) {
+                    final e = entries[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: e['anomalous'] == true ? Colors.red : Colors.green,
+                        child: Text((e['name'] ?? '?')[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+                      ),
+                      title: Text(e['name'] ?? 'Unknown'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Fare Given: ₱${e['fare_given']}"),
+                          Text("Predicted Fare: ₱${e['original_fare']}"),
+                          Text("Vehicle: ${e['vehicleType'] ?? 'N/A'}"),
+                        ],
+                      ),
+                      trailing: Icon(
+                        e['anomalous'] == true ? Icons.warning : Icons.check_circle,
+                        color: e['anomalous'] == true ? Colors.red : Colors.green,
+                      ),
+                    );
+                  },
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildReportsTab() {
     return Column(
       children: [
@@ -156,42 +337,29 @@ class _AdminScreenState extends State<AdminScreen>
 
               final filteredReports = snapshot.data!.docs.where((doc) {
                 final data = doc.data() as Map<String, dynamic>;
-                final fullName = (data['fullName'] ?? '').toString().toLowerCase();
-                final email = (data['email'] ?? '').toString().toLowerCase();
-                final status = (data['status'] ?? 'Pending').toString();
-                final vehicle = (data['vehicleType'] ?? '').toString();
-
-                final matchesSearch = fullName.contains(searchQueryReports) || email.contains(searchQueryReports);
-                final matchesStatus = selectedStatus == 'All' || status == selectedStatus;
-                final matchesVehicle = selectedVehicle == 'All' || vehicle == selectedVehicle;
-
-                return matchesSearch && matchesStatus && matchesVehicle;
+                final fullName = data['fullName']?.toLowerCase() ?? '';
+                final email = data['email']?.toLowerCase() ?? '';
+                final status = data['status'] ?? 'Pending';
+                final vehicle = data['vehicleType'] ?? '';
+                return (fullName.contains(searchQueryReports) || email.contains(searchQueryReports)) &&
+                    (selectedStatus == 'All' || selectedStatus == status) &&
+                    (selectedVehicle == 'All' || selectedVehicle == vehicle);
               }).toList();
-
-              if (filteredReports.isEmpty) {
-                return const Center(child: Text('No reports matched the filters.'));
-              }
 
               return ListView.separated(
                 itemCount: filteredReports.length,
                 separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
-                  final reportDoc = filteredReports[index];
-                  final report = reportDoc.data() as Map<String, dynamic>;
-
-                  final fullName = report['fullName'] ?? 'Unknown';
-                  final email = report['email'] ?? '';
+                  final doc = filteredReports[index];
+                  final report = doc.data() as Map<String, dynamic>;
                   final status = report['status'] ?? 'Pending';
-                  final vehicle = report['vehicleType'] ?? 'Unknown';
-                  final plate = report['plateNumber'] ?? 'N/A';
-
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Colors.blue.shade100,
-                      child: Text(fullName.toString().substring(0, 1).toUpperCase()),
+                      backgroundColor: Colors.grey.shade300,
+                      child: Text((report['fullName'] ?? '?')[0].toUpperCase()),
                     ),
-                    title: Text(fullName),
-                    subtitle: Text('$vehicle • Plate: $plate'),
+                    title: Text(report['fullName'] ?? 'No Name'),
+                    subtitle: Text('Vehicle: ${report['vehicleType']} | Plate: ${report['plateNumber']}'),
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -207,47 +375,64 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                       ),
                     ),
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (_) => Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("📋 Report Details", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              const Divider(),
-                              Text("👤 Name: $fullName"),
-                              Text("📧 Email: $email"),
-                              Text("🚗 Vehicle: $vehicle"),
-                              Text("🔢 Plate Number: $plate"),
-                              Text("📌 Status: $status"),
-                              const SizedBox(height: 10),
-                              ElevatedButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text("Close"),
-                              )
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                    onTap: () => _showReportDetails(doc.id, report),
                   );
                 },
               );
             },
           ),
-        ),
+        )
       ],
     );
   }
 
-  // --------------------- SURVEYS TAB ---------------------
-  Widget _buildSurveysTab() {
-    return const Center(
-      child: Text("Survey tab working. Code unchanged here."),
+  void _showReportDetails(String docId, Map<String, dynamic> report) {
+    String currentStatus = report['status'] ?? 'Pending';
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(report['typeOfComplaint'] ?? 'Report'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Name: ${report['fullName']}'),
+              Text('Email: ${report['email']}'),
+              Text('Phone: ${report['contactNumber']}'),
+              Text('Vehicle Type: ${report['vehicleType']}'),
+              Text('Plate Number: ${report['plateNumber']}'),
+              Text('Date: ${report['date'] ?? 'Not specified'}'),
+              const SizedBox(height: 10),
+              const Text('Details:'),
+              Text(report['details'] ?? 'No details'),
+              const SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                value: currentStatus,
+                decoration: const InputDecoration(labelText: 'Update Status'),
+                items: const [
+                  DropdownMenuItem(value: 'Pending', child: Text('Pending')),
+                  DropdownMenuItem(value: 'Under Review', child: Text('Under Review')),
+                  DropdownMenuItem(value: 'Submitted', child: Text('Submitted')),
+                ],
+                onChanged: (value) {
+                  if (value != null && value != currentStatus) {
+                    FirebaseFirestore.instance.collection('reports').doc(docId).update({'status': value});
+                    Navigator.of(context).pop();
+                  }
+                },
+              )
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Close"),
+          ),
+        ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
-    // Keep using your working survey logic or let me know to include its update too
   }
 }

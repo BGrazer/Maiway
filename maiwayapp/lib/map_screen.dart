@@ -137,6 +137,14 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
   }
 
 void _openSurveyPopup() {
+  final List<Map<String, dynamic>> rides = widget.selectedModes.map((mode) {
+    return {
+      'distanceKm': 5.0, // you can replace this with actual distance calculation later
+      'vehicleType': mode,
+      'route': '${originController.text} to ${destinationController.text}',
+    };
+  }).toList();
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -152,10 +160,7 @@ void _openSurveyPopup() {
         right: 20,
       ),
       child: my_survey.SurveyPage(
-        distanceKm: 5.0,
-        transportMode: widget.selectedModes.isNotEmpty
-            ? widget.selectedModes.first
-            : 'Jeep',
+        rides: rides,
         passengerType: widget.passengerType,
       ),
     ),
