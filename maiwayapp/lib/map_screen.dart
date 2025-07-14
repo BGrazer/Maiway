@@ -136,34 +136,31 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
     );
   }
 
-  void _openSurveyPopup() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+void _openSurveyPopup() {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) => Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        top: 20,
+        left: 20,
+        right: 20,
       ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          top: 20,
-          left: 20,
-          right: 20,
-        ),
-        child: my_survey.SurveyPage(
-          distanceKm: 5.0,
-          transportMode: widget.selectedModes.isNotEmpty
-              ? widget.selectedModes.first
-              : 'Jeep',
-          passengerType: widget.passengerType,
-          selectedPreference: widget.selectedPreferences.isNotEmpty
-              ? widget.selectedPreferences.first
-              : 'Fastest',
-        ),
+      child: my_survey.SurveyPage(
+        distanceKm: 5.0,
+        transportMode: widget.selectedModes.isNotEmpty
+            ? widget.selectedModes.first
+            : 'Jeep',
+        passengerType: widget.passengerType,
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   bool get wantKeepAlive => true;

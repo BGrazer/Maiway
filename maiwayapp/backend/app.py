@@ -44,15 +44,15 @@ models = {
 
 # Train Jeep model
 X_jeep = df_jeep[['Distance (km)']].values
-y_jeep_regular = df_jeep['Regular Fare (₱)'].values
-y_jeep_discounted = df_jeep['Discounted Fare (₱)'].values
+y_jeep_regular = np.array(df_jeep['Regular Fare (₱)'].values)
+y_jeep_discounted = np.array(df_jeep['Discounted Fare (₱)'].values)
 models['Jeep']['Regular'].fit(X_jeep, y_jeep_regular)
 models['Jeep']['Discounted'].fit(X_jeep, y_jeep_discounted)
 
 # Train Bus model
 X_bus = df_bus[['Distance (km)']].values
-y_bus_regular = df_bus['Regular Fare (₱)'].values
-y_bus_discounted = df_bus['Discounted Fare (₱)'].values
+y_bus_regular = np.array(df_bus['Regular Fare (₱)'].values)
+y_bus_discounted = np.array(df_bus['Discounted Fare (₱)'].values)
 models['Bus']['Regular'].fit(X_bus, y_bus_regular)
 models['Bus']['Discounted'].fit(X_bus, y_bus_discounted)
 
@@ -90,10 +90,10 @@ def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
     return {
         'vehicle_type': vehicle_type,
         'fare_type': fare_type,
-        'predicted_fare': str(round(predicted_fare)),
-        'charged_fare': str(round(charged_fare)),
-        'difference': str(round(difference)),
-        'threshold': str(round(threshold)),
+        'predicted_fare': round(predicted_fare, 2),
+        'charged_fare': round(charged_fare, 2),
+        'difference': round(difference, 2),
+        'threshold': round(threshold, 2),
         'is_anomalous': bool(is_anomalous),
     }
 
@@ -102,11 +102,17 @@ def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
 # ----------------------------------
 @app.route('/predict_fare', methods=['POST'])
 def predict_fare():
+    if request.json is None:
+        return jsonify({"error": "Request body must be JSON"}), 400
+
     data = request.json
-    vehicle_type = data['vehicle_type']
-    distance_km = float(data['distance_km'])
-    charged_fare = float(data['charged_fare'])
-    discounted = bool(data.get('discounted', False))  # ✅ FIXED
+    vehicle_type = data.get('vehicle_type')
+    distance_km = float(data.get('distance_km', 0))
+    charged_fare = float(data.get('charged_fare', 0))
+    discounted = bool(data.get('discounted', False))  # Defaults to False if not provided
+
+    if not vehicle_type or not distance_km or not charged_fare:
+        return jsonify({"error": "Missing required fields"}), 400
 
     result = check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted)
     return jsonify(result)

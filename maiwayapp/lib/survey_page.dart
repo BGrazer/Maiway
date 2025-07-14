@@ -9,14 +9,12 @@ class SurveyPage extends StatefulWidget {
   final double distanceKm;
   final String transportMode;
   final String passengerType;
-  final String selectedPreference;
 
   const SurveyPage({
     super.key,
     required this.distanceKm,
     required this.transportMode,
     required this.passengerType,
-    required this.selectedPreference,
   });
 
   @override
@@ -27,6 +25,7 @@ class _SurveyPageState extends State<SurveyPage> {
   String? _fareFeedback;
   final TextEditingController _chargedFareController = TextEditingController();
   final TextEditingController _distanceController = TextEditingController();
+  final TextEditingController _routeController = TextEditingController();
 
   String? _selectedTransportMode;
   final List<String> _transportOptions = ['Jeep', 'Bus'];
@@ -42,6 +41,7 @@ class _SurveyPageState extends State<SurveyPage> {
   void dispose() {
     _chargedFareController.dispose();
     _distanceController.dispose();
+    _routeController.dispose();
     super.dispose();
   }
 
@@ -82,13 +82,8 @@ class _SurveyPageState extends State<SurveyPage> {
     await FirebaseFirestore.instance.collection('surveys').add(surveyData);
   }
 
-  bool isDiscountedPassenger(String passengerType) {
-    final lower = passengerType.toLowerCase();
-    return lower != 'regular';
-  }
-
   Future<void> _submitSurvey() async {
-    if (_fareFeedback == null || _selectedTransportMode == null || _distanceController.text.isEmpty) {
+    if (_fareFeedback == null || _selectedTransportMode == null || _distanceController.text.isEmpty || _routeController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete all required fields')),
       );
@@ -103,7 +98,7 @@ class _SurveyPageState extends State<SurveyPage> {
       return;
     }
 
-    final discounted = isDiscountedPassenger(widget.passengerType);
+    final route = _routeController.text.trim();
 
     if (_fareFeedback == 'yes') {
       await pushSurveyToFirestore(
@@ -114,7 +109,7 @@ class _SurveyPageState extends State<SurveyPage> {
         predictedFare: 0.0,
         difference: 0.0,
         isAnomalous: false,
-        route: widget.selectedPreference,
+        route: route,
       );
 
       showDialog(
@@ -125,7 +120,8 @@ class _SurveyPageState extends State<SurveyPage> {
             "Thank you and have a safe trip.\n\n"
             "Distance: $distance km\n"
             "Transport Mode: $_selectedTransportMode\n"
-            "Passenger Type: ${widget.passengerType}",
+            "Passenger Type: ${widget.passengerType}\n"
+            "Route: $route",
           ),
           actions: [
             TextButton(
@@ -165,7 +161,6 @@ class _SurveyPageState extends State<SurveyPage> {
             "passenger_type": widget.passengerType,
             "distance_km": distance,
             "charged_fare": chargedFare,
-            "discounted": discounted, // ✅ REQUIRED BY BACKEND
           }),
         );
 
@@ -178,20 +173,20 @@ class _SurveyPageState extends State<SurveyPage> {
           return;
         }
 
-        final predictedFare = double.tryParse(data['predicted_fare'].toString()) ?? 0.0;
-        final difference = double.tryParse(data['difference'].toString()) ?? 0.0;
-        final chargedFareFormatted = data['charged_fare'].toString();
-        final isAnomalous = data['is_anomalous'] ?? false;
+        final predictedFare = data['predicted_fare'];
+        final difference = data['difference'];
+        final chargedFareFormatted = data['charged_fare'];
+        final isAnomalous = data['is_anomalous'];
 
         await pushSurveyToFirestore(
           distance: distance,
           vehicleType: _selectedTransportMode!,
           passengerType: widget.passengerType,
           fareGiven: chargedFare,
-          predictedFare: predictedFare,
-          difference: difference,
+          predictedFare: predictedFare.toDouble(),
+          difference: difference.toDouble(),
           isAnomalous: isAnomalous,
-          route: widget.selectedPreference,
+          route: route,
         );
 
         final alert = isAnomalous
@@ -206,7 +201,8 @@ class _SurveyPageState extends State<SurveyPage> {
               "Distance: $distance km\n"
               "Predicted Fare: ₱$predictedFare\n"
               "Charged Fare: ₱$chargedFareFormatted\n"
-              "Difference: ₱$difference\n\n"
+              "Difference: ₱$difference\n"
+              "Route: $route\n\n"
               "$alert",
             ),
             actions: [
@@ -231,94 +227,123 @@ class _SurveyPageState extends State<SurveyPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("Fare Survey", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
+    return WillPopScope(
+      onWillPop: () async {
+        final isSurveyComplete = _fareFeedback != null &&
+            _selectedTransportMode != null &&
+            _distanceController.text.isNotEmpty &&
+            _routeController.text.isNotEmpty &&
+            (_fareFeedback == 'yes' || (_fareFeedback == 'no' && _chargedFareController.text.isNotEmpty));
 
-            TextField(
-              controller: _distanceController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: "Distance (km)",
-                hintText: "Enter estimated distance",
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            DropdownButtonFormField<String>(
-              value: _selectedTransportMode,
-              decoration: const InputDecoration(labelText: "Vehicle Type"),
-              items: _transportOptions.map((mode) {
-                return DropdownMenuItem(value: mode, child: Text(mode));
-              }).toList(),
-              onChanged: (value) => setState(() => _selectedTransportMode = value),
-            ),
-
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                const Text("Passenger Type: "),
-                Text(widget.passengerType, style: const TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                const Text("Route: "),
-                Flexible(child: Text(widget.selectedPreference, style: const TextStyle(fontWeight: FontWeight.bold))),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text("Do you feel you were charged the right amount?"),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text("Yes"),
-                    value: 'yes',
-                    groupValue: _fareFeedback,
-                    onChanged: (value) => setState(() => _fareFeedback = value),
-                  ),
-                ),
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text("No"),
-                    value: 'no',
-                    groupValue: _fareFeedback,
-                    onChanged: (value) => setState(() => _fareFeedback = value),
-                  ),
+        if (!isSurveyComplete) {
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text("Survey Incomplete"),
+              content: const Text("Please complete the survey before exiting."),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text("OK"),
                 ),
               ],
             ),
+          );
+          return false;
+        }
 
-            if (_fareFeedback == 'no') ...[
-              const SizedBox(height: 20),
-              const Text("How much was the charged fare?"),
+        return true;
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Fare Survey", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+
               TextField(
-                controller: _chargedFareController,
+                controller: _distanceController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(hintText: "Enter fare in PHP"),
+                decoration: const InputDecoration(
+                  labelText: "Distance (km)",
+                  hintText: "Enter estimated distance",
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              DropdownButtonFormField<String>(
+                value: _selectedTransportMode,
+                decoration: const InputDecoration(labelText: "Vehicle Type"),
+                items: _transportOptions.map((mode) {
+                  return DropdownMenuItem(value: mode, child: Text(mode));
+                }).toList(),
+                onChanged: (value) => setState(() => _selectedTransportMode = value),
+              ),
+
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  const Text("Passenger Type: "),
+                  Text(widget.passengerType, style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              TextField(
+                controller: _routeController,
+                decoration: const InputDecoration(
+                  labelText: "Route",
+                  hintText: "e.g., Balut to Divisoria",
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              const Text("Do you feel you were charged the right amount?"),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: RadioListTile<String>(
+                      title: const Text("Yes"),
+                      value: 'yes',
+                      groupValue: _fareFeedback,
+                      onChanged: (value) => setState(() => _fareFeedback = value),
+                    ),
+                  ),
+                  Expanded(
+                    child: RadioListTile<String>(
+                      title: const Text("No"),
+                      value: 'no',
+                      groupValue: _fareFeedback,
+                      onChanged: (value) => setState(() => _fareFeedback = value),
+                    ),
+                  ),
+                ],
+              ),
+
+              if (_fareFeedback == 'no') ...[
+                const SizedBox(height: 20),
+                const Text("How much was the charged fare?"),
+                TextField(
+                  controller: _chargedFareController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(hintText: "Enter fare in PHP"),
+                ),
+              ],
+
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _submitSurvey,
+                child: const Text("Submit"),
               ),
             ],
-
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _submitSurvey,
-              child: const Text("Submit"),
-            ),
-          ],
+          ),
         ),
       ),
     );

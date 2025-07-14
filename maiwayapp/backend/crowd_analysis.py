@@ -1,94 +1,106 @@
 import numpy as np
 import pandas as pd
+import firebase_admin
+from firebase_admin import credentials, firestore
 from sklearn.ensemble import RandomForestRegressor
 from datetime import datetime
+from collections import defaultdict
+
+# 🔐 Firebase initialization
+cred = credentials.Certificate("data/crowd_analysisjson.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 def analyze_route_with_reference_model():
-    print("🔍 Running crowd anomaly analysis for route: Balut to Divisoria (Jeep)")
+    print("🔍 Running crowd anomaly analysis using RFR and grouping by route...")
 
-    # 🚨 Load reference fare data (clean data only!)
+    # 🚨 Load official fare matrix (jeep_fare.csv)
     try:
         df_ref = pd.read_csv("jeep_fare.csv")
-        df_ref.columns = df_ref.columns.str.strip()  # Ensure clean column names
+        df_ref.columns = df_ref.columns.str.strip()
     except Exception as e:
         print(f"❌ Failed to load jeep_fare.csv: {e}")
         return
 
-    # Train model using only official fare matrix
+    # 🧠 Train Random Forest Regressor (RFR)
     X_train = df_ref[['Distance (km)']].values
-    y_train = df_ref['Regular Fare (₱)'].values
+    y_train = np.array(df_ref['Regular Fare (₱)'].values)  # Ensure y_train is a NumPy array
 
     model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
 
-    # Calculate anomaly threshold from reference data
+    # 🔎 Calculate anomaly threshold
     ref_predictions = model.predict(X_train)
     ref_errors = abs(ref_predictions - y_train)
     threshold = np.mean(ref_errors) + 3 * np.std(ref_errors)
 
-    # 🧪 Simulated 30 crowd survey reports (14 normal, 16 overcharged)
-    dummy_data = [
-        # Normal fares
-        (2.0, 20), (2.5, 25), (1.8, 18), (3.0, 30), (2.2, 22),
-        (1.5, 15), (2.3, 23), (2.1, 21), (1.9, 19), (2.4, 24),
-        (2.0, 20), (2.5, 25), (1.7, 17), (3.0, 30),
+    print(f"✅ Anomaly threshold based on fare matrix: ₱{threshold:.2f}")
 
-        # Overcharged fares
-        (2.0, 40), (2.5, 50), (1.8, 35), (3.0, 55), (2.2, 45),
-        (1.5, 30), (2.3, 42), (2.1, 38), (1.9, 36), (2.4, 48),
-        (2.0, 39), (2.5, 49), (1.7, 33), (3.0, 50), (2.6, 47),
-        (2.8, 52)
-    ]
+    # 🧩 Fetch survey documents
+    try:
+        docs = db.collection('surveys').stream()
+    except Exception as e:
+        print(f"❌ Failed to fetch surveys: {e}")
+        return
 
-    distances = [d[0] for d in dummy_data]
-    fares = [d[1] for d in dummy_data]
-    X_crowd = np.array(distances).reshape(-1, 1)
+    # 📦 Group entries by route
+    route_data = defaultdict(list)
 
-    predicted = model.predict(X_crowd)
-    errors = abs(predicted - fares)
+    for doc in docs:
+        data = doc.to_dict()
+        try:
+            route = data.get("route")
+            distance = float(data.get("distance"))
+            fare_given = float(data.get("fare_given"))
 
-    # Compile reports with anomaly flag
-    reports = []
-    for i in range(len(dummy_data)):
-        reports.append({
-            'distance_km': distances[i],
-            'charged_fare': fares[i],
-            'predicted_fare': round(predicted[i], 2),
-            'is_anomalous': errors[i] > threshold,
-            'timestamp': datetime.now().isoformat()
-        })
+            if route:
+                route_data[route].append({
+                    "distance": distance,
+                    "fare_given": fare_given,
+                    "timestamp": data.get("timestamp", datetime.now().isoformat())
+                })
+        except Exception as e:
+            print(f"⚠️ Skipping invalid document: {e}")
+            continue
 
-    # Count anomaly
-    overcharged_count = sum(r['is_anomalous'] for r in reports)
-    total_count = len(reports)
-    ratio = overcharged_count / total_count
+    if not route_data:
+        print("⚠️ No valid entries found.")
+        return
 
-    # Route tagging logic
-    if total_count < 10:
-        route_tag = "⚪ Not enough reports to evaluate this route."
-    elif ratio >= 0.5:
-        route_tag = "🟥 OVERCHARGE ALERT: Systemic overpricing detected on this route."
-    elif ratio >= 0.3:
-        route_tag = "🟠 WARNING: Some reports show fare irregularities."
-    else:
-        route_tag = "🟢 Normal fare behavior observed."
+    # 📊 Analyze each route
+    print("\n📊 ROUTE-BASED OVERCHARGE ANALYSIS")
 
-    # 🔎 Summary
-    print("\n📊 CROWD VALIDATION SUMMARY")
-    print(f"📍 Route: Balut to Divisoria")
-    print(f"🚌 Vehicle: Jeep")
-    print(f"📦 Sample Size: {total_count}")
-    print(f"💸 Avg Reported Fare: ₱{np.mean(fares):.2f}")
-    print(f"📉 Reference Model Accuracy: {model.score(X_train, y_train) * 100:.2f}%")
-    print(f"🚨 Anomaly Threshold: ₱{threshold:.2f}")
-    print(f"⚠️ Overcharged Reports: {overcharged_count}/{total_count}")
-    print(f"🏷️ Route Status: {route_tag}")
+    for route, entries in route_data.items():
+        distances = [entry['distance'] for entry in entries]
+        fares = [entry['fare_given'] for entry in entries]
 
-    # Detailed reports (optional)
-    print("\n🧾 Detailed Reports:")
-    for r in reports:
-        print(r)
+        X = np.array(distances).reshape(-1, 1)
+        predicted = model.predict(X)
+        errors = abs(predicted - fares)
 
-# Run it
+        overcharged = sum(e > threshold for e in errors)
+        total = len(entries)
+        ratio = overcharged / total if total > 0 else 0
+
+        # 🏷️ Label
+        if total < 5:
+            tag = "⚪ Not enough data"
+        elif ratio >= 0.5:
+            tag = "🟥 OVERCHARGE ALERT"
+        elif ratio >= 0.3:
+            tag = "🟠 Warning"
+        else:
+            tag = "🟢 Normal"
+
+        # 📋 Print route summary
+        print(f"\n🚏 Route: {route}")
+        print(f"📦 Reports: {total}")
+        print(f"❗ Overcharged: {overcharged}")
+        print(f"📈 Overcharge Ratio: {ratio:.2%}")
+        print(f"💰 Avg Reported Fare: ₱{np.mean(fares):.2f}")
+        print(f"📏 Avg Distance: {np.mean(distances):.2f} km")
+        print(f"🏷️ Status: {tag}")
+
+# 🚀 Run it
 if __name__ == "__main__":
     analyze_route_with_reference_model()

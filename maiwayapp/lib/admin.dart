@@ -16,34 +16,8 @@ class _AdminScreenState extends State<AdminScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  List<Map<String, dynamic>> surveyAnomalies = [
-    {
-      "id": "S001",
-      "participant": "Alice Johnson",
-      "anomalyScore": 0.92,
-      "details": "High deviation in answers for question 4 and 7",
-      "date": "June 5, 2025",
-    },
-    {
-      "id": "S002",
-      "participant": "Bob Smith",
-      "anomalyScore": 0.88,
-      "details": "Inconsistent response pattern detected",
-      "date": "June 6, 2025",
-    },
-    {
-      "id": "S003",
-      "participant": "Charlie Lee",
-      "anomalyScore": 0.95,
-      "details": "Unusual response timing and pattern",
-      "date": "June 6, 2025",
-    },
-  ];
-
-  String searchQueryReports = '';
-  String? statusFilterReports;
   String searchQuerySurveys = '';
-  String searchQuery = '';
+  String searchQueryReports = '';
   String selectedStatus = 'All';
   String selectedVehicle = 'All';
 
@@ -59,16 +33,11 @@ class _AdminScreenState extends State<AdminScreen>
     super.dispose();
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Submitted':
-        return Colors.green;
-      case 'Under Review':
-        return Colors.orange;
-      case 'Pending':
-      default:
-        return Colors.blue;
-    }
+  Color _getStatusColor(String statusTag) {
+    if (statusTag.contains("🟥")) return Colors.red;
+    if (statusTag.contains("🟠")) return Colors.orange;
+    if (statusTag.contains("🟢")) return Colors.green;
+    return Colors.grey;
   }
 
   Color _getStatusBackgroundColor(String status) {
@@ -83,23 +52,8 @@ class _AdminScreenState extends State<AdminScreen>
     }
   }
 
-  String _getInitials(String name) {
-    final parts = name.trim().split(' ');
-    if (parts.length == 1) {
-      return parts[0][0].toUpperCase();
-    }
-    return (parts[0][0] + parts.last[0]).toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final filteredSurveys =
-        surveyAnomalies.where((survey) {
-          return survey['participant'].toLowerCase().contains(
-            searchQuerySurveys.toLowerCase(),
-          );
-        }).toList();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Panel'),
@@ -111,19 +65,20 @@ class _AdminScreenState extends State<AdminScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [_buildReportsTab(), _buildSurveyTab(filteredSurveys)],
+        children: [_buildReportsTab(), _buildSurveysTab()],
       ),
     );
   }
 
-  Widget _buildSurveyTab(List<Map<String, dynamic>> filteredSurveys) {
+  // --------------------- SURVEYS ---------------------
+  Widget _buildSurveysTab() {
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(10),
           child: TextField(
             decoration: InputDecoration(
-              hintText: 'Search survey participant',
+              hintText: 'Search route (e.g., R. Papa to Tayuman)',
               prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -131,35 +86,75 @@ class _AdminScreenState extends State<AdminScreen>
             ),
             onChanged: (value) {
               setState(() {
-                searchQuerySurveys = value;
+                searchQuerySurveys = value.toLowerCase();
               });
             },
           ),
         ),
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(10),
-            itemCount: filteredSurveys.length,
-            separatorBuilder: (_, __) => const Divider(),
-            itemBuilder: (context, index) {
-              final survey = filteredSurveys[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF6699CC),
-                  child: Text(
-                    _getInitials(survey['participant']),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('surveys')
+                .orderBy('timestamp', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('No surveys found.'));
+              }
+
+              final grouped = <String, List<Map<String, dynamic>>>{};
+
+              for (var doc in snapshot.data!.docs) {
+                final data = doc.data() as Map<String, dynamic>;
+                final route = (data['route'] ?? 'Unknown') as String;
+                grouped.putIfAbsent(route, () => []).add(data);
+              }
+
+              // Convert map to list and sort alphabetically by route
+              final sortedRoutes = grouped.keys.toList()
+                ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+              // Apply search filter
+              final filteredRoutes = sortedRoutes.where((route) {
+                return route.toLowerCase().contains(searchQuerySurveys);
+              }).toList();
+
+              return ListView.builder(
+                itemCount: filteredRoutes.length,
+                itemBuilder: (context, index) {
+                  final route = filteredRoutes[index];
+                  final routeData = grouped[route]!;
+
+                  final total = routeData.length;
+                  final overcharged = routeData.where((d) => d['anomalous'] == true).length;
+                  final avgFare = routeData
+                      .map((d) => (d['fare_given'] ?? 0).toDouble())
+                      .fold(0.0, (a, b) => a + b) / total;
+                  final avgDistance = routeData
+                      .map((d) => double.tryParse(d['distance'].toString()) ?? 0.0)
+                      .fold(0.0, (a, b) => a + b) / total;
+
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: overcharged > 0 ? Colors.red : Colors.green,
+                      child: Text(route.split(' ').first[0].toUpperCase()),
                     ),
-                  ),
-                ),
-                title: Text(survey['participant']),
-                subtitle: Text(
-                  "Anomaly Score: ${survey['anomalyScore'].toStringAsFixed(2)}",
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showSurveyDetails(context, survey),
+                    title: Text("🚏 Route: $route"),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("🧑 Participants: $total"),
+                        Text("⚠️ Overcharged: $overcharged"),
+                        Text("💰 Avg Fare: ₱${avgFare.toStringAsFixed(2)}"),
+                        Text("📏 Avg Distance: ${avgDistance.toStringAsFixed(2)} km"),
+                      ],
+                    ),
+                    onTap: () => _showRouteDetails(context, route, routeData),
+                  );
+                },
               );
             },
           ),
@@ -168,6 +163,59 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
+  void _showRouteDetails(BuildContext context, String route, List<Map<String, dynamic>> entries) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => DraggableScrollableSheet(
+        expand: false,
+        builder: (context, scrollController) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Text("Surveys for $route", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Divider(),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: entries.length,
+                    itemBuilder: (context, index) {
+                      final e = entries[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: e['anomalous'] == true ? Colors.red : Colors.green,
+                          child: Text(
+                            (e['name'] ?? '?')[0].toUpperCase(),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        title: Text(e['name'] ?? 'Unknown'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Fare Given: ₱${e['fare_given']}"),
+                            Text("Predicted Fare: ₱${e['original_fare']}"),
+                            Text("Vehicle: ${e['vehicleType'] ?? 'N/A'}"),
+                          ],
+                        ),
+                        trailing: Icon(
+                          e['anomalous'] == true ? Icons.warning : Icons.check_circle,
+                          color: e['anomalous'] == true ? Colors.red : Colors.green,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // --------------------- REPORTS ---------------------
   Widget _buildReportsTab() {
     return Column(
       children: [
@@ -185,7 +233,7 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
                 onChanged: (value) {
                   setState(() {
-                    searchQuery = value.toLowerCase();
+                    searchQueryReports = value.toLowerCase();
                   });
                 },
               ),
@@ -201,18 +249,9 @@ class _AdminScreenState extends State<AdminScreen>
                       ),
                       items: const [
                         DropdownMenuItem(value: 'All', child: Text('All')),
-                        DropdownMenuItem(
-                          value: 'Pending',
-                          child: Text('Pending'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Submitted',
-                          child: Text('Submitted'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Under Review',
-                          child: Text('Under Review'),
-                        ),
+                        DropdownMenuItem(value: 'Pending', child: Text('Pending')),
+                        DropdownMenuItem(value: 'Submitted', child: Text('Submitted')),
+                        DropdownMenuItem(value: 'Under Review', child: Text('Under Review')),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -231,10 +270,7 @@ class _AdminScreenState extends State<AdminScreen>
                       ),
                       items: const [
                         DropdownMenuItem(value: 'All', child: Text('All')),
-                        DropdownMenuItem(
-                          value: 'Jeepney',
-                          child: Text('Jeepney'),
-                        ),
+                        DropdownMenuItem(value: 'Jeepney', child: Text('Jeepney')),
                         DropdownMenuItem(value: 'Bus', child: Text('Bus')),
                       ],
                       onChanged: (value) {
@@ -251,36 +287,26 @@ class _AdminScreenState extends State<AdminScreen>
         ),
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
-            stream:
-                FirebaseFirestore.instance.collection('reports').snapshots(),
+            stream: FirebaseFirestore.instance.collection('reports').snapshots(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return const Center(child: Text('No reports found.'));
               }
-              final filteredReports =
-                  snapshot.data!.docs.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    final fullName = data['fullName']?.toLowerCase() ?? '';
-                    final email = data['email']?.toLowerCase() ?? '';
-                    final status = data['status'] ?? 'Pending';
-                    final vehicle = data['vehicleType'] ?? '';
-                    final matchesSearch =
-                        fullName.contains(searchQuery) ||
-                        email.contains(searchQuery);
-                    final matchesStatus =
-                        selectedStatus == 'All' || status == selectedStatus;
-                    final matchesVehicle =
-                        selectedVehicle == 'All' || vehicle == selectedVehicle;
-                    return matchesSearch && matchesStatus && matchesVehicle;
-                  }).toList();
+              final filteredReports = snapshot.data!.docs.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                final fullName = data['fullName']?.toLowerCase() ?? '';
+                final email = data['email']?.toLowerCase() ?? '';
+                final status = data['status'] ?? 'Pending';
+                final vehicle = data['vehicleType'] ?? '';
+                final matchesSearch =
+                    fullName.contains(searchQueryReports) || email.contains(searchQueryReports);
+                final matchesStatus = selectedStatus == 'All' || status == selectedStatus;
+                final matchesVehicle = selectedVehicle == 'All' || vehicle == selectedVehicle;
+                return matchesSearch && matchesStatus && matchesVehicle;
+              }).toList();
 
               if (filteredReports.isEmpty) {
-                return const Center(
-                  child: Text('No reports matched the filters.'),
-                );
+                return const Center(child: Text('No reports matched the filters.'));
               }
 
               return ListView.separated(
@@ -294,23 +320,17 @@ class _AdminScreenState extends State<AdminScreen>
                     leading: CircleAvatar(
                       backgroundColor: Colors.grey.shade300,
                       child: Text(
-                        report['fullName']?.substring(0, 1).toUpperCase() ??
-                            '?',
+                        report['fullName']?.substring(0, 1).toUpperCase() ?? '?',
                       ),
                     ),
                     title: Text(report['fullName'] ?? 'No Name'),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Vehicle: ${report['vehicleType']} | Plate: ${report['plateNumber']}',
-                        ),
+                        Text('Vehicle: ${report['vehicleType']} | Plate: ${report['plateNumber']}'),
                         const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: _getStatusBackgroundColor(status),
                             borderRadius: BorderRadius.circular(8),
@@ -326,9 +346,6 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                       ],
                     ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap:
-                        () => _showReportDetails(context, reportDoc.id, report),
                   );
                 },
               );
@@ -336,119 +353,6 @@ class _AdminScreenState extends State<AdminScreen>
           ),
         ),
       ],
-    );
-  }
-
-  void _showSurveyDetails(BuildContext context, Map<String, dynamic> survey) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Center(
-          child: AlertDialog(
-            title: Text("Survey ID: ${survey['id']}"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Participant: ${survey['participant']}"),
-                const SizedBox(height: 10),
-                Text("Date: ${survey['date']}"),
-                const SizedBox(height: 10),
-                Text(
-                  "Anomaly Score: ${survey['anomalyScore'].toStringAsFixed(2)}",
-                ),
-                const SizedBox(height: 10),
-                const Text("Details:"),
-                Text(survey['details']),
-              ],
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            actionsAlignment: MainAxisAlignment.center,
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showReportDetails(
-    BuildContext context,
-    String docId,
-    Map<String, dynamic> report,
-  ) {
-    String currentStatus = report['status'] ?? 'Pending';
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(report['typeOfComplaint'] ?? 'Report'),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Name: ${report['fullName']}'),
-                  Text('Email: ${report['email']}'),
-                  Text('Phone: ${report['contactNumber']}'),
-                  Text('Vehicle Type: ${report['vehicleType']}'),
-                  Text('Plate Number: ${report['plateNumber']}'),
-                  Text('Date: ${report['date'] ?? 'Not specified'}'),
-                  const SizedBox(height: 10),
-                  const Text('Details:'),
-                  Text(report['details'] ?? 'No details'),
-                  const SizedBox(height: 20),
-                  DropdownButtonFormField<String>(
-                    value: currentStatus,
-                    decoration: const InputDecoration(
-                      labelText: 'Update Status',
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'Pending',
-                        child: Text('Pending'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Under Review',
-                        child: Text('Under Review'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Submitted',
-                        child: Text('Submitted'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null && value != currentStatus) {
-                        FirebaseFirestore.instance
-                            .collection('reports')
-                            .doc(docId)
-                            .update({'status': value});
-                        setState(() {
-                          currentStatus = value;
-                        });
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
-              ),
-            ],
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
     );
   }
 }
