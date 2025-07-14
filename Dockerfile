@@ -11,8 +11,8 @@ ENV TRANSFORMERS_CACHE=/app/cache
 
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY backend/ .
-
 RUN python backend/download_model.py
+
+COPY backend/ .
 
 CMD ["python", "main.py"]
