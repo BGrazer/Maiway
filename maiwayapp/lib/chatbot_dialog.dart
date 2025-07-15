@@ -20,9 +20,9 @@ class _ChatbotDialogState extends State<ChatbotDialog>
   late AnimationController _typingAnimationController;
 
   final String _chatBackendUrl =
-      'https://maiway-production.up.railway.app/chat';
+      'https://maiway-backend-production.up.railway.app/chat';
   final String _dynamicSuggestionsUrl =
-      'https://maiway-production.up.railway.app/dynamic_suggestions';
+      'https://maiway-backend-production.up.railway.app/dynamic_suggestions';
 
   @override
   void initState() {
@@ -42,8 +42,11 @@ class _ChatbotDialogState extends State<ChatbotDialog>
     }
 
     try {
-      final response = await http.get(Uri.parse(
-          '$_dynamicSuggestionsUrl?query=${Uri.encodeComponent(query)}'));
+      final response = await http.get(
+        Uri.parse(
+          '$_dynamicSuggestionsUrl?query=${Uri.encodeComponent(query)}',
+        ),
+      );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -55,7 +58,8 @@ class _ChatbotDialogState extends State<ChatbotDialog>
         });
       } else {
         print(
-            "Failed to load dynamic suggestion. Status: ${response.statusCode} - ${response.body}");
+          "Failed to load dynamic suggestion. Status: ${response.statusCode} - ${response.body}",
+        );
       }
     } catch (e) {
       print("Error fetching dynamic suggestions: $e");
@@ -79,36 +83,42 @@ class _ChatbotDialogState extends State<ChatbotDialog>
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: jsonEncode(<String, String>{
-          'message': text,
-        }),
+        body: jsonEncode(<String, String>{'message': text}),
       );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         final botResponse = responseData['response'];
 
-        chatbotConversationManager
-            .addMessage(Message(text: botResponse, isUser: false));
+        chatbotConversationManager.addMessage(
+          Message(text: botResponse, isUser: false),
+        );
         setState(() {
           _isBotTyping = false;
         });
       } else {
-        chatbotConversationManager.addMessage(Message(
+        chatbotConversationManager.addMessage(
+          Message(
             text:
                 "Error: Could not get a response from the chatbot. Status: ${response.statusCode}",
-            isUser: false));
+            isUser: false,
+          ),
+        );
         setState(() {
           _isBotTyping = false;
         });
         print(
-            "Chatbot server error: ${response.statusCode} - ${response.body}");
+          "Chatbot server error: ${response.statusCode} - ${response.body}",
+        );
       }
     } catch (e) {
-      chatbotConversationManager.addMessage(Message(
+      chatbotConversationManager.addMessage(
+        Message(
           text:
               "Error: Failed to connect to the chatbot. Please check your network or server. ($e)",
-          isUser: false));
+          isUser: false,
+        ),
+      );
       setState(() {
         _isBotTyping = false;
       });
@@ -141,18 +151,24 @@ class _ChatbotDialogState extends State<ChatbotDialog>
             child: Column(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 15,
+                    horizontal: 15,
+                  ),
                   decoration: const BoxDecoration(
                     color: Color(0xFF0084FF),
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(8.0)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(8.0),
+                    ),
                   ),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(FontAwesomeIcons.chevronLeft,
-                            size: 20, color: Colors.white),
+                        icon: const Icon(
+                          FontAwesomeIcons.chevronLeft,
+                          size: 20,
+                          color: Colors.white,
+                        ),
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
@@ -193,9 +209,10 @@ class _ChatbotDialogState extends State<ChatbotDialog>
                             }
                             final message = messages[index];
                             return Align(
-                              alignment: message.isUser
-                                  ? Alignment.centerRight
-                                  : Alignment.centerLeft,
+                              alignment:
+                                  message.isUser
+                                      ? Alignment.centerRight
+                                      : Alignment.centerLeft,
                               child: ConstrainedBox(
                                 constraints: BoxConstraints(
                                   maxWidth:
@@ -204,19 +221,23 @@ class _ChatbotDialogState extends State<ChatbotDialog>
                                 child: Container(
                                   margin: const EdgeInsets.only(bottom: 10.0),
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 15.0, vertical: 10.0),
+                                    horizontal: 15.0,
+                                    vertical: 10.0,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: message.isUser
-                                        ? const Color(0xFF0084FF)
-                                        : const Color(0xFFE4E6EB),
+                                    color:
+                                        message.isUser
+                                            ? const Color(0xFF0084FF)
+                                            : const Color(0xFFE4E6EB),
                                     borderRadius: BorderRadius.circular(18.0),
                                   ),
                                   child: Text(
                                     message.text,
                                     style: TextStyle(
-                                      color: message.isUser
-                                          ? Colors.white
-                                          : Colors.black,
+                                      color:
+                                          message.isUser
+                                              ? Colors.white
+                                              : Colors.black,
                                       height: 1.4,
                                     ),
                                   ),
@@ -232,13 +253,18 @@ class _ChatbotDialogState extends State<ChatbotDialog>
                 if (_dynamicSuggestions.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.only(
-                        left: 15.0, right: 15.0, top: 5.0, bottom: 5.0),
+                      left: 15.0,
+                      right: 15.0,
+                      top: 5.0,
+                      bottom: 5.0,
+                    ),
                     child: Wrap(
                       spacing: 8.0,
                       runSpacing: 8.0,
-                      children: _dynamicSuggestions
-                          .map((text) => _buildSuggestionChip(text))
-                          .toList(),
+                      children:
+                          _dynamicSuggestions
+                              .map((text) => _buildSuggestionChip(text))
+                              .toList(),
                     ),
                   ),
                 Container(
@@ -264,7 +290,9 @@ class _ChatbotDialogState extends State<ChatbotDialog>
                             filled: true,
                             fillColor: Colors.grey[200],
                             contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20.0, vertical: 10.0),
+                              horizontal: 20.0,
+                              vertical: 10.0,
+                            ),
                           ),
                           autofocus: true,
                           onSubmitted: _sendMessage,
@@ -308,10 +336,7 @@ class _ChatbotDialogState extends State<ChatbotDialog>
       child: Chip(
         label: Text(
           text,
-          style: const TextStyle(
-            fontSize: 14.0,
-            color: Color(0xFF333333),
-          ),
+          style: const TextStyle(fontSize: 14.0, color: Color(0xFF333333)),
         ),
         backgroundColor: const Color(0xFFE4E6EB),
         shape: RoundedRectangleBorder(
@@ -340,15 +365,18 @@ class _ChatbotDialogState extends State<ChatbotDialog>
             return AnimatedBuilder(
               animation: _typingAnimationController,
               builder: (context, child) {
-                final double opacity = (index == 0
+                final double opacity =
+                    (index == 0
                         ? _typingAnimationController.value
                         : index == 1
-                            ? (_typingAnimationController.value + 0.33) % 1.0
-                            : (_typingAnimationController.value + 0.66) % 1.0) *
+                        ? (_typingAnimationController.value + 0.33) % 1.0
+                        : (_typingAnimationController.value + 0.66) % 1.0) *
                     2;
                 return Opacity(
-                  opacity:
-                      (opacity > 1.0 ? 2.0 - opacity : opacity).clamp(0.2, 1.0),
+                  opacity: (opacity > 1.0 ? 2.0 - opacity : opacity).clamp(
+                    0.2,
+                    1.0,
+                  ),
                   child: const Text(
                     '.',
                     style: TextStyle(
