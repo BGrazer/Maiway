@@ -166,7 +166,7 @@ class _SurveyPageState extends State<SurveyPage> {
             ),
       );
     } else if (_fareFeedback == 'no') {
-      final url = Uri.parse("http://192.168.254.105:5002/predict_fare");
+      final url = Uri.parse("http://192.168.1.3:5002/predict_fare");
 
       try {
         final response = await http.post(
