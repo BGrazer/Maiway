@@ -272,8 +272,24 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     if (_routes.isNotEmpty && _selectedRouteIndex < _routes.length) {
       final selectedRoute = _routes[_selectedRouteIndex];
       final segments = selectedRoute['segments'] as List<RouteSegment>;
-      // Aggregate all segment polylines
-      List<LatLng> polylinePoints = segments.expand((s) => s.polyline).toList();
+      // Aggregate all segment polylines BUT avoid inserting the very first
+      // point of a segment if it is identical to the last point already
+      // present.  This prevents flutter_map from drawing a microscopic
+      // straight line that visually looks like a big diagonal "shortcut"
+      // whenever two neighbouring segments meet.
+
+      List<LatLng> polylinePoints = [];
+      for (final seg in segments) {
+        if (seg.polyline.isEmpty) continue;
+        if (polylinePoints.isNotEmpty &&
+            polylinePoints.last.latitude == seg.polyline.first.latitude &&
+            polylinePoints.last.longitude == seg.polyline.first.longitude) {
+          // Same vertex – append the rest (skip duplicate)
+          polylinePoints.addAll(seg.polyline.skip(1));
+        } else {
+          polylinePoints.addAll(seg.polyline);
+        }
+      }
       // Fallback if empty
       if (polylinePoints.isEmpty) {
         polylinePoints = [_originLocation, _destinationLocation];
