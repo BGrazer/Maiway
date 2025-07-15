@@ -6,6 +6,8 @@ import 'package:maiwayapp/travel_preference_page.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:maiwayapp/screens/route_mode_screen.dart';
+import 'package:maiwayapp/screens/navigation_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,10 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
+      routes: {
+        '/route-mode': (context) => RouteModeScreen(),
+        '/navigation': (context) => NavigationScreen(),
+      },
       home: user != null ? const HomeNavigation() : LoginPage(),
     );
   }
