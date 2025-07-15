@@ -1,5 +1,3 @@
-# rfr.py
-
 import numpy as np
 import pandas as pd
 from flask import Flask, request, jsonify
@@ -54,22 +52,30 @@ thresholds = {
     }
 }
 
+# Custom rounding rule
+def custom_round(value):
+    integer_part = int(value)
+    decimal_part = value - integer_part
+    return float(integer_part + 1) if decimal_part >= 0.5 else float(integer_part)
+
 # Anomaly Check Function
 def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
     fare_type = 'Discounted' if discounted else 'Regular'
     model = models[vehicle_type][fare_type]
     threshold = thresholds[vehicle_type][fare_type]
 
-    predicted_fare = model.predict([[distance_km]])[0]
-    difference = abs(charged_fare - predicted_fare)
-    is_anomalous = difference > threshold
+    predicted_fare_raw = model.predict([[distance_km]])[0]
+    predicted_fare = custom_round(predicted_fare_raw)
+    charged_fare = custom_round(charged_fare)
+    difference = custom_round(abs(charged_fare - predicted_fare))
+    is_anomalous = abs(charged_fare - predicted_fare_raw) > threshold
 
     return {
         'vehicle_type': vehicle_type,
         'fare_type': fare_type,
-        'predicted_fare': round(predicted_fare, 2),
-        'charged_fare': round(charged_fare, 2),
-        'difference': round(difference, 2),
+        'predicted_fare': predicted_fare,
+        'charged_fare': charged_fare,
+        'difference': difference,
         'threshold': round(threshold, 2),
         'is_anomalous': bool(is_anomalous),
     }
@@ -97,5 +103,5 @@ def predict_fare():
 
 if __name__ == '__main__':
     local_ip = socket.gethostbyname(socket.gethostname())
-    print(f"\n🧮 RFR backend running at: http://{local_ip}:5000\n")
-    app.run(host='0.0.0.0', port=5000)
+    print(f"\n🧮 RFR backend running at: http://{local_ip}:5002\n")
+    app.run(host='0.0.0.0', port=5002, debug=True)

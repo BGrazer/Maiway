@@ -108,13 +108,28 @@ class _SurveyPageState extends State<SurveyPage> {
     final passengerType = widget.passengerType;
     final isDiscounted = passengerType.toLowerCase() == 'discounted';
 
+    if (_chargedFareController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter the charged fare')),
+      );
+      return;
+    }
+
+    final chargedFare = double.tryParse(_chargedFareController.text);
+    if (chargedFare == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid fare input')),
+      );
+      return;
+    }
+
     if (_fareFeedback == 'yes') {
       await pushSurveyToFirestore(
         distance: distance,
         vehicleType: vehicleType,
         passengerType: passengerType,
-        fareGiven: 0.0,
-        predictedFare: 0.0,
+        fareGiven: chargedFare,
+        predictedFare: chargedFare, // assumed to be correct
         difference: 0.0,
         isAnomalous: false,
         route: route,
@@ -123,13 +138,14 @@ class _SurveyPageState extends State<SurveyPage> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text("Nice!"),
+          title: const Text("Thank you!"),
           content: Text(
-            "Thank you and have a safe trip.\n\n"
+            "Your response has been recorded.\n\n"
             "Route: $route\n"
             "Distance: $distance km\n"
             "Vehicle: $vehicleType\n"
-            "Passenger Type: $passengerType",
+            "Passenger Type: $passengerType\n"
+            "Fare: ₱${smartRound(chargedFare).toStringAsFixed(2)}",
           ),
           actions: [
             TextButton(
@@ -143,21 +159,6 @@ class _SurveyPageState extends State<SurveyPage> {
         ),
       );
     } else if (_fareFeedback == 'no') {
-      if (_chargedFareController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter the charged fare')),
-        );
-        return;
-      }
-
-      final chargedFare = double.tryParse(_chargedFareController.text);
-      if (chargedFare == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid fare input')),
-        );
-        return;
-      }
-
       final url = Uri.parse("http://192.168.254.105:5000/predict_fare");
 
       try {
@@ -178,6 +179,20 @@ class _SurveyPageState extends State<SurveyPage> {
         final difference = data['difference'].toDouble();
         final isAnomalous = data['is_anomalous'] ?? false;
 
+        final roundedChargedFare = smartRound(chargedFare);
+        final roundedPredictedFare = smartRound(predictedFare);
+        final roundedDifference = smartRound(difference);
+
+        String alert;
+        if (roundedChargedFare == roundedPredictedFare) {
+          alert = "✅ Fare is just right.";
+        } else if (roundedChargedFare < roundedPredictedFare) {
+          alert =
+              "💸 You have saved ₱${roundedDifference.toStringAsFixed(2)}.\nThe original fare is ₱${roundedPredictedFare.toStringAsFixed(2)}.";
+        } else {
+          alert = "⚠️ ALERT: Overpricing Detected!";
+        }
+
         await pushSurveyToFirestore(
           distance: distance,
           vehicleType: vehicleType,
@@ -189,12 +204,6 @@ class _SurveyPageState extends State<SurveyPage> {
           route: route,
         );
 
-        final alert = chargedFare > predictedFare
-            ? "ALERT: Overpricing Detected!"
-            : (chargedFare < predictedFare
-                ? "Fare is fair.\n\nNote: The charged fare is lower than expected.\nThe correct fare should be ₱${smartRound(predictedFare).toStringAsFixed(2)}"
-                : "Fare is within the acceptable range.");
-
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -202,9 +211,9 @@ class _SurveyPageState extends State<SurveyPage> {
             content: Text(
               "Route: $route\n"
               "Distance: $distance km\n"
-              "Predicted Fare: ₱${smartRound(predictedFare).toStringAsFixed(2)}\n"
-              "Charged Fare: ₱${smartRound(chargedFare).toStringAsFixed(2)}\n"
-              "Difference: ₱${smartRound(difference).toStringAsFixed(2)}\n\n"
+              "Predicted Fare: ₱${roundedPredictedFare.toStringAsFixed(2)}\n"
+              "Charged Fare: ₱${roundedChargedFare.toStringAsFixed(2)}\n"
+              "Difference: ₱${roundedDifference.toStringAsFixed(2)}\n\n"
               "$alert",
             ),
             actions: [
@@ -238,18 +247,16 @@ class _SurveyPageState extends State<SurveyPage> {
             const Text("Fare Survey", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
-            // Autocomplete for Routes
             RawAutocomplete<String>(
               textEditingController: _routeController,
               focusNode: FocusNode(),
               optionsBuilder: (TextEditingValue textEditingValue) {
-              if (textEditingValue.text.isEmpty) {
-                return const Iterable<String>.empty();
-              }
-              return predefinedRoutes.where((route) =>
-                route.toLowerCase().startsWith(textEditingValue.text.toLowerCase()));
-        },
-
+                if (textEditingValue.text.isEmpty) {
+                  return const Iterable<String>.empty();
+                }
+                return predefinedRoutes.where((route) =>
+                    route.toLowerCase().startsWith(textEditingValue.text.toLowerCase()));
+              },
               fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
                 return TextField(
                   controller: controller,
@@ -340,7 +347,7 @@ class _SurveyPageState extends State<SurveyPage> {
               ],
             ),
 
-            if (_fareFeedback == 'no') ...[
+            if (_fareFeedback == 'yes' || _fareFeedback == 'no') ...[
               const SizedBox(height: 20),
               const Text("How much was the charged fare?"),
               TextField(
