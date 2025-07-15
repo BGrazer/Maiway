@@ -37,10 +37,14 @@ class _SurveyPageState extends State<SurveyPage> {
   }
 
   Future<void> loadRoutesFromJson() async {
-    final String response = await rootBundle.loadString('assets/Jeep_routes.json');
+    final String response = await rootBundle.loadString(
+      'assets/Jeep_routes.json',
+    );
     final data = json.decode(response);
     setState(() {
-      predefinedRoutes = List<String>.from(data['RoutedJeeps'].map((item) => item['route']));
+      predefinedRoutes = List<String>.from(
+        data['RoutedJeeps'].map((item) => item['route']),
+      );
     });
   }
 
@@ -88,7 +92,9 @@ class _SurveyPageState extends State<SurveyPage> {
   }
 
   Future<void> _submitSurvey() async {
-    if (_fareFeedback == null || _distanceController.text.isEmpty || _routeController.text.isEmpty) {
+    if (_fareFeedback == null ||
+        _distanceController.text.isEmpty ||
+        _routeController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete all required fields')),
       );
@@ -97,9 +103,9 @@ class _SurveyPageState extends State<SurveyPage> {
 
     final distance = double.tryParse(_distanceController.text);
     if (distance == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid distance input')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid distance input')));
       return;
     }
 
@@ -117,9 +123,9 @@ class _SurveyPageState extends State<SurveyPage> {
 
     final chargedFare = double.tryParse(_chargedFareController.text);
     if (chargedFare == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid fare input')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid fare input')));
       return;
     }
 
@@ -137,29 +143,30 @@ class _SurveyPageState extends State<SurveyPage> {
 
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Thank you!"),
-          content: Text(
-            "Your response has been recorded.\n\n"
-            "Route: $route\n"
-            "Distance: $distance km\n"
-            "Vehicle: $vehicleType\n"
-            "Passenger Type: $passengerType\n"
-            "Fare: ₱${smartRound(chargedFare).toStringAsFixed(2)}",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              child: const Text("OK"),
-            )
-          ],
-        ),
+        builder:
+            (context) => AlertDialog(
+              title: const Text("Thank you!"),
+              content: Text(
+                "Your response has been recorded.\n\n"
+                "Route: $route\n"
+                "Distance: $distance km\n"
+                "Vehicle: $vehicleType\n"
+                "Passenger Type: $passengerType\n"
+                "Fare: ₱${smartRound(chargedFare).toStringAsFixed(2)}",
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  },
+                  child: const Text("OK"),
+                ),
+              ],
+            ),
       );
     } else if (_fareFeedback == 'no') {
-      final url = Uri.parse("http://192.168.254.105:5000/predict_fare");
+      final url = Uri.parse("http://192.168.1.3:5000/predict_fare");
 
       try {
         final response = await http.post(
@@ -206,26 +213,27 @@ class _SurveyPageState extends State<SurveyPage> {
 
         showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Fare Validation Result"),
-            content: Text(
-              "Route: $route\n"
-              "Distance: $distance km\n"
-              "Predicted Fare: ₱${roundedPredictedFare.toStringAsFixed(2)}\n"
-              "Charged Fare: ₱${roundedChargedFare.toStringAsFixed(2)}\n"
-              "Difference: ₱${roundedDifference.toStringAsFixed(2)}\n\n"
-              "$alert",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                child: const Text("OK"),
-              )
-            ],
-          ),
+          builder:
+              (context) => AlertDialog(
+                title: const Text("Fare Validation Result"),
+                content: Text(
+                  "Route: $route\n"
+                  "Distance: $distance km\n"
+                  "Predicted Fare: ₱${roundedPredictedFare.toStringAsFixed(2)}\n"
+                  "Charged Fare: ₱${roundedChargedFare.toStringAsFixed(2)}\n"
+                  "Difference: ₱${roundedDifference.toStringAsFixed(2)}\n\n"
+                  "$alert",
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: const Text("OK"),
+                  ),
+                ],
+              ),
         );
       } catch (e) {
         print("Error connecting to backend: $e");
@@ -244,7 +252,10 @@ class _SurveyPageState extends State<SurveyPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Fare Survey", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              "Fare Survey",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
 
             RawAutocomplete<String>(
@@ -254,10 +265,18 @@ class _SurveyPageState extends State<SurveyPage> {
                 if (textEditingValue.text.isEmpty) {
                   return const Iterable<String>.empty();
                 }
-                return predefinedRoutes.where((route) =>
-                    route.toLowerCase().startsWith(textEditingValue.text.toLowerCase()));
+                return predefinedRoutes.where(
+                  (route) => route.toLowerCase().startsWith(
+                    textEditingValue.text.toLowerCase(),
+                  ),
+                );
               },
-              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+              fieldViewBuilder: (
+                context,
+                controller,
+                focusNode,
+                onFieldSubmitted,
+              ) {
                 return TextField(
                   controller: controller,
                   focusNode: focusNode,
@@ -295,7 +314,9 @@ class _SurveyPageState extends State<SurveyPage> {
 
             TextField(
               controller: _distanceController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(
                 labelText: "Distance (km)",
                 hintText: "Enter estimated distance",
@@ -306,10 +327,15 @@ class _SurveyPageState extends State<SurveyPage> {
 
             DropdownButtonFormField<String>(
               value: _selectedVehicleType,
-              items: ['Jeep', 'Bus']
-                  .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-                  .toList(),
-              onChanged: (value) => setState(() => _selectedVehicleType = value),
+              items:
+                  ['Jeep', 'Bus']
+                      .map(
+                        (type) =>
+                            DropdownMenuItem(value: type, child: Text(type)),
+                      )
+                      .toList(),
+              onChanged:
+                  (value) => setState(() => _selectedVehicleType = value),
               decoration: const InputDecoration(labelText: "Vehicle Type"),
             ),
 
@@ -317,7 +343,10 @@ class _SurveyPageState extends State<SurveyPage> {
 
             Row(
               children: [
-                const Text("Passenger Type: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  "Passenger Type: ",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 Text(widget.passengerType),
               ],
             ),
@@ -352,8 +381,12 @@ class _SurveyPageState extends State<SurveyPage> {
               const Text("How much was the charged fare?"),
               TextField(
                 controller: _chargedFareController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(hintText: "Enter fare in PHP"),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(
+                  hintText: "Enter fare in PHP",
+                ),
               ),
             ],
 

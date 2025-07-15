@@ -11,6 +11,9 @@ import '../screens/navigation_screen.dart';
 import '../services/geocoding_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maiwayapp/utils/polyline_utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 /// RouteModeScreen displays available route alternatives and lets the user select one to navigate.
 class RouteModeScreen extends StatefulWidget {
@@ -109,6 +112,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
               'color': Colors.green,
             'routeData': fastestRoute['routeData'],
             'totalCost': fastestRoute['totalCost'] ?? 0.0,
+            'totalDistance': fastestRoute['totalDistance'] ?? 0.0,
             'segments': fastestRoute['segments'] ?? [],
             'polylinePoints': fastestRoute['polylinePoints'] ?? [],
           });
@@ -126,6 +130,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
               'color': Colors.orange,
             'routeData': cheapestRoute['routeData'],
             'totalCost': cheapestRoute['totalCost'] ?? 0.0,
+            'totalDistance': cheapestRoute['totalDistance'] ?? 0.0,
             'segments': cheapestRoute['segments'] ?? [],
             'polylinePoints': cheapestRoute['polylinePoints'] ?? [],
           });
@@ -143,6 +148,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
               'color': Colors.purple,
             'routeData': convenientRoute['routeData'],
             'totalCost': convenientRoute['totalCost'] ?? 0.0,
+            'totalDistance': convenientRoute['totalDistance'] ?? 0.0,
             'segments': convenientRoute['segments'] ?? [],
             'polylinePoints': convenientRoute['polylinePoints'] ?? [],
           });
@@ -340,6 +346,57 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     });
   }
 
+  // Helper to list ALL non-walking transport modes encountered, comma-separated
+  String _collectModes(List<RouteSegment> segments) {
+    final List<String> modes = [];
+    for (final seg in segments) {
+      final modeName = seg.mode.name.toLowerCase();
+      if (modeName == 'walking') continue;
+      if (!modes.contains(modeName)) {
+        modes.add(modeName); // preserve order of appearance
+      }
+    }
+    // If nothing but walking, return 'walking'
+    return modes.isEmpty ? 'walking' : modes.join(',');
+  }
+
+  // Save chosen trip to Firestore → travel_history collection
+  Future<void> _saveTravelHistory(Map<String, dynamic> selectedRoute) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return; // user not logged-in
+
+    final List<RouteSegment> segments =
+        (selectedRoute['segments'] as List).cast<RouteSegment>();
+    final distanceKm = ((selectedRoute['totalDistance'] ?? 0).toDouble() == 0)
+        ? segments.fold<double>(0, (sum, seg) => sum + seg.distance)
+        : (selectedRoute['totalDistance'] ?? 0).toDouble();
+    final farePhp = (selectedRoute['totalCost'] ?? 0).toDouble();
+
+    final data = {
+      'userId': FirebaseAuth.instance.currentUser!.uid, // string
+      'modeOfTransport': _collectModes(segments),       // string list joined by comma
+      'date': DateFormat('yyyy-MM-dd').format(DateTime.now()), // string
+      'origin': _originAddress,
+      'destination': _destinationAddress,
+      'distance': distanceKm.toStringAsFixed(2),       // string representation
+      'fare': farePhp,                                 // number (double)
+    };
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('travel_history')
+          .add(data);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Trip saved to travel history')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save trip: $e')),
+      );
+    }
+  }
+
   void _startTrip() {
     if (_routes.isEmpty || _selectedRouteIndex < 0 || _selectedRouteIndex >= _routes.length) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -378,6 +435,9 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         Navigator.of(context).pop({'clearPins': true});
       }
     });
+
+    // Save trip details
+    _saveTravelHistory(selectedRoute);
   }
 
   @override
