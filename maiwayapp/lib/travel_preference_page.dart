@@ -57,11 +57,13 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
       _cardType = prefs.getString('cardType');
 
       for (var key in _preferences.keys) {
-        _preferences[key] = prefs.getBool('pref_$key') ?? _preferences[key]!;
+        final backendKey = _prefKeyFor(key);
+        _preferences[key] = prefs.getBool(backendKey) ?? _preferences[key]!;
       }
 
       for (var key in _modes.keys) {
-        _modes[key] = prefs.getBool('mode_$key') ?? _modes[key]!;
+        final backendKey = _modeKeyFor(key);
+        _modes[key] = prefs.getBool(backendKey) ?? _modes[key]!;
       }
 
       if (_passengerType == 'Discounted') {
@@ -78,12 +80,15 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
     if (_cardType != null) await prefs.setString('cardType', _cardType!);
 
     for (var entry in _preferences.entries) {
-      await prefs.setBool('pref_${entry.key}', entry.value);
+      await prefs.setBool(_prefKeyFor(entry.key), entry.value);
     }
 
     for (var entry in _modes.entries) {
-      await prefs.setBool('mode_${entry.key}', entry.value);
+      await prefs.setBool(_modeKeyFor(entry.key), entry.value);
     }
+
+    // Also store passenger type in new naming just in case
+    await prefs.setString('passenger_type', _passengerType);
   }
 
   Future<void> _scrollToBottom() async {
@@ -94,6 +99,35 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeOut,
       );
+    }
+  }
+
+  // Mapping helpers
+  String _prefKeyFor(String display) {
+    switch (display) {
+      case 'Fastest':
+        return 'pref_fastest';
+      case 'Cheapest':
+        return 'pref_cheapest';
+      case 'Convenient':
+        return 'pref_convenient';
+      default:
+        return 'pref_${display.toLowerCase()}';
+    }
+  }
+
+  String _modeKeyFor(String display) {
+    switch (display) {
+      case 'Jeep':
+        return 'mode_jeepney';
+      case 'Bus':
+        return 'mode_bus';
+      case 'LRT-1':
+        return 'mode_lrt';
+      case 'Tricycle':
+        return 'mode_tricycle';
+      default:
+        return 'mode_${display.toLowerCase()}';
     }
   }
 

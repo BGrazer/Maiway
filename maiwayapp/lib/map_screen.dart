@@ -8,6 +8,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:maiwayapp/chatbot_dialog.dart';
 import 'package:maiwayapp/survey_page.dart' as my_survey;
+import 'package:maiwayapp/controllers/map_screen_controller.dart';
+import 'package:maiwayapp/services/geocoding_service.dart';
+import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 
 class MapScreen extends StatefulWidget {
   final List<String> selectedPreferences;
@@ -28,72 +31,69 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixin {
-  final MapController _mapController = MapController();
-  LatLng? _currentLocation;
+  late MapScreenController _controller;
   late final List<LatLng> _manilaBoundary;
+  bool _isPinningMode = false;
+  bool _isPinningOrigin = true;
 
-  final TextEditingController originController = TextEditingController();
-  final TextEditingController destinationController = TextEditingController();
+  // Confirm the pin positioned at the map center and return to SearchSheet
+  Future<void> _confirmPinAndReturnToSearch() async {
+    final pinnedLocation = _controller.mapController.camera.center;
+
+    String address;
+    try {
+      address = await GeocodingService.getAddressFromLocation(pinnedLocation);
+    } catch (_) {
+      address =
+          'Lat: ${pinnedLocation.latitude.toStringAsFixed(4)}, Lng: ${pinnedLocation.longitude.toStringAsFixed(4)}';
+    }
+
+    await _addLocationMarker(pinnedLocation, address, _isPinningOrigin);
+
+    if (mounted) {
+      setState(() {
+        _isPinningMode = false;
+      });
+    }
+
+    // Re-open the search sheet so the user sees the updated pins
+    _openSearchSheet();
+  }
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    _controller = MapScreenController(
+      showError: (msg) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(msg), backgroundColor: Colors.red),
+          );
+        }
+      },
+      showSuccess: (msg) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(msg), backgroundColor: Colors.green),
+          );
+        }
+      },
+      setState: () => setState(() {}),
+    );
+    _controller.getCurrentLocation();
     _manilaBoundary = getManilaBoundary();
   }
 
   @override
   void dispose() {
-    originController.dispose();
-    destinationController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _getCurrentLocation() async {
-    try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location services are disabled')),
-        );
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permissions are denied')),
-          );
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Location permissions are permanently denied'),
-          ),
-        );
-        return;
-      }
-
-      Position position = await Geolocator.getCurrentPosition();
-      setState(() {
-        _currentLocation = LatLng(position.latitude, position.longitude);
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error getting location: $e')),
-      );
-    }
-  }
-
   void _centerOnUserLocation() {
-    if (_currentLocation != null) {
-      _mapController.move(_currentLocation!, 15.0);
-      _mapController.rotate(0);
+    if (_controller.currentLocation != null) {
+      _controller.mapController.move(_controller.currentLocation!, 15.0);
+      _controller.mapController.rotate(0);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unable to fetch location')),
@@ -102,13 +102,7 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
   }
 
   void _resetCameraOrientation() {
-    if (_currentLocation != null) {
-      _mapController.rotate(0);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to fetch location')),
-      );
-    }
+    _controller.mapController.rotate(0);
   }
 
   void _openSearchSheet() {
@@ -120,8 +114,21 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
       builder: (context) => SearchSheet(
-        originController: originController,
-        destinationController: destinationController,
+        onLocationSelected: (LatLng location, String address, bool isOrigin) async {
+          await _addLocationMarker(location, address, isOrigin);
+        },
+        onPinModeRequested: (bool isOrigin) {
+          if (mounted) {
+            setState(() {
+              _isPinningMode = true;
+              _isPinningOrigin = isOrigin;
+            });
+          }
+          Navigator.pop(context);
+        },
+        currentLocation: _controller.currentLocation ?? LatLng(14.5995, 120.9842),
+        originAddress: _controller.originController.text,
+        destinationAddress: _controller.destinationController.text,
       ),
     );
   }
@@ -163,7 +170,60 @@ void _openSurveyPopup() {
   );
 }
 
+  Future<void> _addLocationMarker(LatLng location, String address, bool isOrigin) async {
+    // Prevent selection in/near water bodies
+    final isWater = await GeocodingService.isWaterOrNearWater(location, thresholdMeters: 20);
+    if (isWater) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please choose a location on land'), backgroundColor: Colors.red),
+        );
+      }
+      return;
+    }
 
+    if (isOrigin) {
+      _controller.originPin = location;
+      _controller.originController.text = address;
+      if (_controller.destinationPin != null && _controller.destinationPin == location) {
+        _controller.destinationPin = null;
+        _controller.destinationController.clear();
+      }
+    } else {
+      _controller.destinationPin = location;
+      _controller.destinationController.text = address;
+      if (_controller.originPin != null && _controller.originPin == location) {
+        _controller.originPin = null;
+        _controller.originController.clear();
+      }
+    }
+    _checkForAutoTransition();
+    if (mounted) setState(() {});
+  }
+
+  void _checkForAutoTransition() {
+    if (_controller.originPin != null && _controller.destinationPin != null) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _goToRouteMode();
+      });
+    }
+  }
+
+  void _goToRouteMode() {
+    Navigator.pushNamed(
+      context,
+      '/route-mode',
+      arguments: {
+        'origin': _controller.originPin,
+        'destination': _controller.destinationPin,
+        'originAddress': _controller.originController.text,
+        'destinationAddress': _controller.destinationController.text,
+      },
+    ).then((_) {
+      _controller.clearRoute();
+      if (mounted) setState(() {});
+    });
+  }
 
 
   @override
@@ -192,7 +252,7 @@ void _openSurveyPopup() {
       body: Stack(
         children: [
           FlutterMap(
-            mapController: _mapController,
+            mapController: _controller.mapController,
             options: MapOptions(
               initialCenter: LatLng(14.5995, 120.9842),
               initialZoom: 13.5,
@@ -208,19 +268,121 @@ void _openSurveyPopup() {
             ),
             children: [
               openStreetMapTileLayer,
-              PolygonLayer(
-                polygons: [
-                  Polygon(
-                    points: _manilaBoundary,
-                    color: Colors.transparent,
-                    borderColor: Colors.redAccent,
-                    borderStrokeWidth: 3,
-                  ),
-                ],
-              ),
               const CurrentLocationLayer(),
+              // Outline of Manila city boundary (no fill)
+              if (_manilaBoundary.isNotEmpty)
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: _manilaBoundary,
+                      color: Colors.red,
+                      strokeWidth: 2.5,
+                    ),
+                  ],
+                ),
+              if (_controller.routePolyline.isNotEmpty)
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: _controller.routePolyline,
+                      color: Colors.blueAccent,
+                      strokeWidth: 4,
+                    ),
+                  ],
+                ),
+              MarkerLayer(markers: _buildMarkers()),
             ],
           ),
+
+          // Center pin indicator when in pin-drop mode
+          if (_isPinningMode)
+            IgnorePointer(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: Colors.blue,
+                      size: 50,
+                    ),
+                    Container(
+                      width: 2,
+                      height: 25,
+                      color: Colors.blue,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Bottom action sheet while pinning
+          if (_isPinningMode)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+                color: Colors.white,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Pan map to choose a location',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.location_on),
+                        label: Text(
+                          _isPinningOrigin ? 'Set as Origin' : 'Set as Destination',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        onPressed: _confirmPinAndReturnToSearch,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              _isPinningOrigin ? Colors.green : Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      child: const Text('Cancel'),
+                      onPressed: () {
+                        if (mounted) {
+                          setState(() {
+                            _isPinningMode = false;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Loading overlay when fetching a route
+          if (_controller.isLoadingRoute)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
+              ),
+            ),
 
           // Search Bar
           Positioned(
@@ -307,8 +469,49 @@ void _openSurveyPopup() {
     );
   }
 
+  // Build markers for origin, destination, and stops
+  List<Marker> _buildMarkers() {
+    final markers = <Marker>[];
+    if (_controller.originPin != null) {
+      markers.add(
+        Marker(
+          point: _controller.originPin!,
+          width: 30,
+          height: 30,
+          child: const Icon(Icons.location_on, color: Colors.green, size: 30),
+        ),
+      );
+    }
+    if (_controller.destinationPin != null) {
+      markers.add(
+        Marker(
+          point: _controller.destinationPin!,
+          width: 30,
+          height: 30,
+          child: const Icon(Icons.flag, color: Colors.red, size: 30),
+        ),
+      );
+    }
+    for (final stop in _controller.routeStops) {
+      final lat = stop['lat'] ?? stop['latitude'];
+      final lon = stop['lon'] ?? stop['longitude'];
+      if (lat != null && lon != null) {
+        markers.add(
+          Marker(
+            point: LatLng(lat.toDouble(), lon.toDouble()),
+            width: 12,
+            height: 12,
+            child: const Icon(Icons.circle, color: Colors.blue, size: 12),
+          ),
+        );
+      }
+    }
+    return markers;
+  }
+
   TileLayer get openStreetMapTileLayer => TileLayer(
         urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         userAgentPackageName: 'com.example.maiway',
+        tileProvider: CancellableNetworkTileProvider(),
       );
 }
