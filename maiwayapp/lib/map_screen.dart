@@ -137,8 +137,8 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
   }
 
 void _openSurveyPopup() {
-  // fallback to 'Jeep' if no mode selected
-  final selectedMode = widget.selectedModes.isNotEmpty ? widget.selectedModes.first : 'Jeep';
+  final selectedMode =
+      widget.selectedModes.isNotEmpty ? widget.selectedModes.first : 'Jeep';
 
   showModalBottomSheet(
     context: context,
@@ -155,13 +155,14 @@ void _openSurveyPopup() {
         right: 20,
       ),
       child: my_survey.SurveyPage(
-        distanceKm: 5.0, // or use a real computed distance
         transportMode: selectedMode,
         passengerType: widget.passengerType,
+        // ✅ REMOVE distanceKm — let SurveyPage handle it itself
       ),
     ),
   );
 }
+
 
 
 

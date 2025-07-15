@@ -5,13 +5,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class SurveyPage extends StatefulWidget {
-  final double distanceKm;
   final String transportMode;
   final String passengerType;
 
   const SurveyPage({
     super.key,
-    required this.distanceKm,
     required this.transportMode,
     required this.passengerType,
   });
@@ -22,18 +20,16 @@ class SurveyPage extends StatefulWidget {
 
 class _SurveyPageState extends State<SurveyPage> {
   String? _fareFeedback;
+  String? _selectedVehicleType;
   final TextEditingController _chargedFareController = TextEditingController();
   final TextEditingController _distanceController = TextEditingController();
   final TextEditingController _routeController = TextEditingController();
 
-  String? _selectedTransportMode;
-  final List<String> _transportOptions = ['Jeep', 'Bus'];
-
   @override
   void initState() {
     super.initState();
-    _selectedTransportMode = widget.transportMode;
-    _distanceController.text = widget.distanceKm.toStringAsFixed(2);
+    _distanceController.text = "0.0";
+    _selectedVehicleType = widget.transportMode; // Default vehicle type
   }
 
   @override
@@ -42,6 +38,11 @@ class _SurveyPageState extends State<SurveyPage> {
     _distanceController.dispose();
     _routeController.dispose();
     super.dispose();
+  }
+
+  double smartRound(double value) {
+    final decimal = value - value.floor();
+    return decimal >= 0.5 ? value.ceilToDouble() : value.floorToDouble();
   }
 
   Future<void> pushSurveyToFirestore({
@@ -55,24 +56,17 @@ class _SurveyPageState extends State<SurveyPage> {
     required String route,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      print("No user logged in.");
-      return;
-    }
-
-    final userId = user.uid;
-    final name = user.displayName ?? 'Anonymous';
+    if (user == null) return;
 
     final surveyData = {
-      'userId': userId,
-      'name': name,
+      'userId': user.uid,
+      'name': user.displayName ?? 'Anonymous',
       'distance': distance.toString(),
       'vehicleType': vehicleType,
       'passenger_type': passengerType,
-      'fare_given': fareGiven,
-      'original_fare': predictedFare,
-      'fare_difference': difference,
+      'fare_given': smartRound(fareGiven),
+      'original_fare': smartRound(predictedFare),
+      'fare_difference': smartRound(difference),
       'anomalous': isAnomalous,
       'route': route,
       'timestamp': FieldValue.serverTimestamp(),
@@ -82,10 +76,7 @@ class _SurveyPageState extends State<SurveyPage> {
   }
 
   Future<void> _submitSurvey() async {
-    if (_fareFeedback == null ||
-        _selectedTransportMode == null ||
-        _distanceController.text.isEmpty ||
-        _routeController.text.isEmpty) {
+    if (_fareFeedback == null || _distanceController.text.isEmpty || _routeController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete all required fields')),
       );
@@ -94,19 +85,22 @@ class _SurveyPageState extends State<SurveyPage> {
 
     final distance = double.tryParse(_distanceController.text);
     if (distance == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Invalid distance input')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid distance input')),
+      );
       return;
     }
 
     final route = _routeController.text.trim();
+    final vehicleType = _selectedVehicleType ?? widget.transportMode;
+    final passengerType = widget.passengerType;
+    final isDiscounted = passengerType.toLowerCase() == 'discounted';
 
     if (_fareFeedback == 'yes') {
       await pushSurveyToFirestore(
         distance: distance,
-        vehicleType: _selectedTransportMode!,
-        passengerType: widget.passengerType,
+        vehicleType: vehicleType,
+        passengerType: passengerType,
         fareGiven: 0.0,
         predictedFare: 0.0,
         difference: 0.0,
@@ -116,26 +110,25 @@ class _SurveyPageState extends State<SurveyPage> {
 
       showDialog(
         context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text("Nice!"),
-              content: Text(
-                "Thank you and have a safe trip.\n\n"
-                "Distance: $distance km\n"
-                "Transport Mode: $_selectedTransportMode\n"
-                "Passenger Type: ${widget.passengerType}\n"
-                "Route: $route",
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  },
-                  child: const Text("OK"),
-                ),
-              ],
-            ),
+        builder: (context) => AlertDialog(
+          title: const Text("Nice!"),
+          content: Text(
+            "Thank you and have a safe trip.\n\n"
+            "Route: $route\n"
+            "Distance: $distance km\n"
+            "Vehicle: $vehicleType\n"
+            "Passenger Type: $passengerType",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: const Text("OK"),
+            )
+          ],
+        ),
       );
     } else if (_fareFeedback == 'no') {
       if (_chargedFareController.text.isEmpty) {
@@ -147,46 +140,36 @@ class _SurveyPageState extends State<SurveyPage> {
 
       final chargedFare = double.tryParse(_chargedFareController.text);
       if (chargedFare == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Invalid fare input')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid fare input')),
+        );
         return;
       }
 
-      final url = Uri.parse(
-        "https://maiway-production.up.railway.app/predict_fare",
-      );
+      final url = Uri.parse("http://192.168.254.105:5000/predict_fare");
 
       try {
         final response = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            "vehicle_type": _selectedTransportMode,
-            "passenger_type": widget.passengerType,
+            "vehicle_type": vehicleType,
+            "passenger_type": passengerType,
             "distance_km": distance,
             "charged_fare": chargedFare,
+            "discounted": isDiscounted,
           }),
         );
 
         final data = jsonDecode(response.body);
-
-        if (data.containsKey('error')) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: ${data['error']}')));
-          return;
-        }
-
         final predictedFare = data['predicted_fare'].toDouble();
         final difference = data['difference'].toDouble();
-        final chargedFareFormatted = data['charged_fare'];
-        final isAnomalous = chargedFare > predictedFare;
+        final isAnomalous = data['is_anomalous'] ?? false;
 
         await pushSurveyToFirestore(
           distance: distance,
-          vehicleType: _selectedTransportMode!,
-          passengerType: widget.passengerType,
+          vehicleType: vehicleType,
+          passengerType: passengerType,
           fareGiven: chargedFare,
           predictedFare: predictedFare,
           difference: difference,
@@ -194,39 +177,34 @@ class _SurveyPageState extends State<SurveyPage> {
           route: route,
         );
 
-        String alert;
-        if (chargedFare > predictedFare) {
-          alert = "⚠️ ALERT: Overpricing Detected!";
-        } else if (chargedFare < predictedFare) {
-          alert =
-              "✅ Fare is fair.\n\nNote: The charged fare is lower than expected.\nThe correct fare should be ₱${predictedFare.toStringAsFixed(2)}";
-        } else {
-          alert = "✅ Fare is within the acceptable range.";
-        }
+        final alert = chargedFare > predictedFare
+            ? "ALERT: Overpricing Detected!"
+            : (chargedFare < predictedFare
+                ? "Fare is fair.\n\nNote: The charged fare is lower than expected.\nThe correct fare should be ₱${smartRound(predictedFare).toStringAsFixed(2)}"
+                : "Fare is within the acceptable range.");
 
         showDialog(
           context: context,
-          builder:
-              (context) => AlertDialog(
-                title: const Text("Fare Validation Result"),
-                content: Text(
-                  "Distance: $distance km\n"
-                  "Predicted Fare: ₱${predictedFare.toStringAsFixed(2)}\n"
-                  "Charged Fare: ₱$chargedFareFormatted\n"
-                  "Difference: ₱${difference.toStringAsFixed(2)}\n"
-                  "Route: $route\n\n"
-                  "$alert",
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context);
-                    },
-                    child: const Text("OK"),
-                  ),
-                ],
-              ),
+          builder: (context) => AlertDialog(
+            title: const Text("Fare Validation Result"),
+            content: Text(
+              "Route: $route\n"
+              "Distance: $distance km\n"
+              "Predicted Fare: ₱${smartRound(predictedFare).toStringAsFixed(2)}\n"
+              "Charged Fare: ₱${smartRound(chargedFare).toStringAsFixed(2)}\n"
+              "Difference: ₱${smartRound(difference).toStringAsFixed(2)}\n\n"
+              "$alert",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: const Text("OK"),
+              )
+            ],
+          ),
         );
       } catch (e) {
         print("Error connecting to backend: $e");
@@ -239,145 +217,95 @@ class _SurveyPageState extends State<SurveyPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        final isSurveyComplete =
-            _fareFeedback != null &&
-            _selectedTransportMode != null &&
-            _distanceController.text.isNotEmpty &&
-            _routeController.text.isNotEmpty &&
-            (_fareFeedback == 'yes' ||
-                (_fareFeedback == 'no' &&
-                    _chargedFareController.text.isNotEmpty));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Fare Survey", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
 
-        if (!isSurveyComplete) {
-          await showDialog(
-            context: context,
-            builder:
-                (context) => AlertDialog(
-                  title: const Text("Survey Incomplete"),
-                  content: const Text(
-                    "Please complete the survey before exiting.",
+            TextField(
+              controller: _routeController,
+              decoration: const InputDecoration(
+                labelText: "Route",
+                hintText: "e.g., Monumento to Baclaran",
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            TextField(
+              controller: _distanceController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                labelText: "Distance (km)",
+                hintText: "Enter estimated distance",
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            DropdownButtonFormField<String>(
+              value: _selectedVehicleType,
+              items: ['Jeep', 'Bus']
+                  .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                  .toList(),
+              onChanged: (value) => setState(() => _selectedVehicleType = value),
+              decoration: const InputDecoration(labelText: "Vehicle Type"),
+            ),
+
+            const SizedBox(height: 8),
+
+            Row(
+              children: [
+                const Text("Passenger Type: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(widget.passengerType),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text("Do you feel you were charged the right amount?"),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text("Yes"),
+                    value: 'yes',
+                    groupValue: _fareFeedback,
+                    onChanged: (value) => setState(() => _fareFeedback = value),
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text("OK"),
-                    ),
-                  ],
                 ),
-          );
-          return false;
-        }
-
-        return true;
-      },
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Fare Survey",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-
-              TextField(
-                controller: _distanceController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: const InputDecoration(
-                  labelText: "Distance (km)",
-                  hintText: "Enter estimated distance",
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              DropdownButtonFormField<String>(
-                value: _selectedTransportMode,
-                decoration: const InputDecoration(labelText: "Vehicle Type"),
-                items:
-                    _transportOptions.map((mode) {
-                      return DropdownMenuItem(value: mode, child: Text(mode));
-                    }).toList(),
-                onChanged:
-                    (value) => setState(() => _selectedTransportMode = value),
-              ),
-
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  const Text("Passenger Type: "),
-                  Text(
-                    widget.passengerType,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              TextField(
-                controller: _routeController,
-                decoration: const InputDecoration(
-                  labelText: "Route",
-                  hintText: "e.g., Balut to Divisoria",
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              const Text("Do you feel you were charged the right amount?"),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: RadioListTile<String>(
-                      title: const Text("Yes"),
-                      value: 'yes',
-                      groupValue: _fareFeedback,
-                      onChanged:
-                          (value) => setState(() => _fareFeedback = value),
-                    ),
-                  ),
-                  Expanded(
-                    child: RadioListTile<String>(
-                      title: const Text("No"),
-                      value: 'no',
-                      groupValue: _fareFeedback,
-                      onChanged:
-                          (value) => setState(() => _fareFeedback = value),
-                    ),
-                  ),
-                ],
-              ),
-
-              if (_fareFeedback == 'no') ...[
-                const SizedBox(height: 20),
-                const Text("How much was the charged fare?"),
-                TextField(
-                  controller: _chargedFareController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    hintText: "Enter fare in PHP",
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text("No"),
+                    value: 'no',
+                    groupValue: _fareFeedback,
+                    onChanged: (value) => setState(() => _fareFeedback = value),
                   ),
                 ),
               ],
+            ),
 
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _submitSurvey,
-                child: const Text("Submit"),
+            if (_fareFeedback == 'no') ...[
+              const SizedBox(height: 20),
+              const Text("How much was the charged fare?"),
+              TextField(
+                controller: _chargedFareController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(hintText: "Enter fare in PHP"),
               ),
             ],
-          ),
+
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _submitSurvey,
+              child: const Text("Submit"),
+            ),
+          ],
         ),
       ),
     );
