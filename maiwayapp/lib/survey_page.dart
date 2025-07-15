@@ -3,7 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart'
+    show rootBundle, FilteringTextInputFormatter;
 
 class SurveyPage extends StatefulWidget {
   final String transportMode;
@@ -317,6 +318,9 @@ class _SurveyPageState extends State<SurveyPage> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+              ],
               decoration: const InputDecoration(
                 labelText: "Distance (km)",
                 hintText: "Enter estimated distance",
