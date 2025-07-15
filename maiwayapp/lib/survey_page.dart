@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class SurveyPage extends StatefulWidget {
   final String transportMode;
@@ -25,11 +26,22 @@ class _SurveyPageState extends State<SurveyPage> {
   final TextEditingController _distanceController = TextEditingController();
   final TextEditingController _routeController = TextEditingController();
 
+  List<String> predefinedRoutes = [];
+
   @override
   void initState() {
     super.initState();
     _distanceController.text = "0.0";
-    _selectedVehicleType = widget.transportMode; // Default vehicle type
+    _selectedVehicleType = widget.transportMode;
+    loadRoutesFromJson();
+  }
+
+  Future<void> loadRoutesFromJson() async {
+    final String response = await rootBundle.loadString('assets/Jeep_routes.json');
+    final data = json.decode(response);
+    setState(() {
+      predefinedRoutes = List<String>.from(data['RoutedJeeps'].map((item) => item['route']));
+    });
   }
 
   @override
@@ -226,12 +238,50 @@ class _SurveyPageState extends State<SurveyPage> {
             const Text("Fare Survey", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
-            TextField(
-              controller: _routeController,
-              decoration: const InputDecoration(
-                labelText: "Route",
-                hintText: "e.g., Monumento to Baclaran",
-              ),
+            // Autocomplete for Routes
+            RawAutocomplete<String>(
+              textEditingController: _routeController,
+              focusNode: FocusNode(),
+              optionsBuilder: (TextEditingValue textEditingValue) {
+              if (textEditingValue.text.isEmpty) {
+                return const Iterable<String>.empty();
+              }
+              return predefinedRoutes.where((route) =>
+                route.toLowerCase().startsWith(textEditingValue.text.toLowerCase()));
+        },
+
+              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                return TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  decoration: const InputDecoration(
+                    labelText: "Route",
+                    hintText: "Type or select a route",
+                  ),
+                );
+              },
+              optionsViewBuilder: (context, onSelected, options) {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4.0,
+                    child: SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: options.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final String option = options.elementAt(index);
+                          return ListTile(
+                            title: Text(option),
+                            onTap: () => onSelected(option),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 12),

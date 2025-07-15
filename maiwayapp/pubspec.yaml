@@ -47,7 +47,9 @@ flutter:
     - assets/images/pujfare.pdf
     - assets/images/busordinaryfare.pdf
     - assets/images/busairconfare.pdf
-    - assets/images/chatbot_icon.png
+    - assets/images/chatbot_icon.png  
+    - assets/Jeep_routes.json
+
 
 flutter_launcher_icons:
   android: "launcher_icon"
