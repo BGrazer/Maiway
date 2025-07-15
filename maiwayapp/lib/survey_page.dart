@@ -166,7 +166,7 @@ class _SurveyPageState extends State<SurveyPage> {
             ),
       );
     } else if (_fareFeedback == 'no') {
-      final url = Uri.parse("http://192.168.1.3:5000/predict_fare");
+      final url = Uri.parse("http://192.168.254.105:5002/predict_fare");
 
       try {
         final response = await http.post(
@@ -192,12 +192,12 @@ class _SurveyPageState extends State<SurveyPage> {
 
         String alert;
         if (roundedChargedFare == roundedPredictedFare) {
-          alert = "✅ Fare is just right.";
+          alert = " Fare is just right.";
         } else if (roundedChargedFare < roundedPredictedFare) {
           alert =
-              "💸 You have saved ₱${roundedDifference.toStringAsFixed(2)}.\nThe original fare is ₱${roundedPredictedFare.toStringAsFixed(2)}.";
+              " You have saved ₱${roundedDifference.toStringAsFixed(2)}.\nThe original fare is ₱${roundedPredictedFare.toStringAsFixed(2)}.";
         } else {
-          alert = "⚠️ ALERT: Overpricing Detected!";
+          alert = " ALERT: Overpricing Detected!";
         }
 
         await pushSurveyToFirestore(
