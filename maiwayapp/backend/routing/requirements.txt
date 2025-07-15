@@ -10,3 +10,5 @@ flask>=2.3.0
 flask-cors>=4.0.0
 osmnx>=1.6 
 openrouteservice>=2.3.0 
+rtree>=1.0.0
+polyline>=1.4.0 

@@ -22,3 +22,14 @@ Flask-Cors
 torch
 torchvision
 torchaudio
+
+# Routing engine dependencies
+networkx>=2.8.0
+osmnx>=1.6
+geopandas>=0.13.2
+shapely>=2.0.1
+folium>=0.14.0
+geopy>=2.3.0
+openrouteservice>=2.3.0
+rtree>=1.0.0
+polyline>=1.4.0

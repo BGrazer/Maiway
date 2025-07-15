@@ -27,6 +27,15 @@ from .utils.fare_utils import calculate_fare
 from .graph.graph_builder import build_transit_graph, build_smart_walking_edges, build_complete_graph, is_useful_transfer
 from .routing.algorithms import find_route_astar
 from .networkx_cost_functions import make_cost_function
+from .utils.trike_utils import (
+    load_trike_terminals,
+    nearest_terminal,
+    build_trike_segment,
+    TRIKE_CATCHMENT_KM,
+    TRIKE_MIN_DISTANCE_KM,
+    TRIKE_MAX_DISTANCE_KM,
+    TRIKE_FLAT_FARE,
+)
 
 
 class UnifiedRouteService:
@@ -123,6 +132,28 @@ class UnifiedRouteService:
                     parts = line.strip().split(',')
                     if len(parts) >= 2:
                         self.allowed_transfers.add((parts[0], parts[1]))
+        
+        # -------------------------------------------------------------
+        #  Tricycle terminals (optional last/first mile enhancement)
+        # -------------------------------------------------------------
+        # Load tricycle terminals (env var TRICYCLE_TERMINALS_GEOJSON overrides default)
+        # Resolve terminal GeoJSON relative to the *package* directory so that
+        # the engine always finds it irrespective of where the Flask app is
+        # launched from (the default relative path fails when CWD != backend/routing).
+
+        pkg_root = os.path.dirname(__file__)  # maiwayrouting/
+        # Data folder lives one directory up: .../routing/data/
+        trike_geojson = os.path.abspath(os.path.join(pkg_root, '..', self.data_dir, 'tricycle_terminals.geojson'))
+
+        if not os.path.exists(trike_geojson):
+            # Extra fallback – original relative lookup so existing setups keep working
+            trike_geojson = os.path.join(self.data_dir, 'tricycle_terminals.geojson')
+
+        self.trike_terminals = load_trike_terminals(trike_geojson)
+        if self.trike_terminals:
+            self.logger.info(f"Loaded {len(self.trike_terminals)} tricycle terminals")
+        else:
+            self.logger.info("No tricycle terminals loaded – convenient-mode trike feature disabled")
         
         print("MaiWay Routing Engine initialized successfully!")
     
@@ -580,13 +611,98 @@ class UnifiedRouteService:
             return base
         
         # (Removed quick-exit for sub-250 m trips; always run normal routing logic)
-        
+
+        # ------------------------------------------------------------------
+        #  NEW: Tricycle first-mile injection for "convenient" preference
+        # ------------------------------------------------------------------
+        first_mile_override = None  # (walk_seg, trike_seg, terminal)
+        if mode == 'convenient' and getattr(self, 'trike_terminals', None):
+            # Check if user starts near a trike terminal (<=400 m)
+            term_res = nearest_terminal(origin_lat, origin_lon, self.trike_terminals, max_km=TRIKE_CATCHMENT_KM)
+            if term_res is None:
+                self.logger.info("[TRIKE-FIRST] No terminal within catchment radius %.0fm" % (TRIKE_CATCHMENT_KM*1000))  # uses updated constant
+            else:
+                terminal, walk_km_to_terminal = term_res
+                board_stop_id, board_dist_km = self.find_nearest_stop(terminal['lat'], terminal['lon'])
+                if TRIKE_MIN_DISTANCE_KM <= board_dist_km <= TRIKE_MAX_DISTANCE_KM:
+                    # Build first-mile walking segment (origin -> terminal)
+                    walk_seg = {
+                        'from_stop': {
+                            'id': 'ORIGIN',
+                            'name': 'ORIGIN',
+                            'lat': origin_lat,
+                            'lon': origin_lon,
+                        },
+                        'to_stop': {
+                            'id': terminal['id'],
+                            'name': terminal.get('name', 'Trike Terminal'),
+                            'lat': terminal['lat'],
+                            'lon': terminal['lon'],
+                        },
+                        'mode': 'Walking',
+                        'distance': walk_km_to_terminal,
+                        'fare': 0.0,
+                        'trip_id': 'WALKING',
+                        'route_id': 'WALKING',
+                        'reason': 'first_mile',
+                        'polyline': [[origin_lon, origin_lat], [terminal['lon'], terminal['lat']]],
+                        'polyline_source': 'straight_line',
+                    }
+
+                    # Build trike segment (terminal -> boarding stop)
+                    trike_seg = build_trike_segment(
+                        {
+                            'id': terminal['id'],
+                            'name': terminal.get('name', 'Trike Terminal'),
+                            'lat': terminal['lat'],
+                            'lon': terminal['lon'],
+                        },
+                        {
+                            'id': board_stop_id,
+                            'name': self.stops[board_stop_id]['name'],
+                            'lat': self.stops[board_stop_id]['lat'],
+                            'lon': self.stops[board_stop_id]['lon'],
+                        },
+                    )
+
+                    # Polyline placeholder – straight line; will be enhanced later by polyline generator
+                    trike_seg['polyline'] = [[terminal['lon'], terminal['lat']], [self.stops[board_stop_id]['lon'], self.stops[board_stop_id]['lat']]]
+                    trike_seg['polyline_source'] = 'straight_line'
+
+                    # Log for debugging
+                    self.logger.info(
+                        (
+                            f"[TRIKE-FIRST] terminal={terminal['id']} walk_to_terminal={walk_km_to_terminal:.3f} km "
+                            f"→ stop {board_stop_id} ride={board_dist_km:.3f} km – injecting first-mile tricycle"
+                        )
+                    )
+
+                    first_mile_override = (walk_seg, trike_seg, board_stop_id)
+
+                    # Override origin stop for A* search
+                    origin_stop_override = board_stop_id
+                else:
+                    # Nearest stop is either too close (<0.5 km) or too far (>2 km)
+                    limit = "< %.1f" % TRIKE_MIN_DISTANCE_KM if board_dist_km < TRIKE_MIN_DISTANCE_KM else "> %.1f" % TRIKE_MAX_DISTANCE_KM
+                    self.logger.info(
+                        (
+                            f"[TRIKE-FIRST] terminal found but nearest stop {board_stop_id} distance {board_dist_km:.3f} km (outside useful range {limit} km)"
+                        )
+                    )
+                    origin_stop_override = None
+        else:
+            origin_stop_override = None
+
         # Configuration for walking limits
         MAX_WALKING_TO_STOP = 1.3  # 1.3 km max walking to first/last stop
         WALKING_SPEED_KMH = 4.0    # Average walking speed
         
-        # Find nearest stops to origin and destination
-        origin_stop_id, origin_distance = self.find_nearest_stop(origin_lat, origin_lon)
+        # Find nearest stops to origin and destination (use override if set)
+        if origin_stop_override:
+            origin_stop_id = origin_stop_override
+            origin_distance = 0.0  # already covered by trike segment
+        else:
+            origin_stop_id, origin_distance = self.find_nearest_stop(origin_lat, origin_lon)
         dest_stop_id, dest_distance = self.find_nearest_stop(dest_lat, dest_lon)
         
         self.logger.info(f"Nearest stops: origin={origin_stop_id} ({origin_distance:.3f} km), dest={dest_stop_id} ({dest_distance:.3f} km)")
@@ -699,9 +815,17 @@ class UnifiedRouteService:
                 }
             return None
         
+        # --------------------------------------------
+        #  Inject trike + walk segments if we built one
+        # --------------------------------------------
+        segments = list(route.segments)
+        if first_mile_override:
+            walk_seg, trike_seg, _ = first_mile_override
+            segments = [walk_seg, trike_seg] + segments
+
         # Add first mile walking if origin is not at a stop
         first_mile_walking = None
-        if origin_distance > 0.001:  # If origin is not exactly at a stop (1 meter tolerance)
+        if origin_distance > 0.001 and not first_mile_override:  # Skip default if trike handled it
             first_mile_walking = {
                 'from_stop': {
                     'id': 'ORIGIN',
@@ -763,13 +887,95 @@ class UnifiedRouteService:
                 'dest_lat': dest_lat
             }
         
-        # Build complete route with walking segments
+        # Build complete route with walking (or tricycle) segments
         segments = []
-        
-        # Add first mile walking
-        if first_mile_walking:
+
+        # Priority: if a tricycle first-mile override was generated, inject both the
+        # initial walk-to-terminal and the trike ride *before* any transit
+        # segments.  Otherwise fall back to a standard first-mile walking
+        # segment when needed.
+        if first_mile_override:
+            walk_seg, trike_seg, _ = first_mile_override
+            segments.extend([walk_seg, trike_seg])
+        elif first_mile_walking:
             segments.append(first_mile_walking)
         
+        # -------------------------------------------------------------
+        #  NEW: Optional last-mile tricycle injection (convenient only)
+        #  – applies ONLY if we did NOT already use a first-mile trike
+        # -------------------------------------------------------------
+        last_mile_override = None  # (trike_seg, walk_seg)
+        # Last-mile tricycle temporarily disabled – condition short-circuited
+        if False and (first_mile_override is None  # never allow two trike legs
+                and mode == 'convenient'
+                and getattr(self, 'trike_terminals', None)):
+
+            term_res = nearest_terminal(dest_lat, dest_lon, self.trike_terminals, max_km=TRIKE_CATCHMENT_KM)
+            if term_res is not None:
+                terminal, walk_km_from_terminal = term_res
+
+                km_stop_to_terminal = haversine_distance(
+                    terminal['lat'], terminal['lon'],
+                    self.stops[dest_stop_id]['lat'], self.stops[dest_stop_id]['lon']
+                )
+
+                if km_stop_to_terminal <= TRIKE_MAX_DISTANCE_KM:
+                    # Build trike segment (from last GTFS stop to terminal)
+                    trike_seg = build_trike_segment(
+                        {
+                            'id': dest_stop_id,
+                            'name': self.stops[dest_stop_id]['name'],
+                            'lat': self.stops[dest_stop_id]['lat'],
+                            'lon': self.stops[dest_stop_id]['lon'],
+                        },
+                        {
+                            'id': terminal['id'],
+                            'name': terminal.get('name', 'Trike Terminal'),
+                            'lat': terminal['lat'],
+                            'lon': terminal['lon'],
+                        },
+                    )
+
+                    trike_seg['polyline'] = [[self.stops[dest_stop_id]['lon'], self.stops[dest_stop_id]['lat']],
+                                             [terminal['lon'], terminal['lat']]]
+                    trike_seg['polyline_source'] = 'straight_line'
+
+                    # Build short walk from terminal to final destination
+                    walk_seg_dest = {
+                        'from_stop': {
+                            'id': terminal['id'],
+                            'name': terminal.get('name', 'Trike Terminal'),
+                            'lat': terminal['lat'],
+                            'lon': terminal['lon'],
+                        },
+                        'to_stop': {
+                            'id': 'DESTINATION',
+                            'name': 'DESTINATION',
+                            'lat': dest_lat,
+                            'lon': dest_lon,
+                        },
+                        'mode': 'Walking',
+                        'distance': walk_km_from_terminal,
+                        'fare': 0.0,
+                        'trip_id': 'WALKING',
+                        'route_id': 'WALKING',
+                        'reason': 'last_mile',
+                        'polyline': [[terminal['lon'], terminal['lat']], [dest_lon, dest_lat]],
+                        'polyline_source': 'straight_line',
+                    }
+
+                    # Log for debugging
+                    self.logger.info(
+                        (
+                            f"[TRIKE-LAST] stop→terminal={km_stop_to_terminal:.3f} km walk_terminal→dest={walk_km_from_terminal:.3f} km – injecting last-mile tricycle"
+                        )
+                    )
+
+                    last_mile_override = (trike_seg, walk_seg_dest)
+
+                    # Override dest_distance so default last-mile walking is skipped
+                    dest_distance = 0.0
+
         # Add transit segments
         for segment in route.segments:
             # Convert RouteSegment to dict format
@@ -797,8 +1003,11 @@ class UnifiedRouteService:
             }
             segments.append(segment_dict)
         
-        # Add last mile walking
-        if last_mile_walking:
+        # Append last-mile override if we built one, otherwise default walk
+        if last_mile_override:
+            trike_seg, walk_dest_seg = last_mile_override
+            segments.extend([trike_seg, walk_dest_seg])
+        elif last_mile_walking:
             segments.append(last_mile_walking)
  
         # --- NEW: Coalesce consecutive walking segments (handles start/end duplicates) ---
@@ -1443,8 +1652,8 @@ class UnifiedRouteService:
                         return syn.get(m, m)
 
                     allowed_set = {_canon(m) for m in allowed_modes}
-                    # Always keep walking so first/last mile is preserved
-                    allowed_set.update({'walking'})
+                    # Always keep walking and tricycle so first/last-mile helpers are not dropped
+                    allowed_set.update({'walking', 'tricycle'})
 
                     filtered = [seg for seg in route['segments'] if _canon(seg.get('mode')) in allowed_set]
 
