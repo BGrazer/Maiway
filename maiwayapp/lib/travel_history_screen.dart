@@ -17,20 +17,30 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    print('🔍 Loading travel history for userId: ${widget.userId}');
     _loadTravelHistory();
   }
 
   Future<void> _loadTravelHistory() async {
-    final snapshot =
-        await FirebaseFirestore.instance
-            .collection('travelHistory')
-            .where('userId', isEqualTo: widget.userId)
-            .get();
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance
+              .collection('travel_history')
+              .where('userId', isEqualTo: widget.userId)
+              .get();
 
-    final logs = snapshot.docs.map((doc) => doc.data()).toList();
-    setState(() {
-      travelLogs = logs.cast<Map<String, dynamic>>();
-    });
+      print('📄 Fetched ${snapshot.docs.length} travel history logs');
+      for (var doc in snapshot.docs) {
+        print('📝 ${doc.data()}');
+      }
+
+      final logs = snapshot.docs.map((doc) => doc.data()).toList();
+      setState(() {
+        travelLogs = logs.cast<Map<String, dynamic>>();
+      });
+    } catch (e) {
+      print('🔥 Error loading travel history: $e');
+    }
   }
 
   Map<String, List<Map<String, dynamic>>> _groupLogsByDate(
@@ -129,7 +139,7 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
                                           children: [
                                             Expanded(
                                               child: Text(
-                                                trip['route'],
+                                                "${trip['origin']} → ${trip['destination']}",
                                                 style: const TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 16,
@@ -154,7 +164,7 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
             ),
           ),
 
-          // REPORT BUTTON FOR TESTING
+          // REPORT BUTTON
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: ElevatedButton.icon(
@@ -178,7 +188,7 @@ class _TravelHistoryScreenState extends State<TravelHistoryScreen> {
                 ),
               ),
             ),
-          ), // TODO: Remove this after testing report submission
+          ),
         ],
       ),
     );
@@ -212,10 +222,12 @@ class TravelDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            detailItem('Route', trip['route']),
-            detailItem('Start Time', trip['startTime']),
-            detailItem('End Time', trip['endTime']),
-            detailItem('Modes Used', (trip['modes'] as List).join(', ')),
+            detailItem('Origin', trip['origin']),
+            detailItem('Destination', trip['destination']),
+            detailItem('Date', trip['date']),
+            detailItem('Mode of Transport', trip['modeOfTransport']),
+            detailItem('Distance', '${trip['distance']} km'),
+            detailItem('Fare', '₱${trip['fare']}'),
             const Spacer(),
             Center(
               child: ElevatedButton.icon(

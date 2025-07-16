@@ -1,4 +1,3 @@
-# chatbot_model.py (lightweight BERT version)
 import json
 import torch
 import os
@@ -18,8 +17,8 @@ class ChatbotModel:
         self.map_related_keywords = [
             "route", "routes", "how to get to", "location", "address", 
             "map", "direction", "directions", "saan", "paano pumunta",
-            "papunta", "transport",
-            "where is", "find", "locate", "travel", "by foot", "walking"
+            "papunta", "where is", "find", "locate", "travel", "by foot",
+            "walking", "commute",
         ]
 
         self._load_and_encode_data()
@@ -97,7 +96,6 @@ class ChatbotModel:
 
         cosine_scores = F.cosine_similarity(query_embedding, self.corpus_embeddings)
 
-        # FIX: Handle 0-dim tensor (single result)
         if cosine_scores.dim() == 0:
             similarity_score = cosine_scores.item()
             best_match_idx = 0

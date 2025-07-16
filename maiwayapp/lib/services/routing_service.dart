@@ -7,18 +7,19 @@ import 'package:flutter/foundation.dart';
 /// It expects the backend to return route responses with keys: segments, shapes, summary, fare_breakdown.
 class RoutingService {
   // QUICK FIX: Using static URL to ensure consistent IP address
-  static const String baseUrl = 'http://127.0.0.1:5000'; // Your IP address
-  
+  static const String baseUrl =
+      'https://maiway-backend-production.up.railway.app/routing'; // Your IP address
+
   // ALTERNATIVE IP: If the above doesn't work, try this one:
   // static const String baseUrl = 'http://192.168.225.1:5000'; // Alternative IP
-  
+
   // Alternative: Dynamic URL detection (commented out for now)
   // static String get baseUrl {
   //   // Check if running on web first
   //   if (kIsWeb) {
   //     return 'http://localhost:5000';
   //   }
-  //   
+  //
   //   // For mobile platforms, use your computer's IP address
   //   return 'http://172.20.96.139:5000'; // Your computer's IP address
   // }
@@ -28,12 +29,11 @@ class RoutingService {
     try {
       final url = Uri.parse('$baseUrl/health');
       print('🧪 Health check URL: $url');
-      
-      final response = await http.get(
-        url,
-        headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 15));
-      
+
+      final response = await http
+          .get(url, headers: {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 15));
+
       print('🧪 Health check status: ${response.statusCode}');
       return response.statusCode == 200;
     } catch (e) {
@@ -41,7 +41,7 @@ class RoutingService {
       return false;
     }
   }
-  
+
   // Get route from backend with improved error handling
   /// Request a route from the backend. Expects backend to return a JSON with keys:
   /// - fastest/cheapest/convenient: List of segments
@@ -64,24 +64,23 @@ class RoutingService {
           'lat': startLocation.latitude,
           'lon': startLocation.longitude,
         },
-        'end': {
-          'lat': endLocation.latitude,
-          'lon': endLocation.longitude,
-        },
+        'end': {'lat': endLocation.latitude, 'lon': endLocation.longitude},
         'mode': mode,
         'modes': modes,
         'passenger_type': passengerType,
         'preferences': preferences,
       };
       print('[ROUTE] REQUEST BODY: ' + json.encode(requestBody));
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: json.encode(requestBody),
-      ).timeout(const Duration(seconds: 45)); // Increased timeout
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: json.encode(requestBody),
+          )
+          .timeout(const Duration(seconds: 45)); // Increased timeout
       print('[ROUTE] RESPONSE: ${response.statusCode} ${response.body}');
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
@@ -116,7 +115,8 @@ class RoutingService {
         };
       } else {
         return {
-          'error': 'Server returned ${response.statusCode}: ${response.reasonPhrase}',
+          'error':
+              'Server returned ${response.statusCode}: ${response.reasonPhrase}',
           'type': 'http_error',
           'details': response.body,
         };
@@ -124,7 +124,8 @@ class RoutingService {
     } on http.ClientException catch (e) {
       print('[ROUTE] ClientException: $e');
       return {
-        'error': 'Cannot connect to server. Check your network connection and ensure the Flask server is running.',
+        'error':
+            'Cannot connect to server. Check your network connection and ensure the Flask server is running.',
         'type': 'connection_error',
         'details': e.toString(),
       };
@@ -149,12 +150,13 @@ class RoutingService {
   static Future<List<Map<String, dynamic>>> searchStops(String query) async {
     try {
       if (query.trim().isEmpty) return [];
-      
-      final url = Uri.parse('$baseUrl/search-stops?q=${Uri.encodeComponent(query.trim())}');
-      final response = await http.get(
-        url,
-        headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 15));
+
+      final url = Uri.parse(
+        '$baseUrl/search-stops?q=${Uri.encodeComponent(query.trim())}',
+      );
+      final response = await http
+          .get(url, headers: {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -176,20 +178,23 @@ class RoutingService {
     try {
       // Test basic connectivity
       print("🧪 Testing health endpoint...");
-      final healthResponse = await http.get(
-        Uri.parse('$baseUrl/health'),
-      ).timeout(const Duration(seconds: 10));
-      
-      print("🧪 Health check response: ${healthResponse.statusCode} - ${healthResponse.body}");
-      
+      final healthResponse = await http
+          .get(Uri.parse('$baseUrl/health'))
+          .timeout(const Duration(seconds: 10));
+
+      print(
+        "🧪 Health check response: ${healthResponse.statusCode} - ${healthResponse.body}",
+      );
+
       // Test index endpoint
       print("🧪 Testing index endpoint...");
-      final indexResponse = await http.get(
-        Uri.parse('$baseUrl/'),
-      ).timeout(const Duration(seconds: 10));
-      
-      print("🧪 Index response: ${indexResponse.statusCode} - ${indexResponse.body}");
-      
+      final indexResponse = await http
+          .get(Uri.parse('$baseUrl/'))
+          .timeout(const Duration(seconds: 10));
+
+      print(
+        "🧪 Index response: ${indexResponse.statusCode} - ${indexResponse.body}",
+      );
     } catch (e) {
       print("🧪 Connection test failed: $e");
       print("🧪 Error type: ${e.runtimeType}");

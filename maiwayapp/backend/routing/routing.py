@@ -5,7 +5,7 @@ Multi-criteria routing system for commuter app
 """
 
 from flask import Flask, request, jsonify
-print(">>> app.py started!", flush=True)
+print(">>> routing.py started!", flush=True)
 from flask_cors import CORS
 import json
 import time
@@ -379,4 +379,7 @@ def format_multicriteria_response(result, preferences):
 
 
 if __name__ == '__main__':
-    app.run(debug=False) 
+    import socket
+    local_ip = socket.gethostbyname(socket.gethostname())
+    print(f"\n🟦 Routing backend running at: http://{local_ip}:5000\n")
+    app.run(host='0.0.0.0', port=5000) 

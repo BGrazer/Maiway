@@ -24,17 +24,17 @@ class RouteModeScreen extends StatefulWidget {
 /// State for RouteModeScreen, manages route fetching and selection.
 class _RouteModeScreenState extends State<RouteModeScreen> {
   MapController _mapController = MapController();
-  
+
   // Location data
   LatLng _originLocation = LatLng(14.5995, 120.9842); // Default Manila
   LatLng _destinationLocation = LatLng(14.5547, 121.0244); // Default Manila
   String _originAddress = '';
   String _destinationAddress = '';
-  
+
   // Map data
   List<Marker> _markers = [];
   List<Polyline> _polylines = [];
-  
+
   // Route data
   List<Map<String, dynamic>> _routes = [];
   int _selectedRouteIndex = 0;
@@ -49,7 +49,8 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
 
   void _initializeScreen() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null) {
         setState(() {
           _originLocation = args['origin'] as LatLng;
@@ -66,29 +67,32 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
   Future<List<String>> _getSelectedPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     List<String> selectedPrefs = [];
-    
+
     if (prefs.getBool('pref_fastest') == true) selectedPrefs.add('fastest');
     if (prefs.getBool('pref_cheapest') == true) selectedPrefs.add('cheapest');
-    if (prefs.getBool('pref_convenient') == true) selectedPrefs.add('convenient');
-    
+    if (prefs.getBool('pref_convenient') == true)
+      selectedPrefs.add('convenient');
+
     // Return all three preferences by default if none are saved yet
-    return selectedPrefs.isEmpty ? ['fastest', 'cheapest', 'convenient'] : selectedPrefs;
+    return selectedPrefs.isEmpty
+        ? ['fastest', 'cheapest', 'convenient']
+        : selectedPrefs;
   }
 
   // Helper method to get selected modes from SharedPreferences
   Future<List<String>> _getSelectedModes() async {
     final prefs = await SharedPreferences.getInstance();
     List<String> selectedModes = [];
-    
+
     if (prefs.getBool('mode_jeepney') == true) selectedModes.add('jeepney');
     if (prefs.getBool('mode_bus') == true) selectedModes.add('bus');
     if (prefs.getBool('mode_lrt') == true) selectedModes.add('lrt');
     if (prefs.getBool('mode_tricycle') == true) selectedModes.add('tricycle');
-    
+
     return selectedModes.isEmpty ? ['jeepney', 'bus', 'lrt'] : selectedModes;
   }
 
-    /// Fetches all selected route alternatives from the backend and processes them for display.
+  /// Fetches all selected route alternatives from the backend and processes them for display.
   Future<void> _fetchRoutesFromBackend() async {
     setState(() {
       _isLoading = true;
@@ -98,18 +102,18 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     try {
       final prefs = await _getSelectedPreferences();
       final modes = await _getSelectedModes();
-      
+
       List<Map<String, dynamic>> processedRoutes = [];
 
       // Fetch fastest route
       if (prefs.contains('fastest')) {
         final fastestRoute = await _fetchRoute('fastest', modes);
         if (fastestRoute != null) {
-            processedRoutes.add({
-              'type': 'fastest',
-              'title': 'Fastest Route',
-              'icon': Icons.speed,
-              'color': Colors.green,
+          processedRoutes.add({
+            'type': 'fastest',
+            'title': 'Fastest Route',
+            'icon': Icons.speed,
+            'color': Colors.green,
             'routeData': fastestRoute['routeData'],
             'totalCost': fastestRoute['totalCost'] ?? 0.0,
             'totalDistance': fastestRoute['totalDistance'] ?? 0.0,
@@ -123,11 +127,11 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       if (prefs.contains('cheapest')) {
         final cheapestRoute = await _fetchRoute('cheapest', modes);
         if (cheapestRoute != null) {
-            processedRoutes.add({
-              'type': 'cheapest',
-              'title': 'Cheapest Route',
-              'icon': Icons.attach_money,
-              'color': Colors.orange,
+          processedRoutes.add({
+            'type': 'cheapest',
+            'title': 'Cheapest Route',
+            'icon': Icons.attach_money,
+            'color': Colors.orange,
             'routeData': cheapestRoute['routeData'],
             'totalCost': cheapestRoute['totalCost'] ?? 0.0,
             'totalDistance': cheapestRoute['totalDistance'] ?? 0.0,
@@ -141,11 +145,11 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       if (prefs.contains('convenient')) {
         final convenientRoute = await _fetchRoute('convenient', modes);
         if (convenientRoute != null) {
-            processedRoutes.add({
-              'type': 'convenient',
-              'title': 'Most Convenient',
-              'icon': Icons.accessibility,
-              'color': Colors.purple,
+          processedRoutes.add({
+            'type': 'convenient',
+            'title': 'Most Convenient',
+            'icon': Icons.accessibility,
+            'color': Colors.purple,
             'routeData': convenientRoute['routeData'],
             'totalCost': convenientRoute['totalCost'] ?? 0.0,
             'totalDistance': convenientRoute['totalDistance'] ?? 0.0,
@@ -164,12 +168,14 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       print('🟦 Processed ${processedRoutes.length} routes');
       for (int i = 0; i < processedRoutes.length; i++) {
         final route = processedRoutes[i];
-        print('🟦 Route $i: ${route['title']} - ${route['polylinePoints']?.length ?? 0} points');
+        print(
+          '🟦 Route $i: ${route['title']} - ${route['polylinePoints']?.length ?? 0} points',
+        );
       }
 
       if (processedRoutes.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-        _setupMapData();
+          _setupMapData();
         });
       } else {
         setState(() {
@@ -177,7 +183,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
           _isLoading = false;
         });
       }
-
     } catch (e) {
       print('🟥 Error fetching routes: $e');
       setState(() {
@@ -187,21 +192,25 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     }
   }
 
-  Future<Map<String, dynamic>?> _fetchRoute(String mode, List<String> modes) async {
+  Future<Map<String, dynamic>?> _fetchRoute(
+    String mode,
+    List<String> modes,
+  ) async {
     try {
       // Get selected preferences from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       List<String> selectedPrefs = [];
-      
+
       if (prefs.getBool('pref_fastest') == true) selectedPrefs.add('fastest');
       if (prefs.getBool('pref_cheapest') == true) selectedPrefs.add('cheapest');
-      if (prefs.getBool('pref_convenient') == true) selectedPrefs.add('convenient');
-      
+      if (prefs.getBool('pref_convenient') == true)
+        selectedPrefs.add('convenient');
+
       // Use all preferences if none are saved
       if (selectedPrefs.isEmpty) {
         selectedPrefs = ['fastest', 'cheapest', 'convenient'];
       }
-      
+
       final response = await RoutingService.getRoute(
         startLocation: _originLocation,
         endLocation: _destinationLocation,
@@ -209,17 +218,19 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         modes: modes,
         preferences: selectedPrefs,
       );
-      
+
       print('🟦 $mode RAW RESPONSE: $response');
-      
+
       if (response != null && !response.containsKey('error')) {
         final processed = RouteProcessor.processRouteResponse(response);
         print('🟩 $mode PROCESSED: $processed');
-        
+
         if (processed['success']) {
           return processed;
         } else {
-          print('❌ $mode route not added: ${processed['error']?.toString() ?? 'Unknown error'}');
+          print(
+            '❌ $mode route not added: ${processed['error']?.toString() ?? 'Unknown error'}',
+          );
         }
       } else {
         print('❌ $mode route not added: error or null response');
@@ -227,7 +238,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     } catch (e) {
       print('🟥 Error fetching $mode route: $e');
     }
-    
+
     return null;
   }
 
@@ -235,7 +246,11 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     return PolylineUtils.parsePolyline(polyline);
   }
 
-  List<LatLng> robustPolyline(dynamic polyline, LatLng origin, LatLng destination) {
+  List<LatLng> robustPolyline(
+    dynamic polyline,
+    LatLng origin,
+    LatLng destination,
+  ) {
     return PolylineUtils.robustPolyline(polyline, origin, destination);
   }
 
@@ -259,11 +274,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         height: 80.0,
         point: _destinationLocation,
         child: Container(
-          child: Icon(
-            Icons.location_on,
-            color: Colors.red,
-            size: 25,
-          ),
+          child: Icon(Icons.location_on, color: Colors.red, size: 25),
         ),
       ),
     ];
@@ -345,12 +356,18 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
   void _onRouteSelected(int index) {
     setState(() {
       _selectedRouteIndex = index;
-      
+
       // Update polyline color and points
       if (_routes.isNotEmpty && index < _routes.length) {
         final selectedRoute = _routes[index];
-        final polylinePoints = robustPolyline(selectedRoute['polylinePoints'], _originLocation, _destinationLocation);
-        print('🟦 Route selected: ${selectedRoute['title']} with ${polylinePoints.length} points');
+        final polylinePoints = robustPolyline(
+          selectedRoute['polylinePoints'],
+          _originLocation,
+          _destinationLocation,
+        );
+        print(
+          '🟦 Route selected: ${selectedRoute['title']} with ${polylinePoints.length} points',
+        );
         _polylines = [
           Polyline(
             points: polylinePoints,
@@ -383,38 +400,39 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
 
     final List<RouteSegment> segments =
         (selectedRoute['segments'] as List).cast<RouteSegment>();
-    final distanceKm = ((selectedRoute['totalDistance'] ?? 0).toDouble() == 0)
-        ? segments.fold<double>(0, (sum, seg) => sum + seg.distance)
-        : (selectedRoute['totalDistance'] ?? 0).toDouble();
+    final distanceKm =
+        ((selectedRoute['totalDistance'] ?? 0).toDouble() == 0)
+            ? segments.fold<double>(0, (sum, seg) => sum + seg.distance)
+            : (selectedRoute['totalDistance'] ?? 0).toDouble();
     final farePhp = (selectedRoute['totalCost'] ?? 0).toDouble();
 
     final data = {
       'userId': FirebaseAuth.instance.currentUser!.uid, // string
-      'modeOfTransport': _collectModes(segments),       // string list joined by comma
+      'modeOfTransport': _collectModes(segments), // string list joined by comma
       'date': DateFormat('yyyy-MM-dd').format(DateTime.now()), // string
       'origin': _originAddress,
       'destination': _destinationAddress,
-      'distance': distanceKm.toStringAsFixed(2),       // string representation
-      'fare': farePhp,                                 // number (double)
+      'distance': distanceKm.toStringAsFixed(2), // string representation
+      'fare': farePhp, // number (double)
     };
 
     try {
-      await FirebaseFirestore.instance
-          .collection('travel_history')
-          .add(data);
+      await FirebaseFirestore.instance.collection('travel_history').add(data);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Trip saved to travel history')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save trip: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save trip: $e')));
     }
   }
 
   void _startTrip() {
-    if (_routes.isEmpty || _selectedRouteIndex < 0 || _selectedRouteIndex >= _routes.length) {
+    if (_routes.isEmpty ||
+        _selectedRouteIndex < 0 ||
+        _selectedRouteIndex >= _routes.length) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please select a route first'),
@@ -425,15 +443,22 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     }
 
     final selectedRoute = _routes[_selectedRouteIndex];
-    
-    // Ensure we have valid segments and polyline
-    final List<RouteSegment> segments = (selectedRoute['segments'] as List)
-        .map((s) => s as RouteSegment)
-        .toList();
-    
-    final List<LatLng> polylinePoints = robustPolyline(selectedRoute['polylinePoints'], _originLocation, _destinationLocation);
 
-    print('🟦 Starting trip with ${segments.length} segments and ${polylinePoints.length} polyline points');
+    // Ensure we have valid segments and polyline
+    final List<RouteSegment> segments =
+        (selectedRoute['segments'] as List)
+            .map((s) => s as RouteSegment)
+            .toList();
+
+    final List<LatLng> polylinePoints = robustPolyline(
+      selectedRoute['polylinePoints'],
+      _originLocation,
+      _destinationLocation,
+    );
+
+    print(
+      '🟦 Starting trip with ${segments.length} segments and ${polylinePoints.length} polyline points',
+    );
 
     Navigator.pushNamed(
       context,
@@ -446,7 +471,9 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         'summary': selectedRoute['routeData']?['summary'] ?? {},
       },
     ).then((result) {
-      if (result != null && result is Map<String, dynamic> && result['clearPins'] == true) {
+      if (result != null &&
+          result is Map<String, dynamic> &&
+          result['clearPins'] == true) {
         print('🔄 Clearing pins after returning from navigation');
         Navigator.of(context).pop({'clearPins': true});
       }
@@ -502,35 +529,33 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.app',
               ),
-              PolylineLayer(
-                polylines: _polylines,
-              ),
-              MarkerLayer(
-                markers: _markers,
-              ),
+              PolylineLayer(polylines: _polylines),
+              MarkerLayer(markers: _markers),
             ],
           ),
 
           // Bottom Sheet Content
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                width: double.infinity,
-              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 6,
-                      offset: Offset(0, -3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              width: double.infinity,
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.6,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 6,
+                    offset: Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   // START TRIP BUTTON
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -556,89 +581,97 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                       ),
                     ),
                   ),
-                  
-                    // Origin and Destination Section with Back Button
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: Row(
-                        children: [
-                          // Back Button
-                          IconButton(
-                            icon: Icon(Icons.arrow_back, color: const Color(0xFF6699CC)),
-                            onPressed: () => Navigator.of(context).pop(),
+
+                  // Origin and Destination Section with Back Button
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: Row(
+                      children: [
+                        // Back Button
+                        IconButton(
+                          icon: Icon(
+                            Icons.arrow_back,
+                            color: const Color(0xFF6699CC),
                           ),
-                          SizedBox(width: 8),
-                          // Origin/Destination Markers
-                          Column(
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                        SizedBox(width: 8),
+                        // Origin/Destination Markers
+                        Column(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: Color(
+                                  0xFF003366,
+                                ), // dark blue for origin
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Container(
+                              width: 2,
+                              height: 30,
+                              color: Colors.grey[300],
+                            ),
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(width: 16),
+                        // Location Text
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF003366), // dark blue for origin
-                                  shape: BoxShape.circle,
+                              Text(
+                                _originAddress,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              Container(
-                                width: 2,
-                                height: 30,
-                                color: Colors.grey[300],
-                              ),
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
+                              SizedBox(height: 16),
+                              Text(
+                                _destinationAddress,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(width: 16),
-                          // Location Text
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _originAddress,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  _destinationAddress,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
+                        ),
+                        // Swap Button
+                        IconButton(
+                          icon: Icon(
+                            Icons.swap_vert,
+                            color: const Color(0xFF6699CC),
                           ),
-                          // Swap Button
-                          IconButton(
-                            icon: Icon(Icons.swap_vert, color: const Color(0xFF6699CC)),
-                            onPressed: () {
-                              // Handle swap locations
-                            },
-                          ),
-                        ],
-                      ),
+                          onPressed: () {
+                            // Handle swap locations
+                          },
+                        ),
+                      ],
                     ),
-                    Divider(height: 1, thickness: 1, color: Colors.grey[200]),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.all(16),
-                        child: _buildRoutesSection(),
-                      ),
+                  ),
+                  Divider(height: 1, thickness: 1, color: Colors.grey[200]),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.all(16),
+                      child: _buildRoutesSection(),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
+          ),
         ],
       ),
     );
@@ -651,15 +684,14 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFF6699CC)),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                const Color(0xFF6699CC),
+              ),
             ),
             SizedBox(height: 16),
             Text(
               'Finding best routes...',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -714,10 +746,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
             SizedBox(height: 16),
             Text(
               'No routes found for this journey.',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 16),
@@ -737,7 +766,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         ),
       );
     }
-    
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -746,10 +775,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Text(
             '${_routes.length} suggested routes',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
         ),
         Flexible(
@@ -773,19 +799,19 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     final routeData = route['routeData'] as Map<String, dynamic>?;
     final segments = route['segments'] as List<RouteSegment>? ?? [];
     final totalCost = route['totalCost'] as double? ?? 0.0;
-    
+
     // Calculate route statistics
     double totalDistance = 0.0;
     Map<String, double> modeBreakdown = {};
     Map<String, int> modeCount = {};
-    
+
     for (final segment in segments) {
       totalDistance += segment.distance;
       final mode = segment.mode.name;
       modeBreakdown[mode] = (modeBreakdown[mode] ?? 0.0) + segment.fare;
       modeCount[mode] = (modeCount[mode] ?? 0) + 1;
     }
-    
+
     // Estimate time (rough calculation: 30 km/h for transit, 5 km/h for walking)
     double estimatedTime = 0.0;
     for (final segment in segments) {
@@ -795,7 +821,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         estimatedTime += segment.distance / 30.0; // 30 km/h transit
       }
     }
-    
+
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: isSelected ? 8 : 2,
@@ -809,34 +835,34 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         },
         child: Padding(
           padding: EdgeInsets.all(16),
-                  child: Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+            children: [
               // Route header
-                      Row(
-                        children: [
+              Row(
+                children: [
                   Icon(route['icon'], color: route['color'], size: 24),
-                          SizedBox(width: 12),
-                          Expanded(
+                  SizedBox(width: 12),
+                  Expanded(
                     child: Text(
-                                  route['title'],
+                      route['title'],
                       style: GoogleFonts.montserrat(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                                    color: route['color'],
-                                  ),
-                                ),
+                        color: route['color'],
+                      ),
+                    ),
                   ),
                   if (isSelected)
                     Icon(Icons.check_circle, color: route['color'], size: 24),
                 ],
               ),
-              
+
               SizedBox(height: 12),
-              
+
               // Route statistics
-                                Row(
-                                  children: [
+              Row(
+                children: [
                   Expanded(
                     child: _buildStatItem(
                       Icons.attach_money,
@@ -853,19 +879,11 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                       Colors.blue,
                     ),
                   ),
-                  Expanded(
-                    child: _buildStatItem(
-                      Icons.access_time,
-                      '${estimatedTime.toStringAsFixed(0)} min',
-                      'Est. Time',
-                      Colors.orange,
-                    ),
-                                ),
-                              ],
-                            ),
-              
+                ],
+              ),
+
               SizedBox(height: 12),
-              
+
               // Mode breakdown
               if (modeBreakdown.isNotEmpty) ...[
                 Text(
@@ -879,46 +897,50 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 4,
-                  children: modeBreakdown.entries.map((entry) {
-                    final mode = entry.key;
-                    final fare = entry.value;
-                    final count = modeCount[mode] ?? 0;
-                    return Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _getModeColor(mode).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _getModeColor(mode).withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                            children: [
-                          Icon(
-                            _getModeIcon(mode),
-                            size: 16,
-                            color: _getModeColor(mode),
+                  children:
+                      modeBreakdown.entries.map((entry) {
+                        final mode = entry.key;
+                        final fare = entry.value;
+                        final count = modeCount[mode] ?? 0;
+                        return Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
                           ),
-                          SizedBox(width: 4),
+                          decoration: BoxDecoration(
+                            color: _getModeColor(mode).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _getModeColor(mode).withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _getModeIcon(mode),
+                                size: 16,
+                                color: _getModeColor(mode),
+                              ),
+                              SizedBox(width: 4),
                               Text(
-                            '$mode ($count)',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: _getModeColor(mode),
+                                '$mode ($count)',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: _getModeColor(mode),
                                 ),
                               ),
                             ],
                           ),
-                    );
-                  }).toList(),
-                      ),
+                        );
+                      }).toList(),
+                ),
               ],
-              
-                      SizedBox(height: 12),
-              
+
+              SizedBox(height: 12),
+
               // Fare breakdown
               if (modeBreakdown.length > 1) ...[
                 Text(
@@ -935,8 +957,8 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: 2),
                     child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
                         Row(
                           children: [
                             Icon(
@@ -945,7 +967,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                               color: _getModeColor(mode),
                             ),
                             SizedBox(width: 8),
-                          Text(
+                            Text(
                               mode,
                               style: GoogleFonts.montserrat(fontSize: 12),
                             ),
@@ -956,21 +978,26 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                           style: GoogleFonts.montserrat(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
                   );
                 }).toList(),
               ],
-                    ],
+            ],
           ),
-                  ),
-                ),
-              );
+        ),
+      ),
+    );
   }
 
-  Widget _buildStatItem(IconData icon, String value, String label, Color color) {
+  Widget _buildStatItem(
+    IconData icon,
+    String value,
+    String label,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 20),
@@ -985,10 +1012,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         ),
         Text(
           label,
-          style: GoogleFonts.montserrat(
-            fontSize: 10,
-            color: Colors.grey[600],
-          ),
+          style: GoogleFonts.montserrat(fontSize: 10, color: Colors.grey[600]),
         ),
       ],
     );

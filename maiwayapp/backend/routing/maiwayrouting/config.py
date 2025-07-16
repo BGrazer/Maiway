@@ -10,14 +10,9 @@ class Config:
     """Configuration class for MaiWay routing engine"""
     
     def __init__(self):
-        # --- FIX: Use absolute path for data_dir to avoid startup errors ---
-        # Get the directory where this config.py file is located
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        
-        # Construct the absolute path to the 'data' directory, which is two levels up
-        # from maiwayrouting/config.py -> maiwayrouting -> routing -> data
-        self.data_dir: str = os.getenv('DATA_DIR', os.path.join(base_dir, '..', 'data'))
-        self.fares_dir: str = os.getenv('FARES_DIR', os.path.join(self.data_dir, 'fares'))
+        # Data directories
+        self.data_dir: str = os.getenv('DATA_DIR', 'routing_data')
+        self.fares_dir: str = os.getenv('FARES_DIR', 'routing_data/fares')
         
         # Mapbox configuration
         self.mapbox_token: str = os.getenv('MAPBOX_TOKEN', 'pk.eyJ1IjoibWFpd2F5YWRtaW4iLCJhIjoiY21kM3IybmFvMDdrZTJscjZucXgxa2Q1byJ9.WUTTeidTzw-SYrhgtnlmMA')

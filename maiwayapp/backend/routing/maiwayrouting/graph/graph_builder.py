@@ -4,7 +4,6 @@ import time
 from multiprocessing import Pool, cpu_count
 import networkx as nx
 import numpy as np
-from rtree import index
 from ..utils.geo_utils import haversine_distance
 from ..models.route_segments import TransitSegment
 
@@ -57,6 +56,8 @@ def build_transit_graph(stops, routes, trips, stop_times, mode_weights, logger):
             mode = 'LRT'
         elif route_type_val == 3:
             mode = 'Bus'
+        elif route_type_val == 2:
+            mode = 'Jeep'
         elif 200 <= route_type_val < 300:
             mode = 'Jeep'
         else:
@@ -131,7 +132,7 @@ def build_transit_graph(stops, routes, trips, stop_times, mode_weights, logger):
 
     # --- Add LRT ride edges from lrt_edges.csv ---
     import pandas as pd
-    lrt_edges_path = os.path.join(os.getcwd(), 'data', 'lrt_edges.csv')
+    lrt_edges_path = os.path.join(os.getcwd(), 'routing_data', 'lrt_edges.csv')
     if os.path.exists(lrt_edges_path):
         lrt_df = pd.read_csv(lrt_edges_path)
         added = 0
@@ -160,9 +161,9 @@ def build_transit_graph(stops, routes, trips, stop_times, mode_weights, logger):
             if not transit_graph.has_edge(to_stop, from_stop):
                 transit_graph.add_edge(to_stop, from_stop, **edge_data)
                 added += 1
-        logger.info(f"Added {added} LRT ride edges from data/lrt_edges.csv to transit graph.")
+        logger.info(f"Added {added} LRT ride edges from routing_data/lrt_edges.csv to transit graph.")
     else:
-        logger.warning(f"data/lrt_edges.csv not found, skipping LRT shape edges integration.")
+        logger.warning(f"routing_data/lrt_edges.csv not found, skipping LRT shape edges integration.")
 
     return transit_graph
 
@@ -241,71 +242,96 @@ def build_smart_walking_edges(stops, stop_times, trips, routes, mode_weights, tr
     print(f">>> Pre-filtered from {len(all_stops)} to {len(filtered_stops)} stops", flush=True)
     all_stops = filtered_stops
     
-    # Use R-tree for efficient spatial queries
-    print(">>> Building R-tree for spatial indexing...", flush=True)
-    p = index.Property()
-    p.dimension = 2  # lat, lon
-    # The R-tree index will store the index of the stop in all_stops
-    idx = index.Index(properties=p)
-    
-    # Add all stops to the index
-    for i, stop_id in enumerate(all_stops):
-        lat = stops[stop_id]['lat']
-        lon = stops[stop_id]['lon']
-        # R-tree needs a bounding box: (min_lon, min_lat, max_lon, max_lat)
-        # For a point, min and max are the same.
-        idx.insert(i, (lon, lat, lon, lat))
-
-    print(">>> R-tree built. Finding walking edges...", flush=True)
-    
+    # Process in chunks to avoid memory issues with large datasets
+    CHUNK_SIZE = 100  # Process 100 stops at a time
     results = []
+    total_pairs = len(all_stops) * (len(all_stops) - 1) // 2
+    processed = 0
     
-    for i, stop_id in enumerate(all_stops):
-        if (i + 1) % 100 == 0:
-            print(f">>> Processing stop {i+1}/{len(all_stops)}... Found {len(results)} edges.", flush=True)
-
-        lat = stops[stop_id]['lat']
-        lon = stops[stop_id]['lon']
+    print(f">>> Processing {len(all_stops)} stops in chunks of {CHUNK_SIZE}", flush=True)
+    print(f">>> Total pairs to process: {total_pairs:,}", flush=True)
+    
+    for chunk_start in range(0, len(all_stops), CHUNK_SIZE):
+        chunk_end = min(chunk_start + CHUNK_SIZE, len(all_stops))
+        chunk_stops = all_stops[chunk_start:chunk_end]
         
-        is_lrt_stop_i = stop_id in lrt_stops
-        max_dist_km = 2.0 if is_lrt_stop_i else 0.4
+        print(f">>> Processing chunk {chunk_start//CHUNK_SIZE + 1}/{(len(all_stops) + CHUNK_SIZE - 1)//CHUNK_SIZE}: stops {chunk_start+1}-{chunk_end}", flush=True)
         
-        # Approximate search radius in degrees. 1 degree lat ~ 111km.
-        # This is a rough but fast way to define a bounding box for the query.
-        search_radius_deg = max_dist_km / 111.0
-        bounds = (lon - search_radius_deg, lat - search_radius_deg, lon + search_radius_deg, lat + search_radius_deg)
+        # Pre-compute coordinates for this chunk
+        chunk_coords = np.array([[stops[stop_id]['lat'], stops[stop_id]['lon']] for stop_id in chunk_stops])
         
-        # Query the R-tree for stops within the bounding box
-        candidate_indices = list(idx.intersection(bounds))
-
-        for j in candidate_indices:
-            # Avoid self-loops and processing pairs twice
-            if i >= j:
-                continue
-
-            neighbor_stop_id = all_stops[j]
+        # Process pairs within this chunk and with all other stops
+        for i, stop_id in enumerate(chunk_stops):
+            # Process pairs with stops in this chunk (after current stop)
+            for j, neighbor_stop_id in enumerate(chunk_stops[i+1:], i+1):
+                # Check if either stop is LRT
+                is_lrt_connection = stop_id in lrt_stops or neighbor_stop_id in lrt_stops
+                # LRT stops: allow up to 2.0 km walking to ensure station connectivity
+                # Regular stops: allow up to 400 m walking (balanced for performance)
+                max_dist = 2.0 if is_lrt_connection else 0.4
+                
+                # vectorized_haversine returns distance in METERS; convert to KM for consistency
+                dist_m = vectorized_haversine(
+                    chunk_coords[i, 0], chunk_coords[i, 1],
+                    chunk_coords[j, 0], chunk_coords[j, 1]
+                )
+                dist = dist_m / 1000.0  # store distance in kilometres to match transit edges
+                
+                if dist <= max_dist:
+                    attrs = {
+                        'weight': transfer_penalty,
+                        'mode': 'walk',
+                        'distance': dist,
+                        'type': 'transfer',
+                        'is_lrt_transfer': is_lrt_connection
+                    }
+                    results.append((stop_id, neighbor_stop_id, attrs))
+                    # Add reverse edge too
+                    results.append((neighbor_stop_id, stop_id, attrs))
+                
+                processed += 1
             
-            # Precise distance check
-            neighbor_lat = stops[neighbor_stop_id]['lat']
-            neighbor_lon = stops[neighbor_stop_id]['lon']
+            # Process pairs with stops in other chunks (all stops after this chunk)
+            for j, neighbor_stop_id in enumerate(all_stops[chunk_end:], chunk_end):
+                # Check if either stop is LRT
+                is_lrt_connection = stop_id in lrt_stops or neighbor_stop_id in lrt_stops
+                # LRT stops: allow up to 2.0 km walking to ensure station connectivity
+                # Regular stops: allow up to 400 m walking
+                max_dist = 2.0 if is_lrt_connection else 0.4
+                
+                # Distance calculation between chunk and other stops
+                neighbor_coords = [stops[neighbor_stop_id]['lat'], stops[neighbor_stop_id]['lon']]
+                dist_m = vectorized_haversine(
+                    chunk_coords[i, 0], chunk_coords[i, 1],
+                    neighbor_coords[0], neighbor_coords[1]
+                )
+                dist = dist_m / 1000.0  # convert to km
+                
+                if dist <= max_dist:
+                    attrs = {
+                        'weight': transfer_penalty,
+                        'mode': 'walk',
+                        'distance': dist,
+                        'type': 'transfer',
+                        'is_lrt_transfer': is_lrt_connection
+                    }
+                    results.append((stop_id, neighbor_stop_id, attrs))
+                    # Add reverse edge too
+                    results.append((neighbor_stop_id, stop_id, attrs))
+                
+                processed += 1
             
-            dist_m = vectorized_haversine(lat, lon, neighbor_lat, neighbor_lon)
-            dist_km = dist_m / 1000.0
-
-            is_lrt_stop_j = neighbor_stop_id in lrt_stops
-            is_lrt_connection = is_lrt_stop_i or is_lrt_stop_j
-            current_max_dist = 2.0 if is_lrt_connection else 0.4
-
-            if dist_km <= current_max_dist:
-                attrs = {
-                    'weight': transfer_penalty,
-                    'mode': 'walk',
-                    'distance': dist_km,
-                    'type': 'transfer',
-                    'is_lrt_transfer': is_lrt_connection
-                }
-                results.append((stop_id, neighbor_stop_id, attrs))
-                results.append((neighbor_stop_id, stop_id, attrs))
+            # Progress update every 10 000 pairs
+            if processed % 10000 == 0 and processed > 0:
+                elapsed = time.time() - start_time
+                percent = (processed / total_pairs) * 100
+                est_total = elapsed / (processed / total_pairs)
+                est_remaining = est_total - elapsed
+                print(
+                    f">>> Progress: {percent:.1f}% ({processed:,}/{total_pairs:,}) | "
+                    f"Elapsed: {elapsed:.1f}s | Remaining: {est_remaining:.1f}s | Found: {len(results)} edges",
+                    flush=True,
+                )
     
     print(f">>> Finished processing! Found {len(results)} walking edges", flush=True)
     walking_edges = results

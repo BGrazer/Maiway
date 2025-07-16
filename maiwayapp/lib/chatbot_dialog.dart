@@ -15,6 +15,7 @@ class ChatbotDialog extends StatefulWidget {
 class _ChatbotDialogState extends State<ChatbotDialog>
     with SingleTickerProviderStateMixin {
   final TextEditingController _textEditingController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   bool _isBotTyping = false;
   List<String> _dynamicSuggestions = [];
   late AnimationController _typingAnimationController;
@@ -199,9 +200,19 @@ class _ChatbotDialogState extends State<ChatbotDialog>
                   child: ValueListenableBuilder<List<Message>>(
                     valueListenable: chatbotConversationManager,
                     builder: (context, messages, child) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_scrollController.hasClients) {
+                          _scrollController.animateTo(
+                            _scrollController.position.maxScrollExtent,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                          );
+                        }
+                      });
                       return Container(
                         color: const Color(0xFFF0F2F5),
                         child: ListView.builder(
+                          controller: _scrollController,
                           padding: const EdgeInsets.all(15.0),
                           itemCount: messages.length + (_isBotTyping ? 1 : 0),
                           itemBuilder: (context, index) {
@@ -401,6 +412,7 @@ class _ChatbotDialogState extends State<ChatbotDialog>
   void dispose() {
     _textEditingController.dispose();
     _typingAnimationController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }
