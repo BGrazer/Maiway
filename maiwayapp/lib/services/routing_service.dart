@@ -7,7 +7,8 @@ import 'package:flutter/foundation.dart';
 /// It expects the backend to return route responses with keys: segments, shapes, summary, fare_breakdown.
 class RoutingService {
   // QUICK FIX: Using static URL to ensure consistent IP address
-  static const String baseUrl = 'http://127.20.8.200:5000'; // Your IP address
+  static const String baseUrl =
+      'https://maiway-backend-production.up.railway.app/routing'; // Your IP address
 
   // ALTERNATIVE IP: If the above doesn't work, try this one:
   // static const String baseUrl = 'http://192.168.225.1:5000'; // Alternative IP
