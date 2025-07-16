@@ -19,9 +19,10 @@ class _ChatbotDialogState extends State<ChatbotDialog>
   List<String> _dynamicSuggestions = [];
   late AnimationController _typingAnimationController;
 
-  final String _chatBackendUrl = 'http://192.168.1.3:5001/chat';
+  final String _chatBackendUrl =
+      'https://maiway-backend-production.up.railway.app/chat';
   final String _dynamicSuggestionsUrl =
-      'http://192.168.1.3:5001/dynamic_suggestions';
+      'https://maiway-backend-production.up.railway.app/dynamic_suggestions';
 
   @override
   void initState() {

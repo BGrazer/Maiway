@@ -167,7 +167,9 @@ class _SurveyPageState extends State<SurveyPage> {
             ),
       );
     } else if (_fareFeedback == 'no') {
-      final url = Uri.parse("http://192.168.1.3:5002/predict_fare");
+      final url = Uri.parse(
+        "https://maiway-backend-production.up.railway.app/predict_fare",
+      );
 
       try {
         final response = await http.post(
