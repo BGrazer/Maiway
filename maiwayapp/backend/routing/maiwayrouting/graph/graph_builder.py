@@ -56,6 +56,8 @@ def build_transit_graph(stops, routes, trips, stop_times, mode_weights, logger):
             mode = 'LRT'
         elif route_type_val == 3:
             mode = 'Bus'
+        elif route_type_val == 2:
+            mode = 'Jeep'
         elif 200 <= route_type_val < 300:
             mode = 'Jeep'
         else:

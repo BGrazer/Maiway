@@ -976,22 +976,29 @@ class UnifiedRouteService:
                     # Override dest_distance so default last-mile walking is skipped
                     dest_distance = 0.0
         
-        # Add transit segments
+       # Add transit segments
         for segment in route.segments:
-            # Convert RouteSegment to dict format
-            # Build rich stop objects (id, name, lat, lon) for nicer API output
-            def _stop_meta(stop_id: str):
+            is_walking = str(segment.mode).lower() in ['walk', 'walking']
+            def _stop_meta(stop_id: str, route_id: str, is_walk: bool):
                 info = self.stops.get(stop_id, {})
+                if is_walk:
+                    return {
+                        'id': 'WALK',
+                        'name': 'Walking',
+                        'lat': info.get('lat', 0.0),
+                        'lon': info.get('lon', 0.0)
+                    }
+                route_info = self.routes.get(route_id, {})
+                route_name = route_info.get('long_name') or route_info.get('short_name') or route_id or ''
                 return {
-                    'id': stop_id,
-                    'name': info.get('name', stop_id),
+                    'id': route_id,
+                    'name': route_name,
                     'lat': info.get('lat', 0.0),
                     'lon': info.get('lon', 0.0)
                 }
-
             segment_dict = {
-                'from_stop': _stop_meta(segment.from_stop),
-                'to_stop': _stop_meta(segment.to_stop),
+                'from_stop': _stop_meta(segment.from_stop, segment.route_id, is_walking),
+                'to_stop': _stop_meta(segment.to_stop, segment.route_id, is_walking),
                 'mode': segment.mode,
                 'distance': segment.distance,
                 'fare': self.calculate_real_fare(segment.mode, segment.from_stop, segment.to_stop, segment.distance, fare_type),

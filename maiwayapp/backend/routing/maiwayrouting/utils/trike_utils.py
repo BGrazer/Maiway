@@ -18,7 +18,7 @@ TRIKE_CATCHMENT_KM = 0.7   # user must be within 400 m of a terminal
 # The ride should be *useful*: at least 0.5 km long (else walking is faster)
 # but we still cap it at 2 km so the segment stays short-haul.
 
-TRIKE_MIN_DISTANCE_KM = 0.2   # min ride distance to boarding stop
+TRIKE_MIN_DISTANCE_KM = 0.1   # min ride distance to boarding stop
 TRIKE_MAX_DISTANCE_KM = 2.0   # max ride distance to boarding stop
 TRIKE_FLAT_FARE = 21.0       # PHP flat fare (₱16 base → ₱21 total)
 TRIKE_SPEED_KMPH = 30.0      # assumed average speed on local roads
