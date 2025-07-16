@@ -142,7 +142,7 @@ class UnifiedRouteService:
         # launched from (the default relative path fails when CWD != backend/routing).
 
         pkg_root = os.path.dirname(__file__)  # maiwayrouting/
-        # Data folder lives one directory up: .../routing/data/
+        # Data folder lives one directory up: .../routing/routing_data/
         trike_geojson = os.path.abspath(os.path.join(pkg_root, '..', self.data_dir, 'tricycle_terminals.geojson'))
 
         if not os.path.exists(trike_geojson):
@@ -611,7 +611,7 @@ class UnifiedRouteService:
             return base
         
         # (Removed quick-exit for sub-250 m trips; always run normal routing logic)
-
+        
         # ------------------------------------------------------------------
         #  NEW: Tricycle first-mile injection for "convenient" preference
         # ------------------------------------------------------------------
@@ -702,7 +702,7 @@ class UnifiedRouteService:
             origin_stop_id = origin_stop_override
             origin_distance = 0.0  # already covered by trike segment
         else:
-            origin_stop_id, origin_distance = self.find_nearest_stop(origin_lat, origin_lon)
+         origin_stop_id, origin_distance = self.find_nearest_stop(origin_lat, origin_lon)
         dest_stop_id, dest_distance = self.find_nearest_stop(dest_lat, dest_lon)
         
         self.logger.info(f"Nearest stops: origin={origin_stop_id} ({origin_distance:.3f} km), dest={dest_stop_id} ({dest_distance:.3f} km)")
@@ -822,7 +822,7 @@ class UnifiedRouteService:
         if first_mile_override:
             walk_seg, trike_seg, _ = first_mile_override
             segments = [walk_seg, trike_seg] + segments
-
+        
         # Add first mile walking if origin is not at a stop
         first_mile_walking = None
         if origin_distance > 0.001 and not first_mile_override:  # Skip default if trike handled it
@@ -889,7 +889,7 @@ class UnifiedRouteService:
         
         # Build complete route with walking (or tricycle) segments
         segments = []
-
+        
         # Priority: if a tricycle first-mile override was generated, inject both the
         # initial walk-to-terminal and the trike ride *before* any transit
         # segments.  Otherwise fall back to a standard first-mile walking
@@ -975,7 +975,7 @@ class UnifiedRouteService:
 
                     # Override dest_distance so default last-mile walking is skipped
                     dest_distance = 0.0
-
+        
         # Add transit segments
         for segment in route.segments:
             # Convert RouteSegment to dict format
@@ -1425,7 +1425,7 @@ class UnifiedRouteService:
                                 enhanced_segment['polyline'] = list(best_line.coords)
                                 enhanced_segment['polyline_source'] = 'fullcityofmanila_geojson'
                                 self.logger.warning(f"Used fullcityofmanila.geojson fallback for {from_stop_raw}->{to_stop_raw}")
-                        # (5) Try each geojson in data/routes-geojson
+                        # (5) Try each geojson in routing_data/routes-geojson
                         if (not enhanced_segment.get('polyline') or len(enhanced_segment['polyline']) < 2) and hasattr(self, 'route_lines'):
                             best_line = None
                             min_dist = float('inf')
@@ -1668,7 +1668,7 @@ class UnifiedRouteService:
 
     def _load_geojson_linestrings(self):
         """
-        Load and index all LineStrings from fullcityofmanila.geojson (for street-based segments), lrtroutes.geojson (for LRT), and all files in data/routes-geojson (for route-specific fallbacks). Store as self.street_lines, self.lrt_lines, and self.route_lines.
+        Load and index all LineStrings from fullcityofmanila.geojson (for street-based segments), lrtroutes.geojson (for LRT), and all files in routing_data/routes-geojson (for route-specific fallbacks). Store as self.street_lines, self.lrt_lines, and self.route_lines.
         """
         import json
         import os

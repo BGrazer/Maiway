@@ -43,7 +43,7 @@ export DATA_DIR="data"
 
 4. Run the application:
 ```bash
-python app.py
+python routing.py
 ```
 
 ## Configuration
@@ -158,7 +158,7 @@ python -m pytest tests/
 ### Code Structure
 ```
 /
-├── app.py
+├── routing.py
 ├── requirements.txt
 ├── README.md
 ├── Dockerfile

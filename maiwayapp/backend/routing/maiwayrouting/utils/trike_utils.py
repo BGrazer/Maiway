@@ -24,7 +24,7 @@ TRIKE_FLAT_FARE = 21.0       # PHP flat fare (₱16 base → ₱21 total)
 TRIKE_SPEED_KMPH = 30.0      # assumed average speed on local roads
 
 # Path inside the backend data dir – can be overridden via env
-DEFAULT_GEOJSON_PATH = os.getenv("TRICYCLE_TERMINALS_GEOJSON", "data/tricycle_terminals.geojson")
+DEFAULT_GEOJSON_PATH = os.getenv("TRICYCLE_TERMINALS_GEOJSON", "routing_data/tricycle_terminals.geojson")
 
 MAPBOX_TOKEN = os.getenv('MAPBOX_TOKEN')
 
@@ -68,7 +68,7 @@ def load_trike_terminals(geojson_path: str = DEFAULT_GEOJSON_PATH) -> List[Dict]
 
     path = Path(geojson_path)
     if not path.exists():
-        alt_path = Path("data/tricycle.geojson")
+        alt_path = Path("routing_data/tricycle.geojson")
         if alt_path.exists():
             path = alt_path
         else:
