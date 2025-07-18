@@ -11,8 +11,9 @@ import traceback
 # Load environment variables from .env file
 load_dotenv()
 
+
 class ChatbotModel:
-    def __init__(self, data_path='data/faq_data.json', similarity_threshold=0.90):
+    def __init__(self, data_path='data/faq_data.json', similarity_threshold=0.95):
         print("DEBUG_INIT: Initializing ChatbotModel...")
         script_dir = os.path.dirname(__file__)
         self.faq_file_path = os.path.join(script_dir, data_path)
