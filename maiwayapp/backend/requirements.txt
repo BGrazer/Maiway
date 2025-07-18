@@ -1,3 +1,4 @@
+# Core backend dependencies (from your list)
 colorama==0.4.6
 joblib==1.5.1
 numpy==2.3.0
@@ -10,15 +11,19 @@ six==1.17.0
 threadpoolctl==3.6.0
 tzdata==2025.2
 
-flask
-gunicorn
-tensorflow
-nltk
-Pillow
-requests
+# Web framework and ASGI server
+Flask
+hypercorn # Explicitly added for production ASGI server
+Flask-Cors # For handling CORS with your Flutter frontend
 
-Flask-Cors
+# AI/ML/NLP dependencies
+tensorflow # For machine learning models (ensure compatible with your code)
+nltk       # Natural Language Toolkit
+Pillow     # Image processing (often a dependency for ML/CV libraries)
+requests   # For making HTTP requests (e.g., to external APIs like Gemini)
+google-generativeai # Assuming this is used for Gemini API integration
 
+# PyTorch and related (if you're using PyTorch-based models)
 torch
 torchvision
 torchaudio
@@ -33,3 +38,7 @@ geopy>=2.3.0
 openrouteservice>=2.3.0
 rtree>=1.0.0
 polyline>=1.4.0
+
+# General utilities/other
+# Add any other libraries specific to rfr.py or crowd_analysis.py if they are not covered above
+# For example, if rfr.py uses specific data science libraries, list them here.
