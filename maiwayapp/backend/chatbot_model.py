@@ -25,7 +25,7 @@ class ChatbotModel:
         self.map_related_keywords = [
             "route", "routes", "how to get to", "location", "address",
             "map", "direction", "directions", "saan", "paano pumunta",
-            "papunta", "where is", "find", "locate", "travel", "by foot",
+            "papunta", "where is", "find", "locate", "how to travel", "by foot",
             "walking", "commute",
         ]
 

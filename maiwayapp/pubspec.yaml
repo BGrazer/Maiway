@@ -1,3 +1,5 @@
+# maiwayapp/pubspec.yaml (your Flutter project's pubspec.yaml file)
+
 name: maiwayapp
 description: "A new Flutter project."
 publish_to: 'none'
@@ -27,7 +29,8 @@ dependencies:
   cloud_firestore: ^5.6.9
   flutter_map_cancellable_tile_provider: ^3.1.1
   geocoding: ^3.0.0
-  
+  flutter_markdown: ^0.7.0 # <--- ADD THIS LINE HERE
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -49,7 +52,7 @@ flutter:
     - assets/images/pujfare.pdf
     - assets/images/busordinaryfare.pdf
     - assets/images/busairconfare.pdf
-    - assets/images/chatbot_icon.png  
+    - assets/images/chatbot_icon.png
     - assets/Jeep_routes.json
 
 
