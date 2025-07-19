@@ -8,7 +8,6 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import traceback
 
-# Load environment variables from .env file
 load_dotenv()
 
 
@@ -30,21 +29,15 @@ class ChatbotModel:
             "walking", "commute",
         ]
 
-        # Configure Gemini API using the environment variable
-        # This global configuration is fine to keep here.
-        self.gemini_api_key = os.getenv("GEMINI_API_KEY") # Store it for local access
+
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY") 
         if not self.gemini_api_key:
             print("ERROR_INIT: GEMINI_API_KEY environment variable NOT set.")
             raise ValueError("GEMINI_API_KEY environment variable not set. Please create a .env file or set the variable.")
         else:
             print("DEBUG_INIT: GEMINI_API_KEY found in environment.")
         
-        # Suppress Pylance warnings about 'configure'
         genai.configure(api_key=self.gemini_api_key)  # type: ignore[reportPrivateImportUsage]
-        
-        # Removed self.gemini_model initialization from here.
-        # It will now be initialized per call in _get_gemini_response.
-        # print("DEBUG_INIT: Gemini model initialized.") # This debug is now moved
 
         self._load_and_encode_data()
         print("DEBUG_INIT: ChatbotModel initialization complete.")
@@ -165,34 +158,25 @@ class ChatbotModel:
             )
             print(f"DEBUG_GEMINI: Sending prompt to Gemini API. Prompt length: {len(prompt)} characters.")
             
-            # --- FIX: Instantiate GenerativeModel here for each call ---
-            # This ensures it's tied to the current, active event loop for this request.
-            # The API key should already be configured globally in __init__, but we can
-            # re-confirm it or ensure it's available.
+
             
-            # Use the stored API key from __init__
             if not self.gemini_api_key:
                 print("ERROR_GEMINI_API: GEMINI_API_KEY is missing during API call attempt in _get_gemini_response.")
                 return "Pasensya na, hindi available ang serbisyo ng AI sa ngayon dahil sa nawawalang API key."
             
-            # Re-configure (harmless) or just ensure it's set
             genai.configure(api_key=self.gemini_api_key) # type: ignore[reportPrivateImportUsage]
 
-            # Create a new model instance for this specific request
             local_gemini_model = genai.GenerativeModel('gemini-2.5-flash') # type: ignore[reportPrivateImportUsage]
             print("DEBUG_GEMINI: Fresh Gemini model instance created for this request.")
 
             response = await local_gemini_model.generate_content_async(prompt)
-            # --- END FIX ---
             
             print(f"DEBUG_GEMINI: Gemini API call completed. Response object type: {type(response)}, content: {response}")
             
-            # Check if candidates exist and retrieve text
             if response.candidates:
                 first_candidate = response.candidates[0]
                 print(f"DEBUG_GEMINI: Gemini response has candidates. First candidate type: {type(first_candidate)}, content: {first_candidate}")
                 
-                # Check if content exists and retrieve text
                 if hasattr(first_candidate, 'content') and hasattr(first_candidate.content, 'parts') and first_candidate.content.parts:
                     response_text = first_candidate.content.parts[0].text
                     print(f"DEBUG_GEMINI: Gemini returned text: '{response_text}'")

@@ -4,7 +4,6 @@ from flask_cors import CORS
 from chatbot_model import ChatbotModel
 import asyncio
 
-# Declare chatbot as a global variable, but don't initialize it yet
 chatbot = None
 
 def create_app():
@@ -12,11 +11,10 @@ def create_app():
     Factory function to create and configure the Flask app.
     This ensures that chatbot_model is initialized within the app's context.
     """
-    global chatbot # Declare intent to modify the global chatbot variable
+    global chatbot 
     app = Flask(__name__)
     CORS(app)
 
-    # Initialize ChatbotModel only ONCE when the app starts per worker
     if chatbot is None:
         print("DEBUG: Initializing ChatbotModel inside create_app()...")
         chatbot = ChatbotModel()
@@ -31,7 +29,6 @@ def create_app():
         if not user_message:
             return jsonify({"error": "No 'message' key provided in JSON body or message is empty"}), 400
 
-        # Ensure chatbot is initialized before use
         if chatbot is None:
             return jsonify({"error": "Chatbot is not yet initialized. Please wait."}), 503
 
@@ -87,16 +84,10 @@ def create_app():
 
     return app
 
-# --- ADD THIS LINE ---
 app = create_app()
-# --- END ADDITION ---
 
-# The if __name__ == '__main__': block is only for direct execution (e.g., `python chatbot.py`)
-# Hypercorn will import `app` directly from the module.
 if __name__ == '__main__':
     import socket
     local_ip = socket.gethostbyname(socket.gethostname())
     print(f"\n🤖 Chatbot backend running at: http://{local_ip}:5001\n")
-    # For running async Flask applications in development, use 'hypercorn' or 'uvicorn'.
-    # e.g., hypercorn chatbot:app --bind 0.0.0.0:5001 --worker-class trio
     app.run(host='0.0.0.0', port=5001, debug=False)
