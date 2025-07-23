@@ -56,6 +56,8 @@ def build_transit_graph(stops, routes, trips, stop_times, mode_weights, logger):
             mode = 'LRT'
         elif route_type_val == 3:
             mode = 'Bus'
+        elif route_type_val == 2:
+            mode = 'Jeep'
         elif 200 <= route_type_val < 300:
             mode = 'Jeep'
         else:
@@ -130,7 +132,7 @@ def build_transit_graph(stops, routes, trips, stop_times, mode_weights, logger):
 
     # --- Add LRT ride edges from lrt_edges.csv ---
     import pandas as pd
-    lrt_edges_path = os.path.join(os.getcwd(), 'data', 'lrt_edges.csv')
+    lrt_edges_path = os.path.join(os.getcwd(), 'routing_data', 'lrt_edges.csv')
     if os.path.exists(lrt_edges_path):
         lrt_df = pd.read_csv(lrt_edges_path)
         added = 0
@@ -159,9 +161,9 @@ def build_transit_graph(stops, routes, trips, stop_times, mode_weights, logger):
             if not transit_graph.has_edge(to_stop, from_stop):
                 transit_graph.add_edge(to_stop, from_stop, **edge_data)
                 added += 1
-        logger.info(f"Added {added} LRT ride edges from data/lrt_edges.csv to transit graph.")
+        logger.info(f"Added {added} LRT ride edges from routing_data/lrt_edges.csv to transit graph.")
     else:
-        logger.warning(f"data/lrt_edges.csv not found, skipping LRT shape edges integration.")
+        logger.warning(f"routing_data/lrt_edges.csv not found, skipping LRT shape edges integration.")
 
     return transit_graph
 

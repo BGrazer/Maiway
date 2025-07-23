@@ -30,7 +30,8 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixin {
+class _MapScreenState extends State<MapScreen>
+    with AutomaticKeepAliveClientMixin {
   late MapScreenController _controller;
   late final List<LatLng> _manilaBoundary;
   bool _isPinningMode = false;
@@ -95,9 +96,9 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       _controller.mapController.move(_controller.currentLocation!, 15.0);
       _controller.mapController.rotate(0);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to fetch location')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Unable to fetch location')));
     }
   }
 
@@ -113,23 +114,29 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
-      builder: (context) => SearchSheet(
-        onLocationSelected: (LatLng location, String address, bool isOrigin) async {
-          await _addLocationMarker(location, address, isOrigin);
-        },
-        onPinModeRequested: (bool isOrigin) {
-          if (mounted) {
-            setState(() {
-              _isPinningMode = true;
-              _isPinningOrigin = isOrigin;
-            });
-          }
-          Navigator.pop(context);
-        },
-        currentLocation: _controller.currentLocation ?? LatLng(14.5995, 120.9842),
-        originAddress: _controller.originController.text,
-        destinationAddress: _controller.destinationController.text,
-      ),
+      builder:
+          (context) => SearchSheet(
+            onLocationSelected: (
+              LatLng location,
+              String address,
+              bool isOrigin,
+            ) async {
+              await _addLocationMarker(location, address, isOrigin);
+            },
+            onPinModeRequested: (bool isOrigin) {
+              if (mounted) {
+                setState(() {
+                  _isPinningMode = true;
+                  _isPinningOrigin = isOrigin;
+                });
+              }
+              Navigator.pop(context);
+            },
+            currentLocation:
+                _controller.currentLocation ?? LatLng(14.5995, 120.9842),
+            originAddress: _controller.originController.text,
+            destinationAddress: _controller.destinationController.text,
+          ),
     );
   }
 
@@ -143,41 +150,51 @@ class _MapScreenState extends State<MapScreen> with AutomaticKeepAliveClientMixi
     );
   }
 
-void _openSurveyPopup() {
-  final selectedMode =
-      widget.selectedModes.isNotEmpty ? widget.selectedModes.first : 'Jeep';
-  
+  void _openSurveyPopup() {
+    final selectedMode =
+        widget.selectedModes.isNotEmpty ? widget.selectedModes.first : 'Jeep';
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.white,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        top: 20,
-        left: 20,
-        right: 20,
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: my_survey.SurveyPage(
-        transportMode: selectedMode,
-        passengerType: widget.passengerType,
-        //  REMOVE distanceKm — let SurveyPage handle it itself
-      ),
-    ),
-  );
-}
+      builder:
+          (context) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              top: 20,
+              left: 20,
+              right: 20,
+            ),
+            child: my_survey.SurveyPage(
+              transportMode: selectedMode,
+              passengerType: widget.passengerType,
+              //  REMOVE distanceKm — let SurveyPage handle it itself
+            ),
+          ),
+    );
+  }
 
-  Future<void> _addLocationMarker(LatLng location, String address, bool isOrigin) async {
+  Future<void> _addLocationMarker(
+    LatLng location,
+    String address,
+    bool isOrigin,
+  ) async {
     // Prevent selection in/near water bodies
-    final isWater = await GeocodingService.isWaterOrNearWater(location, thresholdMeters: 20);
+    final isWater = await GeocodingService.isWaterOrNearWater(
+      location,
+      thresholdMeters: 20,
+    );
     if (isWater) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please choose a location on land'), backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('Please choose a location on land'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
       return;
@@ -186,7 +203,8 @@ void _openSurveyPopup() {
     if (isOrigin) {
       _controller.originPin = location;
       _controller.originController.text = address;
-      if (_controller.destinationPin != null && _controller.destinationPin == location) {
+      if (_controller.destinationPin != null &&
+          _controller.destinationPin == location) {
         _controller.destinationPin = null;
         _controller.destinationController.clear();
       }
@@ -225,7 +243,6 @@ void _openSurveyPopup() {
       if (mounted) setState(() {});
     });
   }
-
 
   @override
   bool get wantKeepAlive => true;
@@ -302,16 +319,8 @@ void _openSurveyPopup() {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.location_on,
-                      color: Colors.blue,
-                      size: 50,
-                    ),
-                    Container(
-                      width: 2,
-                      height: 25,
-                      color: Colors.blue,
-                    ),
+                    Icon(Icons.location_on, color: Colors.blue, size: 50),
+                    Container(width: 2, height: 25, color: Colors.blue),
                   ],
                 ),
               ),
@@ -343,7 +352,9 @@ void _openSurveyPopup() {
                       child: ElevatedButton.icon(
                         icon: const Icon(Icons.location_on),
                         label: Text(
-                          _isPinningOrigin ? 'Set as Origin' : 'Set as Destination',
+                          _isPinningOrigin
+                              ? 'Set as Origin'
+                              : 'Set as Destination',
                           style: const TextStyle(fontSize: 16),
                         ),
                         onPressed: _confirmPinAndReturnToSearch,
@@ -455,13 +466,13 @@ void _openSurveyPopup() {
             right: 20,
             child: FloatingActionButton(
               heroTag: 'chatbotBtn',
-              elevation: 4,
+              elevation: 0,
+              backgroundColor: Colors.transparent,
               onPressed: _openChatbotDialog,
-              backgroundColor: const Color(0xFF0084FF),
               child: Image.asset(
                 'assets/images/chatbot_icon.png',
-                width: 70,
-                height: 70,
+                width: 90,
+                height: 90,
               ),
             ),
           ),
@@ -511,8 +522,8 @@ void _openSurveyPopup() {
   }
 
   TileLayer get openStreetMapTileLayer => TileLayer(
-        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        userAgentPackageName: 'com.example.maiway',
-        tileProvider: CancellableNetworkTileProvider(),
-      );
+    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    userAgentPackageName: 'com.example.maiway',
+    tileProvider: CancellableNetworkTileProvider(),
+  );
 }

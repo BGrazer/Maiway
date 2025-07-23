@@ -11,8 +11,8 @@ class Config:
     
     def __init__(self):
         # Data directories
-        self.data_dir: str = os.getenv('DATA_DIR', 'data')
-        self.fares_dir: str = os.getenv('FARES_DIR', 'data/fares')
+        self.data_dir: str = os.getenv('DATA_DIR', 'routing_data')
+        self.fares_dir: str = os.getenv('FARES_DIR', 'routing_data/fares')
         
         # Mapbox configuration
         self.mapbox_token: str = os.getenv('MAPBOX_TOKEN', 'pk.eyJ1IjoibWFpd2F5YWRtaW4iLCJhIjoiY21kM3IybmFvMDdrZTJscjZucXgxa2Q1byJ9.WUTTeidTzw-SYrhgtnlmMA')

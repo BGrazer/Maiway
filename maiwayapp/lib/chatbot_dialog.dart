@@ -1,9 +1,12 @@
+// maiwayapp/lib/chatbot_dialog.dart (Your Flutter file)
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:maiwayapp/models/message.dart';
 import 'package:maiwayapp/chatbot_conversation_manager.dart';
+import 'package:flutter_markdown/flutter_markdown.dart'; 
 
 class ChatbotDialog extends StatefulWidget {
   const ChatbotDialog({super.key});
@@ -15,13 +18,15 @@ class ChatbotDialog extends StatefulWidget {
 class _ChatbotDialogState extends State<ChatbotDialog>
     with SingleTickerProviderStateMixin {
   final TextEditingController _textEditingController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   bool _isBotTyping = false;
   List<String> _dynamicSuggestions = [];
   late AnimationController _typingAnimationController;
 
-final String _chatBackendUrl = 'http://127.0.0.1:5001/chat';
-final String _dynamicSuggestionsUrl = 'http://127.0.0.1:5001/dynamic_suggestions';
-
+  final String _chatBackendUrl =
+      'http://127.0.0.1:5001/chat'; 
+  final String _dynamicSuggestionsUrl =
+      'http://127.0.0.1:5001/dynamic_suggestions'; 
 
   @override
   void initState() {
@@ -198,9 +203,19 @@ final String _dynamicSuggestionsUrl = 'http://127.0.0.1:5001/dynamic_suggestions
                   child: ValueListenableBuilder<List<Message>>(
                     valueListenable: chatbotConversationManager,
                     builder: (context, messages, child) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_scrollController.hasClients) {
+                          _scrollController.animateTo(
+                            _scrollController.position.maxScrollExtent,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                          );
+                        }
+                      });
                       return Container(
                         color: const Color(0xFFF0F2F5),
                         child: ListView.builder(
+                          controller: _scrollController,
                           padding: const EdgeInsets.all(15.0),
                           itemCount: messages.length + (_isBotTyping ? 1 : 0),
                           itemBuilder: (context, index) {
@@ -231,15 +246,29 @@ final String _dynamicSuggestionsUrl = 'http://127.0.0.1:5001/dynamic_suggestions
                                             : const Color(0xFFE4E6EB),
                                     borderRadius: BorderRadius.circular(18.0),
                                   ),
-                                  child: Text(
-                                    message.text,
-                                    style: TextStyle(
-                                      color:
-                                          message.isUser
-                                              ? Colors.white
-                                              : Colors.black,
-                                      height: 1.4,
+                                  child: MarkdownBody(
+                                    data: message.text, 
+                                    styleSheet: MarkdownStyleSheet(
+                                      p: TextStyle(
+                                        color: message.isUser ? Colors.white : Colors.black,
+                                        height: 1.4,
+                                        fontSize: 16.0, 
+                                      ),
+                                      strong: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: message.isUser ? Colors.white : Colors.black,
+                                        height: 1.4,
+                                        fontSize: 16.0,
+                                      ),
+                                      em: TextStyle( 
+                                        fontStyle: FontStyle.italic,
+                                        color: message.isUser ? Colors.white : Colors.black,
+                                        height: 1.4,
+                                        fontSize: 16.0,
+                                      ),
                                     ),
+                                    onTapLink: (text, href, title) {
+                                    },
                                   ),
                                 ),
                               ),
@@ -371,9 +400,9 @@ final String _dynamicSuggestionsUrl = 'http://127.0.0.1:5001/dynamic_suggestions
                     (index == 0
                         ? _typingAnimationController.value
                         : index == 1
-                        ? (_typingAnimationController.value + 0.33) % 1.0
-                        : (_typingAnimationController.value + 0.66) % 1.0) *
-                    2;
+                            ? (_typingAnimationController.value + 0.33) % 1.0
+                            : (_typingAnimationController.value + 0.66) % 1.0) *
+                        2;
                 return Opacity(
                   opacity: (opacity > 1.0 ? 2.0 - opacity : opacity).clamp(
                     0.2,
@@ -400,6 +429,7 @@ final String _dynamicSuggestionsUrl = 'http://127.0.0.1:5001/dynamic_suggestions
   void dispose() {
     _textEditingController.dispose();
     _typingAnimationController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }
