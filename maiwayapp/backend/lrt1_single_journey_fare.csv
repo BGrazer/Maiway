@@ -1,0 +1,111 @@
+Station,To,Fare (PHP)
+R.Papa,Abad Santos,20
+R.Papa,Blumentritt,20
+R.Papa,Tayuman,20
+R.Papa,Bambang,20
+R.Papa,Doroteo Jose,25
+R.Papa,Carriedo,25
+R.Papa,Central,25
+R.Papa,UN Avenue,25
+R.Papa,Pedro Gil,25
+R.Papa,Quirino,30
+Abad Santos,R.Papa,20
+Abad Santos,Blumentritt,20
+Abad Santos,Tayuman,20
+Abad Santos,Bambang,20
+Abad Santos,Doroteo Jose,20
+Abad Santos,Carriedo,25
+Abad Santos,Central,25
+Abad Santos,UN Avenue,25
+Abad Santos,Pedro Gil,25
+Abad Santos,Quirino,30
+Blumentritt,R.Papa,20
+Blumentritt,Abad Santos,20
+Blumentritt,Tayuman,20
+Blumentritt,Bambang,20
+Blumentritt,Doroteo Jose,20
+Blumentritt,Carriedo,20
+Blumentritt,Central,25
+Blumentritt,UN Avenue,25
+Blumentritt,Pedro Gil,25
+Blumentritt,Quirino,30
+Tayuman,R.Papa,20
+Tayuman,Abad Santos,20
+Tayuman,Blumentritt,20
+Tayuman,Bambang,20
+Tayuman,Doroteo Jose,20
+Tayuman,Carriedo,20
+Tayuman,Central,20
+Tayuman,UN Avenue,25
+Tayuman,Pedro Gil,25
+Tayuman,Quirino,30
+Bambang,R.Papa,20
+Bambang,Abad Santos,20
+Bambang,Blumentritt,20
+Bambang,Tayuman,20
+Bambang,Doroteo Jose,20
+Bambang,Carriedo,20
+Bambang,Central,20
+Bambang,UN Avenue,20
+Bambang,Pedro Gil,25
+Bambang,Quirino,30
+Doroteo Jose,R.Papa,25
+Doroteo Jose,Abad Santos,20
+Doroteo Jose,Blumentritt,20
+Doroteo Jose,Tayuman,20
+Doroteo Jose,Bambang,20
+Doroteo Jose,Carriedo,20
+Doroteo Jose,Central,20
+Doroteo Jose,UN Avenue,20
+Doroteo Jose,Pedro Gil,20
+Doroteo Jose,Quirino,25
+Carriedo,R.Papa,25
+Carriedo,Abad Santos,25
+Carriedo,Blumentritt,20
+Carriedo,Tayuman,20
+Carriedo,Bambang,20
+Carriedo,Doroteo Jose,20
+Carriedo,Central,20
+Carriedo,UN Avenue,20
+Carriedo,Pedro Gil,20
+Carriedo,Quirino,25
+Central,R.Papa,25
+Central,Abad Santos,25
+Central,Blumentritt,25
+Central,Tayuman,20
+Central,Bambang,20
+Central,Doroteo Jose,20
+Central,Carriedo,20
+Central,UN Avenue,20
+Central,Pedro Gil,20
+Central,Quirino,25
+UN Avenue,R.Papa,25
+UN Avenue,Abad Santos,25
+UN Avenue,Blumentritt,25
+UN Avenue,Tayuman,25
+UN Avenue,Bambang,20
+UN Avenue,Doroteo Jose,20
+UN Avenue,Carriedo,20
+UN Avenue,Central,20
+UN Avenue,Pedro Gil,20
+UN Avenue,Quirino,25
+Pedro Gil,R.Papa,25
+Pedro Gil,Abad Santos,25
+Pedro Gil,Blumentritt,25
+Pedro Gil,Tayuman,25
+Pedro Gil,Bambang,25
+Pedro Gil,Doroteo Jose,20
+Pedro Gil,Carriedo,20
+Pedro Gil,Central,20
+Pedro Gil,UN Avenue,20
+Pedro Gil,Quirino,20
+Quirino,R.Papa,30
+Quirino,Abad Santos,30
+Quirino,Blumentritt,30
+Quirino,Tayuman,30
+Quirino,Bambang,30
+Quirino,Doroteo Jose,25
+Quirino,Carriedo,25
+Quirino,Central,25
+Quirino,UN Avenue,25
+Quirino,Pedro Gil,20
