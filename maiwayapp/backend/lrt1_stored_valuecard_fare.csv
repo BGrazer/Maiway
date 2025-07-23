@@ -9,6 +9,7 @@ R.Papa,Central,23
 R.Papa,UN Avenue,25
 R.Papa,Pedro Gil,26
 R.Papa,Quirino,28
+R.Papa,Vito Cruz,29
 Abad Santos,R.Papa,17
 Abad Santos,Blumentritt,18
 Abad Santos,Tayuman,19
@@ -18,7 +19,8 @@ Abad Santos,Carriedo,21
 Abad Santos,Central,23
 Abad Santos,UN Avenue,24
 Abad Santos,Pedro Gil,25
-Abad Santos,Quirino,29
+Abad Santos,Quirino,27
+Abad Santos,Vito Cruz,28
 Blumentritt,R.Papa,19
 Blumentritt,Abad Santos,18
 Blumentritt,Tayuman,17
@@ -29,6 +31,7 @@ Blumentritt,Central,21
 Blumentritt,UN Avenue,23
 Blumentritt,Pedro Gil,24
 Blumentritt,Quirino,25
+Blumentritt,Vito Cruz,26
 Tayuman,R.Papa,20
 Tayuman,Abad Santos,19
 Tayuman,Blumentritt,17
@@ -39,6 +42,7 @@ Tayuman,Central,20
 Tayuman,UN Avenue,22
 Tayuman,Pedro Gil,23
 Tayuman,Quirino,24
+Tayuman,Vito Cruz,25
 Bambang,R.Papa,20
 Bambang,Abad Santos,20
 Bambang,Blumentritt,18
@@ -49,6 +53,7 @@ Bambang,Central,19
 Bambang,UN Avenue,21
 Bambang,Pedro Gil,22
 Bambang,Quirino,23
+Bambang,Vito Cruz,25
 Doroteo Jose,R.Papa,21
 Doroteo Jose,Abad Santos,20
 Doroteo Jose,Blumentritt,19
@@ -59,6 +64,7 @@ Doroteo Jose,Central,18
 Doroteo Jose,UN Avenue,20
 Doroteo Jose,Pedro Gil,21
 Doroteo Jose,Quirino,22
+Doroteo Jose,Vito Cruz,24
 Carriedo,R.Papa,22
 Carriedo,Abad Santos,21
 Carriedo,Blumentritt,20
@@ -69,6 +75,7 @@ Carriedo,Central,17
 Carriedo,UN Avenue,19
 Carriedo,Pedro Gil,20
 Carriedo,Quirino,21
+Carriedo,Vito Cruz,23
 Central,R.Papa,23
 Central,Abad Santos,23
 Central,Blumentritt,21
@@ -79,6 +86,7 @@ Central,Carriedo,17
 Central,UN Avenue,18
 Central,Pedro Gil,19
 Central,Quirino,20
+Central,Vito Cruz,22
 UN Avenue,R.Papa,25
 UN Avenue,Abad Santos,24
 UN Avenue,Blumentritt,23
@@ -89,6 +97,7 @@ UN Avenue,Carriedo,19
 UN Avenue,Central,18
 UN Avenue,Pedro Gil,17
 UN Avenue,Quirino,19
+UN Avenue,Vito Cruz,20
 Pedro Gil,R.Papa,26
 Pedro Gil,Abad Santos,25
 Pedro Gil,Blumentritt,24
@@ -99,6 +108,7 @@ Pedro Gil,Carriedo,20
 Pedro Gil,Central,19
 Pedro Gil,UN Avenue,17
 Pedro Gil,Quirino,17
+Pedro Gil,Vito Cruz,19
 Quirino,R.Papa,28
 Quirino,Abad Santos,27  
 Quirino,Blumentritt,25
@@ -109,3 +119,15 @@ Quirino,Carriedo,21
 Quirino,Central,20
 Quirino,UN Avenue,19
 Quirino,Pedro Gil,17
+Quirino,Vito Cruz,17
+Vito Cruz,R.Papa,29
+Vito Cruz,Abad Santos,28
+Vito Cruz,Blumentritt,26
+Vito Cruz,Tayuman,25
+Vito Cruz,Bambang,25
+Vito Cruz,Doroteo Jose,24
+Vito Cruz,Carriedo,23
+Vito Cruz,Central,22
+Vito Cruz,UN Avenue,20
+Vito Cruz,Pedro Gil,19
+Vito Cruz,Quirino,17
