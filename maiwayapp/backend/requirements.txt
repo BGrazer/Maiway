@@ -21,3 +21,6 @@ networkx>=2.8.0
 osmnx>=1.6
 geopandas>=0.13.2
 shapely>=2.0.1
+
+# Additional
+gunicorn==23.0.0

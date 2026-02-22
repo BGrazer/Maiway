@@ -1,4 +1,7 @@
+// ✅ Merged Admin Panel with Reports and Surveys working together
+
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
   runApp(const MaterialApp(home: AdminScreen()));
@@ -14,46 +17,12 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  List<Map<String, String>> users = [
-    {"name": "Trisha Norton", "status": "Pending"},
-    {"name": "Jolene Orr", "status": "Submitted"},
-    {"name": "Aryan Roy", "status": "Under Review"},
-    {"name": "Elvin Bond", "status": "Pending"},
-    {"name": "Hazafa Anas", "status": "Submitted"},
-    {"name": "Nisha Kumari", "status": "Under Review"},
-    {"name": "Sophia", "status": "Submitted"},
-    {"name": "Rhazita Pratapa", "status": "Pending"},
-  ];
-
-  List<Map<String, dynamic>> surveyAnomalies = [
-    {
-      "id": "S001",
-      "participant": "Alice Johnson",
-      "anomalyScore": 0.92,
-      "details": "High deviation in answers for question 4 and 7",
-      "date": "June 5, 2025",
-    },
-    {
-      "id": "S002",
-      "participant": "Bob Smith",
-      "anomalyScore": 0.88,
-      "details": "Inconsistent response pattern detected",
-      "date": "June 6, 2025",
-    },
-    {
-      "id": "S003",
-      "participant": "Charlie Lee",
-      "anomalyScore": 0.95,
-      "details": "Unusual response timing and pattern",
-      "date": "June 6, 2025",
-    },
-  ];
-
-  String searchQueryReports = '';
-  String? statusFilterReports;
-
   String searchQuerySurveys = '';
+  String searchQueryReports = '';
+  String selectedStatus = 'All';
+  String selectedVehicle = 'All';
+  int? selectedMonth;
+  int? selectedYear;
 
   @override
   void initState() {
@@ -67,26 +36,51 @@ class _AdminScreenState extends State<AdminScreen>
     super.dispose();
   }
 
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Submitted':
+        return Colors.green;
+      case 'Under Review':
+        return Colors.orange;
+      case 'Pending':
+      default:
+        return Colors.blue;
+    }
+  }
+
+  Color _getStatusBackgroundColor(String status) {
+    switch (status) {
+      case 'Submitted':
+        return Colors.green.withOpacity(0.2);
+      case 'Under Review':
+        return Colors.orange.withOpacity(0.2);
+      case 'Pending':
+      default:
+        return Colors.blue.withOpacity(0.2);
+    }
+  }
+
+  String _monthName(int month) {
+    const months = [
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    return months[month];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final filteredUsers =
-        users.where((user) {
-          final matchesSearch = user['name']!.toLowerCase().contains(
-            searchQueryReports.toLowerCase(),
-          );
-          final matchesFilter =
-              statusFilterReports == null ||
-              user['status'] == statusFilterReports;
-          return matchesSearch && matchesFilter;
-        }).toList();
-
-    final filteredSurveys =
-        surveyAnomalies.where((survey) {
-          return survey['participant'].toLowerCase().contains(
-            searchQuerySurveys.toLowerCase(),
-          );
-        }).toList();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Panel'),
@@ -98,297 +92,385 @@ class _AdminScreenState extends State<AdminScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search user by name',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: PopupMenuButton<String>(
-                      icon: const Icon(Icons.filter_list),
-                      onSelected: (value) {
-                        setState(() {
-                          statusFilterReports = value == 'All' ? null : value;
-                        });
-                      },
-                      itemBuilder:
-                          (context) => const [
-                            PopupMenuItem(value: 'All', child: Text('All')),
-                            PopupMenuItem(
-                              value: 'Pending',
-                              child: Text('Pending'),
-                            ),
-                            PopupMenuItem(
-                              value: 'Under Review',
-                              child: Text('Under Review'),
-                            ),
-                            PopupMenuItem(
-                              value: 'Submitted',
-                              child: Text('Submitted'),
-                            ),
-                          ],
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      searchQueryReports = value;
-                    });
-                  },
-                ),
-              ),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(10),
-                  itemCount: filteredUsers.length,
-                  separatorBuilder: (_, __) => const Divider(),
-                  itemBuilder: (context, index) {
-                    final user = filteredUsers[index];
-                    final status = user['status'];
-                    Color statusColor;
-                    Color bgColor;
-
-                    switch (status) {
-                      case 'Submitted':
-                        statusColor = Colors.green;
-                        bgColor = Colors.green.withOpacity(0.2);
-                        break;
-                      case 'Under Review':
-                        statusColor = Colors.orange;
-                        bgColor = Colors.orange.withOpacity(0.2);
-                        break;
-                      case 'Pending':
-                      default:
-                        statusColor = Colors.blue;
-                        bgColor = Colors.blue.withOpacity(0.2);
-                        break;
-                    }
-
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFF6699CC),
-                        child: Text(
-                          _getInitials(user['name']!),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      title: Text(user['name']!),
-                      subtitle: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: bgColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          status!,
-                          style: TextStyle(
-                            color: statusColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _showUserDetails(context, user),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-
-          // Surveys Tab
-          Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search survey participant',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      searchQuerySurveys = value;
-                    });
-                  },
-                ),
-              ),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(10),
-                  itemCount: filteredSurveys.length,
-                  separatorBuilder: (_, __) => const Divider(),
-                  itemBuilder: (context, index) {
-                    final survey = filteredSurveys[index];
-
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFF6699CC),
-                        child: Text(
-                          _getInitials(survey['participant']),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      title: Text(survey['participant']),
-                      subtitle: Text(
-                        "Anomaly Score: ${survey['anomalyScore'].toStringAsFixed(2)}",
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _showSurveyDetails(context, survey),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
+        children: [_buildReportsTab(), _buildSurveysTab()],
       ),
     );
   }
 
-  String _getInitials(String name) {
-    final parts = name.trim().split(' ');
-    if (parts.length == 1) {
-      return parts[0][0].toUpperCase();
-    }
-    return (parts[0][0] + parts.last[0]).toUpperCase();
-  }
-
-  void _showUserDetails(BuildContext context, Map<String, String> user) {
-    String selectedStatus = user['status']!;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Center(
-          child: AlertDialog(
-            title: Text(user['name']!),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("Date Received: June 7, 2025"),
-                const SizedBox(height: 10),
-                const Text("File Report: Not available"),
-                const SizedBox(height: 20),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Change Status:",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+ Widget _buildSurveysTab() {
+  return SingleChildScrollView(
+    padding: const EdgeInsets.all(10),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Search bar
+        TextField(
+          decoration: InputDecoration(
+            hintText: 'Search route...',
+            prefixIcon: const Icon(Icons.search),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          onChanged: (value) => setState(() => searchQuerySurveys = value.toLowerCase()),
+        ),
+        const SizedBox(height: 10),
+        
+        // Filters Row
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: IntrinsicWidth(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Vehicle Type Filter
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: selectedVehicle,
+                          decoration: const InputDecoration(
+                            labelText: 'Vehicle Type',
+                            border: OutlineInputBorder(),
+                            // Adjust size or add padding
+                            contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'All', child: Text('All')),
+                            DropdownMenuItem(value: 'Jeepney', child: Text('Jeepney')),
+                            DropdownMenuItem(value: 'Bus', child: Text('Bus')),
+                          ],
+                          onChanged: (value) => setState(() => selectedVehicle = value!),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      
+                      // Month Filter
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          value: selectedMonth,
+                          decoration: const InputDecoration(
+                            labelText: 'Month',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding
+                          ),
+                          items: List.generate(12, (index) => DropdownMenuItem(
+                            value: index + 1,
+                            child: Text(_monthName(index + 1)),
+                          ))..insert(0, const DropdownMenuItem( value: null, child: Text('All'))),
+                          onChanged: (value) => setState(() => selectedMonth = value),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      
+                      // Year Filter
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          value: selectedYear,
+                          decoration: const InputDecoration(
+                            labelText: 'Year',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding
+                          ),
+                          items: List.generate(5, (index) => DropdownMenuItem(
+                            value: DateTime.now().year - index,
+                            child: Text((DateTime.now().year - index).toString()),
+                          ))..insert(0, const DropdownMenuItem(value: null, child: Text('All'))),
+                          onChanged: (value) => setState(() => selectedYear = value),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 5),
-                Column(
-                  children:
-                      ['Pending', 'Under Review', 'Submitted'].map((
-                        statusOption,
-                      ) {
-                        return RadioListTile<String>(
-                          title: Text(statusOption),
-                          value: statusOption,
-                          groupValue: selectedStatus,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedStatus = value!;
-                              user['status'] = value;
-                            });
-                            Navigator.of(context).pop();
-                          },
-                        );
-                      }).toList(),
-                ),
-                const SizedBox(height: 10),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.download),
-                  label: const Text("Export Report (PDF)"),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "Export feature is not yet connected to the database.",
-                        ),
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            actionsAlignment: MainAxisAlignment.center,
-          ),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 10),
+        // Surveys List
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: _buildSurveyList(),
+        ),
+      ],
+    ),
+  );
+}
+  Widget _buildSurveyList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('surveys').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No surveys found.'));
+        }
+
+        final grouped = <String, Map<String, List<Map<String, dynamic>>>>{};
+
+        for (var doc in snapshot.data!.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final route = (data['route'] ?? 'Unknown') as String;
+          final vehicle = data['vehicleType'] ?? 'Unknown';
+          final timestamp = data['timestamp'];
+          final date = timestamp is Timestamp ? timestamp.toDate() : DateTime.now();
+
+          if (selectedVehicle != 'All' && vehicle != selectedVehicle) continue;
+          if ((selectedMonth != null && date.month != selectedMonth) ||
+              (selectedYear != null && date.year != selectedYear)) {
+            continue;
+          }
+
+          final monthYear = "${_monthName(date.month)} ${date.year}";
+          grouped.putIfAbsent(route, () => {});
+          grouped[route]!.putIfAbsent(monthYear, () => []);
+          grouped[route]![monthYear]!.add(data);
+        }
+
+        final filteredRoutes = grouped.keys.where((r) => r.toLowerCase().contains(searchQuerySurveys)).toList()..sort();
+
+        return ListView.builder(
+          itemCount: filteredRoutes.length,
+          itemBuilder: (context, index) {
+            final route = filteredRoutes[index];
+            return ExpansionTile(
+              title: Text("🚏 Route: $route"),
+              children: grouped[route]!.entries.map((entry) {
+                final monthYear = entry.key;
+                final entries = entry.value;
+                final total = entries.length;
+                final overcharged = entries.where((d) => d['anomalous'] == true).length;
+                final avgFare = entries.map((e) => (e['fare_given'] ?? 0).toDouble()).fold(0.0, (a, b) => a + b) / total;
+                final avgDistance = entries.map((e) => double.tryParse('${e['distance']}') ?? 0.0).fold(0.0, (a, b) => a + b) / total;
+
+                return ListTile(
+                  title: Text("📅 $monthYear"),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("🧑 Participants: $total"),
+                      Text("⚠️ Overcharged: $overcharged"),
+                      Text("💰 Avg Fare: ₱${avgFare.toStringAsFixed(2)}"),
+                      Text("📏 Avg Distance: ${avgDistance.toStringAsFixed(2)} km"),
+                    ],
+                  ),
+                  onTap: () => _showSurveyDetails(context, "$route ($monthYear)", entries),
+                );
+              }).toList(),
+            );
+          },
         );
       },
     );
   }
 
-  void _showSurveyDetails(BuildContext context, Map<String, dynamic> survey) {
-    showDialog(
+  void _showSurveyDetails(BuildContext context, String title, List<Map<String, dynamic>> entries) {
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return Center(
-          child: AlertDialog(
-            title: Text("Survey ID: ${survey['id']}"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Participant: ${survey['participant']}"),
-                const SizedBox(height: 10),
-                Text("Date: ${survey['date']}"),
-                const SizedBox(height: 10),
-                Text(
-                  "Anomaly Score: ${survey['anomalyScore'].toStringAsFixed(2)}",
-                ),
-                const SizedBox(height: 10),
-                Text("Details:"),
-                Text(survey['details']),
-                const SizedBox(height: 20),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.download),
-                  label: const Text("Export Survey Anomaly (PDF)"),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "Export feature is not yet connected to the database.",
-                        ),
-                        duration: Duration(seconds: 3),
+      isScrollControlled: true,
+      builder: (_) => DraggableScrollableSheet(
+        expand: false,
+        builder: (context, scrollController) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text("Surveys: $title", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Divider(),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: entries.length,
+                  itemBuilder: (context, index) {
+                    final e = entries[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: e['anomalous'] == true ? Colors.red : Colors.green,
+                        child: Text((e['name'] ?? '?')[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
                       ),
+                      title: Text(e['name'] ?? 'Unknown'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Fare Given: ₱${e['fare_given']}"),
+                          Text("Predicted Fare: ₱${e['original_fare']}"),
+                          Text("Vehicle: ${e['vehicleType'] ?? 'N/A'}"),
+                        ],
+                      ),
+                      trailing: Icon(e['anomalous'] == true ? Icons.warning : Icons.check_circle, color: e['anomalous'] == true ? Colors.red : Colors.green),
                     );
                   },
                 ),
-              ],
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            actionsAlignment: MainAxisAlignment.center,
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReportsTab() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            children: [
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search by Full Name or Email',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onChanged: (value) => setState(() => searchQueryReports = value.toLowerCase()),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: selectedStatus,
+                      decoration: const InputDecoration(
+                        labelText: 'Filter by Status',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'All', child: Text('All')),
+                        DropdownMenuItem(value: 'Pending', child: Text('Pending')),
+                        DropdownMenuItem(value: 'Submitted', child: Text('Submitted')),
+                        DropdownMenuItem(value: 'Under Review', child: Text('Under Review')),
+                      ],
+                      onChanged: (value) => setState(() => selectedStatus = value!),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: selectedVehicle,
+                      decoration: const InputDecoration(
+                        labelText: 'Vehicle Type',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'All', child: Text('All')),
+                        DropdownMenuItem(value: 'Jeepney', child: Text('Jeepney')),
+                        DropdownMenuItem(value: 'Bus', child: Text('Bus')),
+                      ],
+                      onChanged: (value) => setState(() => selectedVehicle = value!),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('reports').snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('No reports found.'));
+              }
+
+              final filteredReports = snapshot.data!.docs.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                final fullName = data['fullName']?.toLowerCase() ?? '';
+                final email = data['email']?.toLowerCase() ?? '';
+                final status = data['status'] ?? 'Pending';
+                final vehicle = data['vehicleType'] ?? '';
+                return (fullName.contains(searchQueryReports) || email.contains(searchQueryReports)) &&
+                    (selectedStatus == 'All' || selectedStatus == status) &&
+                    (selectedVehicle == 'All' || selectedVehicle == vehicle);
+              }).toList();
+
+              return ListView.separated(
+                itemCount: filteredReports.length,
+                separatorBuilder: (_, __) => const Divider(),
+                itemBuilder: (context, index) {
+                  final doc = filteredReports[index];
+                  final report = doc.data() as Map<String, dynamic>;
+                  final status = report['status'] ?? 'Pending';
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.grey.shade300,
+                      child: Text((report['fullName'] ?? '?')[0].toUpperCase()),
+                    ),
+                    title: Text(report['fullName'] ?? 'No Name'),
+                    subtitle: Text('Vehicle: ${report['vehicleType']} | Plate: ${report['plateNumber']}'),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getStatusBackgroundColor(status),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        status,
+                        style: TextStyle(
+                          color: _getStatusColor(status),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    onTap: () => _showReportDetails(doc.id, report),
+                  );
+                },
+              );
+            },
+          ),
+        )
+      ],
+    );
+  }
+
+  void _showReportDetails(String docId, Map<String, dynamic> report) {
+    String currentStatus = report['status'] ?? 'Pending';
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(report['typeOfComplaint'] ?? 'Report'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Name: ${report['fullName']}'),
+              Text('Email: ${report['email']}'),
+              Text('Phone: ${report['contactNumber']}'),
+              Text('Vehicle Type: ${report['vehicleType']}'),
+              Text('Plate Number: ${report['plateNumber']}'),
+              Text('Date: ${report['date'] ?? 'Not specified'}'),
+              const SizedBox(height: 10),
+              const Text('Details:'),
+              Text(report['details'] ?? 'No details'),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: currentStatus,
+                decoration: const InputDecoration(labelText: 'Update Status'),
+                items: const [
+                  DropdownMenuItem(value: 'Pending', child: Text('Pending')),
+                  DropdownMenuItem(value: 'Under Review', child: Text('Under Review')),
+                  DropdownMenuItem(value: 'Submitted', child: Text('Submitted')),
+                ],
+                onChanged: (value) {
+                  if (value != null && value != currentStatus) {
+                    FirebaseFirestore.instance.collection('reports').doc(docId).update({'status': value});
+                    Navigator.of(context).pop();
+                  }
+                },
+              )
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Close"),
+          ),
+        ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 }

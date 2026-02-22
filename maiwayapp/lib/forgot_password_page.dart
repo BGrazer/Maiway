@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class ForgotPasswordPage extends StatelessWidget {
+class forgotpassword extends StatelessWidget {
   final Color backgroundColor = Color(0xFF3F7399);
   final Color textBoxColor = Color(0xFF292929);
   final Color buttonColor = Color(0xFFBFCBCE);
@@ -30,12 +30,10 @@ class ForgotPasswordPage extends StatelessWidget {
                 style: TextStyle(fontSize: 16, color: Colors.white70),
               ),
               Spacer(),
-              // Email Input Field
               _customTextField(label: 'Enter Your Email', icon: Icons.email),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  // Add your reset logic here
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Reset link sent to your email'),
