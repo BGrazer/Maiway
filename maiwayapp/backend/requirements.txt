@@ -1,0 +1,48 @@
+# Core backend dependencies (from your list)
+colorama==0.4.6
+joblib==1.5.1
+numpy==2.3.0
+pandas==2.3.0
+python-dateutil==2.9.0.post0
+pytz==2025.2
+scikit-learn==1.7.0
+scipy==1.15.3
+six==1.17.0
+threadpoolctl==3.6.0
+tzdata==2025.2
+
+# Web framework and ASGI server
+Flask[async]   # async views (chatbot /chat route)
+hypercorn # Explicitly added for production ASGI server
+Flask-Cors # For handling CORS with your Flutter frontend
+
+# AI/ML/NLP dependencies
+tensorflow # For machine learning models (ensure compatible with your code)
+nltk       # Natural Language Toolkit
+Pillow     # Image processing (often a dependency for ML/CV libraries)
+requests   # For making HTTP requests (e.g., to external APIs like Gemini)
+google-generativeai # Gemini API (chatbot)
+transformers # Hugging Face BERT etc. (chatbot_model.py)
+python-dotenv # Load .env in Flask apps and chatbot
+
+# PyTorch and related (if you're using PyTorch-based models)
+torch
+torchvision
+torchaudio
+
+# Routing engine dependencies (merged from backend/routing/requirements.txt)
+networkx>=2.8.0
+osmnx>=1.6
+geopandas>=0.13.2
+shapely>=2.0.1
+folium>=0.14.0
+geopy>=2.3.0
+openrouteservice>=2.3.0
+rtree>=1.0.0
+polyline>=1.4.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# General utilities/other
+# Add any other libraries specific to rfr.py or crowd_analysis.py if they are not covered above
+# For example, if rfr.py uses specific data science libraries, list them here.
