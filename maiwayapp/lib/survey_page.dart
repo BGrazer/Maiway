@@ -220,7 +220,7 @@ class _SurveyPageState extends State<SurveyPage> {
       // Try local RFR (port 5002) first when running py main.py; fallback to production
       final urls = [
         Uri.parse('${RoutingService.rfrBaseUrl}/predict_fare'),
-        Uri.parse('https://maiway-backend-production.up.railway.app/predict_fare'),
+        Uri.parse('https://maiway-q6y5.onrender.com/predict_fare'),
       ];
       http.Response? response;
       for (final url in urls) {

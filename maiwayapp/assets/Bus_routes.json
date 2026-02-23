@@ -1,0 +1,14 @@
+{
+  "RoutedBuses": [
+    { "number": 1, "route": "Lawton to PITX via Taft" },
+    { "number": 2, "route": "PITX to Lawton via Taft" },
+    { "number": 3, "route": "Monumento via Rizal Ave" },
+    { "number": 4, "route": "Monumento - Vito Cruz via Rizal Ave." },
+    { "number": 5, "route": "Quezon Ave – Taft via España" },
+    { "number": 6, "route": "Angat - Divisoria" },
+    { "number": 7, "route": "San Jose del Monte - Sta. Cruz via Sta. Maria" },
+    { "number": 8, "route": "Biñan - Plaza Lawton" },
+    { "number": 9, "route": "Fairview - PITX" },
+    { "number": 10, "route": "Antipolo - Quiapo via Cubao" }
+  ]
+}
