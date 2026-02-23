@@ -61,13 +61,16 @@ class ChatbotModel:
         if not user_query: return "Ano po ang kailangan niyo?"
 
         processed_query = self._preprocess_text(user_query)
+        print(f"DEBUG: Processing query: '{user_query}' -> '{processed_query}'")
 
         # FIX: If it looks like math or a very short general question, go straight to Gemini
         if re.search(r'[0-9]', processed_query) and any(op in processed_query for op in '+-*/='):
+            print("DEBUG: Detected math query, going to Gemini")
             return await self._get_gemini_response(user_query)
 
         # 1. Map Check
         if any(kw in processed_query for kw in self.map_related_keywords):
+            print(f"DEBUG: Detected map keyword in query")
             return "For questions about routes, locations, or directions, please refer to the MapScreen."
 
         # 2. Semantic Similarity Check
@@ -75,12 +78,16 @@ class ChatbotModel:
             query_vector = self.vectorizer.transform([processed_query])
             scores = cosine_similarity(query_vector, self.corpus_embeddings).flatten()
             best_idx = np.argmax(scores)
+            best_score = scores[best_idx]
+            print(f"DEBUG: Best FAQ match score: {best_score} (threshold: {self.similarity_threshold})")
             
             # Only use FAQ if it's a high-confidence match
-            if scores[best_idx] >= self.similarity_threshold:
+            if best_score >= self.similarity_threshold:
+                print(f"DEBUG: Using FAQ answer")
                 return self.faq_data[best_idx]["answer"]
 
         # 3. Gemini Fallback (Handles President, 1+1, etc.)
+        print("DEBUG: Falling back to Gemini")
         return await self._get_gemini_response(user_query)
 
     async def _get_gemini_response(self, user_query):
