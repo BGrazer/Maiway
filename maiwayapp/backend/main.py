@@ -25,14 +25,14 @@ async def chat():
     data = request.json
     if not data or 'message' not in data:
         return jsonify({"error": "No message"}), 400
-    response = await chatbot.get_response(data['message'])
+    response = await chatbot.get_response(data['message'])  # type: ignore
     return jsonify({"response": response})
 
 @app.route('/dynamic_suggestions', methods=['GET'])
 def suggestions():
     query = request.args.get('query', '')
     if not query: return jsonify({"suggestions": []})
-    results = chatbot.get_matching_questions(query)
+    results = chatbot.get_matching_questions(query)  # type: ignore
     return jsonify({"suggestions": results})
 
 # --- FARE (RFR) ROUTES ---
