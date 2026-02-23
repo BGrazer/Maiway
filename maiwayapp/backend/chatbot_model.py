@@ -4,9 +4,8 @@ import re
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import google.generativeai as genai
-from google.generativeai.generative_models import GenerativeModel 
-from google.generativeai.client import configure
+from google import genai  # type: ignore
+from google.genai import types  # type: ignore
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,12 +23,19 @@ class ChatbotModel:
         self.vectorizer = TfidfVectorizer(ngram_range=(1, 3)) 
 
         self.map_related_keywords = [
-            "route", "routes", "location", "map", "direction", "saan", "paano pumunta"
+            "route", "routes", "how to get to", "location", "address",
+            "map", "direction", "directions", "saan", "paano pumunta",
+            "papunta", "where is", "find", "locate", "how to travel", "by foot",
+            "walking", "commute", "paano", "paano pumunta sa",
+            "how to", "how to go", "how to get", "how do i get",
+            "papunta sa", "punta sa", "pumunta sa"
         ]
 
         self.gemini_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         if self.gemini_api_key:
-            configure(api_key=self.gemini_api_key)
+            self.client = genai.Client(api_key=self.gemini_api_key)
+        else:
+            self.client = None
 
         self._load_and_process_data()
 
@@ -79,20 +85,35 @@ class ChatbotModel:
 
     async def _get_gemini_response(self, user_query):
         try:
-            if not self.gemini_api_key:
+            if not self.client:
                 print("ERROR: No Gemini API key found")
                 return "Subukan po muli mamaya."
             
-            gemini_model = GenerativeModel('gemini-1.5-flash')
             prompt = (
                 "You are the MAIWAY assistant. You help with Manila commuting. "
                 "However, if the user asks general questions or math, answer them directly and concisely. "
                 f"User asks: {user_query}"
             )
             print(f"DEBUG: Calling Gemini with query: {user_query}")
-            response = await gemini_model.generate_content_async(prompt)
-            print(f"DEBUG: Gemini response: {response.text}")
-            return response.text
+            
+            # Try multiple model names
+            models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest']
+            
+            for model_name in models_to_try:
+                try:
+                    print(f"DEBUG: Trying model: {model_name}")
+                    response = self.client.models.generate_content(
+                        model=model_name,
+                        contents=prompt
+                    )
+                    print(f"DEBUG: Success with {model_name}! Response: {response.text}")
+                    return response.text
+                except Exception as model_error:
+                    print(f"DEBUG: Model {model_name} failed: {model_error}")
+                    continue
+            
+            # If all models fail, return error
+            return "Subukan po muli mamaya."
         except Exception as e:
             print(f"Gemini Error: {type(e).__name__}: {e}")
             import traceback
