@@ -24,5 +24,10 @@ shapely>=2.0.1
 
 # Additional
 gunicorn==23.0.0
-torch==2.2.1+cpu
-torchvision==0.17.1+cpu
+# Additional
+gunicorn==23.0.0
+
+# This tells Render where to find the CPU-only versions of Torch
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.1
+torchvision==0.17.1
