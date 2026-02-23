@@ -13,6 +13,7 @@ python-dotenv
 
 # AI (Only what you actually use)
 google-generativeai
+google-genai
 requests
 nltk
 transformers==4.40.0
