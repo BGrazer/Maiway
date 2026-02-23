@@ -1,4 +1,5 @@
 import os
+import sys
 import asyncio
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -12,20 +13,26 @@ app = Flask(__name__)
 CORS(app)
 
 # Initialize systems on startup
-print("Starting MAIWAY Unified Backend...")
+print("Starting MAIWAY Unified Backend...", flush=True)
 chatbot = chatbot_module.init_chatbot()
+print("Chatbot initialized successfully!", flush=True)
 
 @app.route('/')
 def health():
+    print("Health check called", flush=True)
     return {"status": "MAIWAY System Online", "version": "1.0.0"}
 
 # --- CHATBOT ROUTES ---
 @app.route('/chat', methods=['POST'])
 async def chat():
+    print("Chat endpoint called", flush=True)
     data = request.json
     if not data or 'message' not in data:
+        print("ERROR: No message in request", flush=True)
         return jsonify({"error": "No message"}), 400
+    print(f"Received message: {data['message']}", flush=True)
     response = await chatbot.get_response(data['message'])  # type: ignore
+    print(f"Sending response: {response}", flush=True)
     return jsonify({"response": response})
 
 @app.route('/dynamic_suggestions', methods=['GET'])
