@@ -9,7 +9,6 @@ import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:maiwayapp/chatbot_dialog.dart';
 import 'package:maiwayapp/controllers/map_screen_controller.dart';
 import 'package:maiwayapp/services/geocoding_service.dart';
-import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 
 class MapScreen extends StatefulWidget {
   final List<String> selectedPreferences;
@@ -502,6 +501,5 @@ class _MapScreenState extends State<MapScreen>
   TileLayer get openStreetMapTileLayer => TileLayer(
     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     userAgentPackageName: 'com.example.maiway',
-    tileProvider: CancellableNetworkTileProvider(),
   );
 }
