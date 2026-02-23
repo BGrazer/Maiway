@@ -21,14 +21,14 @@ models = {
     }
 }
 
-# Jeep
+# Jeep training
 X_jeep = df_jeep[['Distance (km)']].values
 y_jeep_regular = df_jeep['Regular Fare (₱)'].to_numpy()
 y_jeep_discounted = df_jeep['Discounted Fare (₱)'].to_numpy()
 models['Jeep']['Regular'].fit(X_jeep, y_jeep_regular)
 models['Jeep']['Discounted'].fit(X_jeep, y_jeep_discounted)
 
-# Bus
+# Bus training
 X_bus = df_bus[['Distance (km)']].values
 y_bus_regular = df_bus['Regular Fare (₱)'].to_numpy()
 y_bus_discounted = df_bus['Discounted Fare (₱)'].to_numpy()
@@ -52,13 +52,12 @@ thresholds = {
     }
 }
 
-# Custom rounding rule
 def custom_round(value):
     integer_part = int(value)
     decimal_part = value - integer_part
     return float(integer_part + 1) if decimal_part >= 0.5 else float(integer_part)
 
-# Anomaly Check Function
+# --- THE MAIN LOGIC FUNCTION ---
 def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
     fare_type = 'Discounted' if discounted else 'Regular'
     model = models[vehicle_type][fare_type]
@@ -80,28 +79,15 @@ def check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted):
         'is_anomalous': bool(is_anomalous),
     }
 
-# Initialize App
-app = Flask(__name__)
-CORS(app)
-
-@app.route('/predict_fare', methods=['POST'])
-def predict_fare():
-    if request.json is None:
-        return jsonify({"error": "Request body must be JSON"}), 400
-
-    data = request.json
-    vehicle_type = data.get('vehicle_type')
-    distance_km = float(data.get('distance_km', 0))
-    charged_fare = float(data.get('charged_fare', 0))
-    discounted = bool(data.get('discounted', False))
-
-    if not vehicle_type or not distance_km or not charged_fare:
-        return jsonify({"error": "Missing required fields"}), 400
-
-    result = check_fare_anomaly(vehicle_type, distance_km, charged_fare, discounted)
-    return jsonify(result)
-
+# This prevents the script from starting a second server when main.py imports it
 if __name__ == '__main__':
-    local_ip = socket.gethostbyname(socket.gethostname())
-    print(f"\n🧮 RFR backend running at: http://{local_ip}:5002\n")
-    app.run(host='0.0.0.0', port=5002, debug=True)
+    app = Flask(__name__)
+    CORS(app)
+    @app.route('/predict_fare', methods=['POST'])
+    def predict_fare():
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        result = check_fare_anomaly(data.get('vehicle_type'), float(data.get('distance_km')), float(data.get('charged_fare')), bool(data.get('discounted')))
+        return jsonify(result)
+    app.run(host='0.0.0.0', port=5002)

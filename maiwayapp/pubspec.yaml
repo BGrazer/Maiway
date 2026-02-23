@@ -77,6 +77,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/chatbot_icon.png
     - assets/images/ordinanceno9091.pdf
     - assets/images/ordinanceno8979.pdf
     - assets/images/d1-6toda.pdf

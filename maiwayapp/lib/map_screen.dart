@@ -443,10 +443,14 @@ class _MapScreenState extends State<MapScreen>
             right: 20,
             child: FloatingActionButton(
               heroTag: 'chatbotBtn',
-              elevation: 4,
-              backgroundColor: Colors.blue,
+              elevation: 0,
+              backgroundColor: Colors.transparent,
               onPressed: _openChatbotDialog,
-              child: const Icon(Icons.chat, color: Colors.white, size: 30),
+              child: Image.asset(
+                'assets/images/chatbot_icon.png',
+                width: 90,
+                height: 90,
+              ),
             ),
           ),
         ],
