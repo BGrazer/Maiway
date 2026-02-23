@@ -79,17 +79,24 @@ class ChatbotModel:
 
     async def _get_gemini_response(self, user_query):
         try:
+            if not self.gemini_api_key:
+                print("ERROR: No Gemini API key found")
+                return "Subukan po muli mamaya."
+            
             gemini_model = GenerativeModel('gemini-1.5-flash')
-            # Better prompt to ensure it answers general questions
             prompt = (
                 "You are the MAIWAY assistant. You help with Manila commuting. "
                 "However, if the user asks general questions or math, answer them directly and concisely. "
                 f"User asks: {user_query}"
             )
+            print(f"DEBUG: Calling Gemini with query: {user_query}")
             response = await gemini_model.generate_content_async(prompt)
+            print(f"DEBUG: Gemini response: {response.text}")
             return response.text
         except Exception as e:
-            print(f"Gemini Error: {e}")
+            print(f"Gemini Error: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
             return "Subukan po muli mamaya."
 
     def get_matching_questions(self, query_text, limit=5):
