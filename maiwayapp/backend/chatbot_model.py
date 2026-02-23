@@ -2,10 +2,12 @@ import json
 import torch
 import os
 import re
-# We switch to a lighter BERT model to stay under 512MB
 from transformers import AutoTokenizer, AutoModel
 import torch.nn.functional as F
-import google.generativeai as genai  # type: ignore
+import google.generativeai as genai
+# FIXED IMPORTS: Following Pylance's specific export paths
+from google.generativeai.generative_models import GenerativeModel 
+from google.generativeai.client import configure
 from dotenv import load_dotenv
 import traceback
 
@@ -13,42 +15,34 @@ load_dotenv()
 
 class ChatbotModel:
     def __init__(self, data_path='data/faq_data.json', similarity_threshold=0.85):
-        print("DEBUG_INIT: Initializing ChatbotModel with Lightweight BERT...")
+        print("DEBUG_INIT: Initializing ChatbotModel with DistilBERT (Memory Optimized)...")
         script_dir = os.path.dirname(__file__)
         self.faq_file_path = os.path.join(script_dir, data_path)
         self.similarity_threshold = similarity_threshold
 
-        # THESIS FIX: Using 'distilbert-base-multilingual-cased' 
-        # It's 40% smaller than base BERT but uses the same architecture.
-        # This keeps your objective intact while fitting in Render's 512MB RAM.
+        # THESIS REQUIREMENT: Still BERT, but the "Distilled" version to fit in 512MB RAM
         model_name = "distilbert-base-multilingual-cased"
         
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
-        
-        # Force model to use evaluation mode and minimal memory
-        self.model.eval() 
-        print(f"DEBUG_INIT: {model_name} loaded successfully.")
+        self.model.eval() # Set to evaluation mode to save memory
+        print(f"DEBUG_INIT: {model_name} loaded.")
 
         self.map_related_keywords = [
-            "route", "routes", "how to get to", "location", "address",
-            "map", "direction", "directions", "saan", "paano pumunta",
-            "papunta", "where is", "find", "locate", "how to travel", "by foot",
-            "walking", "commute",
+            "route", "routes", "location", "map", "direction", "saan", "paano pumunta"
         ]
 
+        # Standardizing API Key access
         self.gemini_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-        if not self.gemini_api_key:
-            raise ValueError("GEMINI_API_KEY environment variable not set.")
-        
-        genai.configure(api_key=self.gemini_api_key)  # type: ignore
-        self._load_and_encode_data()  # type: ignore
+        if self.gemini_api_key:
+            # FIXED: Using explicitly imported configure from .client
+            configure(api_key=self.gemini_api_key)
+
+        self._load_and_encode_data()
 
     def _preprocess_text(self, text):
         if not isinstance(text, str): return ""
-        # Keep math symbols like + for general questions
-        text = text.lower().strip()
-        return text
+        return text.lower().strip()
 
     def _mean_pooling(self, model_output, attention_mask):
         token_embeddings = model_output[0]
@@ -63,20 +57,54 @@ class ChatbotModel:
         embeddings = self._mean_pooling(model_output, encoded_input['attention_mask'])
         return F.normalize(embeddings, p=2, dim=1)
 
-    # ... [Rest of your get_response and add_faq methods remain the same] ...
+    def _load_and_encode_data(self):
+        try:
+            with open(self.faq_file_path, 'r', encoding='utf-8') as f:
+                self.faq_data = json.load(f)
+            self.corpus = [self._preprocess_text(item["question"]) for item in self.faq_data]
+            if self.corpus:
+                self.corpus_embeddings = self._encode(self.corpus)
+            else:
+                self.corpus_embeddings = torch.tensor([])
+        except Exception as e:
+            print(f"Data Error: {e}")
+            self.faq_data = []
+            self.corpus_embeddings = torch.tensor([])
+
+    async def get_response(self, user_query):
+        if not user_query: return "Ano po ang kailangan niyo?"
+
+        processed_query = self._preprocess_text(user_query)
+
+        # 1. Map Check
+        if any(kw in processed_query for kw in self.map_related_keywords):
+            return "For questions about routes, locations, or directions, please refer to the MapScreen."
+
+        # 2. BERT Similarity Check
+        if self.corpus_embeddings.numel() > 0:
+            query_embedding = self._encode(processed_query)
+            scores = F.cosine_similarity(query_embedding, self.corpus_embeddings)
+            best_idx = int(torch.argmax(scores).item())
+            
+            if scores[best_idx].item() >= self.similarity_threshold:
+                return self.faq_data[best_idx]["answer"]
+
+        # 3. Gemini Fallback
+        return await self._get_gemini_response(user_query)
 
     async def _get_gemini_response(self, user_query):
-        # This handles the broad questions like 1+1 or current events
         try:
-            # Using the version of Gemini you have installed in requirements
-            model = genai.GenerativeModel('gemini-1.5-flash')  # type: ignore
-            prompt = (
-                "You are the MAIWAY commute companion. Help with Manila commutes first, "
-                "but you can also answer general knowledge and math simply. "
-                f"User Query: {user_query}"
-            )
-            response = await model.generate_content_async(prompt)
+            # FIXED: Using explicitly imported GenerativeModel from .generative_models
+            gemini_model = GenerativeModel('gemini-1.5-flash')
+            prompt = f"You are the MAIWAY companion. Answer simply: {user_query}"
+            
+            response = await gemini_model.generate_content_async(prompt)
             return response.text
         except Exception as e:
-            print(f"ERROR: {e}")
-            return "Pasensya na, subukan muli mamaya."
+            print(f"Gemini Error: {e}")
+            return "Subukan po muli mamaya."
+
+    def get_matching_questions(self, query_text, limit=5):
+        if not query_text: return []
+        processed_query = self._preprocess_text(query_text)
+        return [item["question"] for item in self.faq_data if processed_query in item["question"].lower()][:limit]
