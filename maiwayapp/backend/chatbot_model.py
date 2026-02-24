@@ -4,8 +4,7 @@ import re
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from google import genai  # type: ignore
-from google.genai import types  # type: ignore
+from google.generativeai import configure, GenerativeModel  # type: ignore
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,7 +29,8 @@ class ChatbotModel:
 
         self.gemini_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         if self.gemini_api_key:
-            self.client = genai.Client(api_key=self.gemini_api_key)
+            configure(api_key=self.gemini_api_key)
+            self.client = True
         else:
             self.client = None
 
@@ -94,15 +94,13 @@ class ChatbotModel:
             )
             print(f"DEBUG: Calling Gemini with query: {user_query}")
             
-            models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest']
+            models_to_try = ['gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-pro']
             
             for model_name in models_to_try:
                 try:
                     print(f"DEBUG: Trying model: {model_name}")
-                    response = self.client.models.generate_content(
-                        model=model_name,
-                        contents=prompt
-                    )
+                    model = GenerativeModel(model_name)
+                    response = model.generate_content(prompt)
                     print(f"DEBUG: Success with {model_name}! Response: {response.text}")
                     return response.text
                 except Exception as model_error:

@@ -1,11 +1,5 @@
-// ✅ Merged Admin Panel with Reports and Surveys working together
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-void main() {
-  runApp(const MaterialApp(home: AdminScreen()));
-}
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -17,12 +11,15 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
+  final Color primaryBlue = const Color(0xFF1A5276);
+  final Color skyBlueBackground = const Color(0xFF91C9F1);
+  final Color surfaceWhite = Colors.white;
+
   String searchQuerySurveys = '';
   String searchQueryReports = '';
   String selectedStatus = 'All';
   String selectedVehicle = 'All';
-  int? selectedMonth;
-  int? selectedYear;
 
   @override
   void initState() {
@@ -34,30 +31,6 @@ class _AdminScreenState extends State<AdminScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Submitted':
-        return Colors.green;
-      case 'Under Review':
-        return Colors.orange;
-      case 'Pending':
-      default:
-        return Colors.blue;
-    }
-  }
-
-  Color _getStatusBackgroundColor(String status) {
-    switch (status) {
-      case 'Submitted':
-        return Colors.green.withOpacity(0.2);
-      case 'Under Review':
-        return Colors.orange.withOpacity(0.2);
-      case 'Pending':
-      default:
-        return Colors.blue.withOpacity(0.2);
-    }
   }
 
   String _monthName(int month) {
@@ -74,20 +47,42 @@ class _AdminScreenState extends State<AdminScreen>
       'September',
       'October',
       'November',
-      'December'
+      'December',
     ];
     return months[month];
   }
 
+  // --- HEADER & NAVIGATION ---
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: skyBlueBackground,
       appBar: AppBar(
-        title: const Text('Admin Panel'),
-        backgroundColor: const Color(0xFF6699CC),
+        title: const Text(
+          'ADMIN PANEL',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: surfaceWhite,
+        foregroundColor: primaryBlue,
+        elevation: 4,
+        shadowColor: primaryBlue.withValues(alpha: 0.2),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [Tab(text: "Reports"), Tab(text: "Surveys")],
+          labelColor: primaryBlue,
+          indicatorColor: primaryBlue,
+          indicatorWeight: 4,
+          unselectedLabelColor: Colors.grey,
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1,
+          ),
+          tabs: const [Tab(text: "REPORTS"), Tab(text: "SURVEYS")],
         ),
       ),
       body: TabBarView(
@@ -97,379 +92,670 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
- Widget _buildSurveysTab() {
-  return SingleChildScrollView(
-    padding: const EdgeInsets.all(10),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Search bar
-        TextField(
-          decoration: InputDecoration(
-            hintText: 'Search route...',
-            prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+  // --- FILTER & SEARCH UI ---
+
+  Widget _buildSearchHeader({required bool isSurvey}) {
+    bool isFiltered =
+        selectedVehicle != 'All' || (!isSurvey && selectedStatus != 'All');
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: TextField(
+                onChanged:
+                    (v) => setState(() {
+                      if (isSurvey) {
+                        searchQuerySurveys = v.toLowerCase();
+                      } else {
+                        searchQueryReports = v.toLowerCase();
+                      }
+                    }),
+                decoration: InputDecoration(
+                  hintText:
+                      isSurvey ? 'Search routes...' : 'Search name/email...',
+                  prefixIcon: Icon(Icons.search, color: primaryBlue),
+                  filled: true,
+                  fillColor: surfaceWhite,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
             ),
           ),
-          onChanged: (value) => setState(() => searchQuerySurveys = value.toLowerCase()),
-        ),
-        const SizedBox(height: 10),
-        
-        // Filters Row
-        LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                child: IntrinsicWidth(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Vehicle Type Filter
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: selectedVehicle,
-                          decoration: const InputDecoration(
-                            labelText: 'Vehicle Type',
-                            border: OutlineInputBorder(),
-                            // Adjust size or add padding
-                            contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding
-                          ),
-                          items: const [
-                            DropdownMenuItem(value: 'All', child: Text('All')),
-                            DropdownMenuItem(value: 'Jeepney', child: Text('Jeepney')),
-                            DropdownMenuItem(value: 'Bus', child: Text('Bus')),
-                          ],
-                          onChanged: (value) => setState(() => selectedVehicle = value!),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      
-                      // Month Filter
-                      Expanded(
-                        child: DropdownButtonFormField<int>(
-                          value: selectedMonth,
-                          decoration: const InputDecoration(
-                            labelText: 'Month',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding
-                          ),
-                          items: List.generate(12, (index) => DropdownMenuItem(
-                            value: index + 1,
-                            child: Text(_monthName(index + 1)),
-                          ))..insert(0, const DropdownMenuItem( value: null, child: Text('All'))),
-                          onChanged: (value) => setState(() => selectedMonth = value),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      
-                      // Year Filter
-                      Expanded(
-                        child: DropdownButtonFormField<int>(
-                          value: selectedYear,
-                          decoration: const InputDecoration(
-                            labelText: 'Year',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(vertical: 15), // Adjust padding
-                          ),
-                          items: List.generate(5, (index) => DropdownMenuItem(
-                            value: DateTime.now().year - index,
-                            child: Text((DateTime.now().year - index).toString()),
-                          ))..insert(0, const DropdownMenuItem(value: null, child: Text('All'))),
-                          onChanged: (value) => setState(() => selectedYear = value),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 10),
-        // Surveys List
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6,
-          child: _buildSurveyList(),
-        ),
-      ],
-    ),
-  );
-}
-  Widget _buildSurveyList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('surveys').snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('No surveys found.'));
-        }
-
-        final grouped = <String, Map<String, List<Map<String, dynamic>>>>{};
-
-        for (var doc in snapshot.data!.docs) {
-          final data = doc.data() as Map<String, dynamic>;
-          final route = (data['route'] ?? 'Unknown') as String;
-          final vehicle = data['vehicleType'] ?? 'Unknown';
-          final timestamp = data['timestamp'];
-          final date = timestamp is Timestamp ? timestamp.toDate() : DateTime.now();
-
-          if (selectedVehicle != 'All' && vehicle != selectedVehicle) continue;
-          if ((selectedMonth != null && date.month != selectedMonth) ||
-              (selectedYear != null && date.year != selectedYear)) {
-            continue;
-          }
-
-          final monthYear = "${_monthName(date.month)} ${date.year}";
-          grouped.putIfAbsent(route, () => {});
-          grouped[route]!.putIfAbsent(monthYear, () => []);
-          grouped[route]![monthYear]!.add(data);
-        }
-
-        final filteredRoutes = grouped.keys.where((r) => r.toLowerCase().contains(searchQuerySurveys)).toList()..sort();
-
-        return ListView.builder(
-          itemCount: filteredRoutes.length,
-          itemBuilder: (context, index) {
-            final route = filteredRoutes[index];
-            return ExpansionTile(
-              title: Text("🚏 Route: $route"),
-              children: grouped[route]!.entries.map((entry) {
-                final monthYear = entry.key;
-                final entries = entry.value;
-                final total = entries.length;
-                final overcharged = entries.where((d) => d['anomalous'] == true).length;
-                final avgFare = entries.map((e) => (e['fare_given'] ?? 0).toDouble()).fold(0.0, (a, b) => a + b) / total;
-                final avgDistance = entries.map((e) => double.tryParse('${e['distance']}') ?? 0.0).fold(0.0, (a, b) => a + b) / total;
-
-                return ListTile(
-                  title: Text("📅 $monthYear"),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("🧑 Participants: $total"),
-                      Text("⚠️ Overcharged: $overcharged"),
-                      Text("💰 Avg Fare: ₱${avgFare.toStringAsFixed(2)}"),
-                      Text("📏 Avg Distance: ${avgDistance.toStringAsFixed(2)} km"),
-                    ],
-                  ),
-                  onTap: () => _showSurveyDetails(context, "$route ($monthYear)", entries),
-                );
-              }).toList(),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showSurveyDetails(BuildContext context, String title, List<Map<String, dynamic>> entries) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => DraggableScrollableSheet(
-        expand: false,
-        builder: (context, scrollController) => Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+          const SizedBox(width: 12),
+          Stack(
             children: [
-              Text("Surveys: $title", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const Divider(),
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: entries.length,
-                  itemBuilder: (context, index) {
-                    final e = entries[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: e['anomalous'] == true ? Colors.red : Colors.green,
-                        child: Text((e['name'] ?? '?')[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
-                      ),
-                      title: Text(e['name'] ?? 'Unknown'),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Fare Given: ₱${e['fare_given']}"),
-                          Text("Predicted Fare: ₱${e['original_fare']}"),
-                          Text("Vehicle: ${e['vehicleType'] ?? 'N/A'}"),
-                        ],
-                      ),
-                      trailing: Icon(e['anomalous'] == true ? Icons.warning : Icons.check_circle, color: e['anomalous'] == true ? Colors.red : Colors.green),
-                    );
+              Container(
+                decoration: BoxDecoration(
+                  color: primaryBlue,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryBlue.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: PopupMenuButton<String>(
+                  icon: const Icon(Icons.tune_rounded, color: Colors.white),
+                  onSelected: (value) {
+                    setState(() {
+                      if (value == 'Reset') {
+                        selectedVehicle = 'All';
+                        selectedStatus = 'All';
+                      } else if (['Jeepney', 'Bus', 'All'].contains(value)) {
+                        selectedVehicle = value;
+                      } else {
+                        selectedStatus = value;
+                      }
+                    });
                   },
+                  itemBuilder:
+                      (context) => [
+                        PopupMenuItem(
+                          value: 'Reset',
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade800,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Reset All Filters',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        _buildPopupItem(
+                          'Jeepney',
+                          'Jeepney Only',
+                          selectedVehicle,
+                        ),
+                        _buildPopupItem('Bus', 'Bus Only', selectedVehicle),
+                        if (!isSurvey) ...[
+                          const PopupMenuDivider(),
+                          _buildPopupItem(
+                            'Pending',
+                            'Show Pending',
+                            selectedStatus,
+                          ),
+                          _buildPopupItem(
+                            'Under Review',
+                            'Show Under Review',
+                            selectedStatus,
+                          ),
+                          _buildPopupItem(
+                            'Submitted',
+                            'Show Submitted',
+                            selectedStatus,
+                          ),
+                        ],
+                      ],
                 ),
               ),
+              if (isFiltered)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: CircleAvatar(
+                    radius: 5,
+                    backgroundColor: Colors.orange,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
 
+  PopupMenuItem<String> _buildPopupItem(
+    String value,
+    String label,
+    String currentValue,
+  ) {
+    bool isSelected = value == currentValue;
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? primaryBlue : Colors.black87,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          if (isSelected) ...[
+            const Spacer(),
+            Icon(Icons.check_circle, color: primaryBlue, size: 18),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // --- REPORTS SECTION ---
+
   Widget _buildReportsTab() {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search by Full Name or Email',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onChanged: (value) => setState(() => searchQueryReports = value.toLowerCase()),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: selectedStatus,
-                      decoration: const InputDecoration(
-                        labelText: 'Filter by Status',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'All', child: Text('All')),
-                        DropdownMenuItem(value: 'Pending', child: Text('Pending')),
-                        DropdownMenuItem(value: 'Submitted', child: Text('Submitted')),
-                        DropdownMenuItem(value: 'Under Review', child: Text('Under Review')),
-                      ],
-                      onChanged: (value) => setState(() => selectedStatus = value!),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: selectedVehicle,
-                      decoration: const InputDecoration(
-                        labelText: 'Vehicle Type',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'All', child: Text('All')),
-                        DropdownMenuItem(value: 'Jeepney', child: Text('Jeepney')),
-                        DropdownMenuItem(value: 'Bus', child: Text('Bus')),
-                      ],
-                      onChanged: (value) => setState(() => selectedVehicle = value!),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+        _buildSearchHeader(isSurvey: false),
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('reports').snapshots(),
+            stream:
+                FirebaseFirestore.instance.collection('reports').snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const Center(child: Text('No reports found.'));
+              if (!snapshot.hasData) {
+                return Center(
+                  child: CircularProgressIndicator(color: primaryBlue),
+                );
               }
+              final filtered =
+                  snapshot.data!.docs.where((doc) {
+                    final d = doc.data() as Map<String, dynamic>;
+                    final name = d['fullName']?.toLowerCase() ?? '';
+                    final status = d['status'] ?? 'Pending';
+                    final vehicle = d['vehicleType'] ?? '';
+                    return name.contains(searchQueryReports) &&
+                        (selectedStatus == 'All' || status == selectedStatus) &&
+                        (selectedVehicle == 'All' ||
+                            vehicle == selectedVehicle);
+                  }).toList();
 
-              final filteredReports = snapshot.data!.docs.where((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                final fullName = data['fullName']?.toLowerCase() ?? '';
-                final email = data['email']?.toLowerCase() ?? '';
-                final status = data['status'] ?? 'Pending';
-                final vehicle = data['vehicleType'] ?? '';
-                return (fullName.contains(searchQueryReports) || email.contains(searchQueryReports)) &&
-                    (selectedStatus == 'All' || selectedStatus == status) &&
-                    (selectedVehicle == 'All' || selectedVehicle == vehicle);
-              }).toList();
-
-              return ListView.separated(
-                itemCount: filteredReports.length,
-                separatorBuilder: (_, __) => const Divider(),
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                itemCount: filtered.length,
                 itemBuilder: (context, index) {
-                  final doc = filteredReports[index];
+                  final doc = filtered[index];
                   final report = doc.data() as Map<String, dynamic>;
-                  final status = report['status'] ?? 'Pending';
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.grey.shade300,
-                      child: Text((report['fullName'] ?? '?')[0].toUpperCase()),
+                  final name = report['fullName'] ?? 'Anonymous';
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: surfaceWhite,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                        ),
+                      ],
                     ),
-                    title: Text(report['fullName'] ?? 'No Name'),
-                    subtitle: Text('Vehicle: ${report['vehicleType']} | Plate: ${report['plateNumber']}'),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _getStatusBackgroundColor(status),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        status,
-                        style: TextStyle(
-                          color: _getStatusColor(status),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      leading: CircleAvatar(
+                        radius: 25,
+                        backgroundColor: skyBlueBackground.withValues(alpha: 0.4),
+                        child: Text(
+                          name[0].toUpperCase(),
+                          style: TextStyle(
+                            color: primaryBlue,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
                       ),
+                      title: Text(
+                        name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: primaryBlue,
+                        ),
+                      ),
+                      subtitle: Text(
+                        report['typeOfComplaint'] ?? 'General Report',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      trailing: _statusBadge(report['status'] ?? 'Pending'),
+                      onTap:
+                          () => _showEnhancedSheet(
+                            context,
+                            "Report Details",
+                            doc.id,
+                            report,
+                            isSurvey: false,
+                          ),
                     ),
-                    onTap: () => _showReportDetails(doc.id, report),
                   );
                 },
               );
             },
           ),
-        )
+        ),
       ],
     );
   }
 
-  void _showReportDetails(String docId, Map<String, dynamic> report) {
-    String currentStatus = report['status'] ?? 'Pending';
+  // --- SURVEYS SECTION ---
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(report['typeOfComplaint'] ?? 'Report'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Name: ${report['fullName']}'),
-              Text('Email: ${report['email']}'),
-              Text('Phone: ${report['contactNumber']}'),
-              Text('Vehicle Type: ${report['vehicleType']}'),
-              Text('Plate Number: ${report['plateNumber']}'),
-              Text('Date: ${report['date'] ?? 'Not specified'}'),
-              const SizedBox(height: 10),
-              const Text('Details:'),
-              Text(report['details'] ?? 'No details'),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                value: currentStatus,
-                decoration: const InputDecoration(labelText: 'Update Status'),
-                items: const [
-                  DropdownMenuItem(value: 'Pending', child: Text('Pending')),
-                  DropdownMenuItem(value: 'Under Review', child: Text('Under Review')),
-                  DropdownMenuItem(value: 'Submitted', child: Text('Submitted')),
-                ],
-                onChanged: (value) {
-                  if (value != null && value != currentStatus) {
-                    FirebaseFirestore.instance.collection('reports').doc(docId).update({'status': value});
-                    Navigator.of(context).pop();
+  Widget _buildSurveysTab() {
+    return Column(
+      children: [
+        _buildSearchHeader(isSurvey: true),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream:
+                FirebaseFirestore.instance.collection('surveys').snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Center(
+                  child: CircularProgressIndicator(color: primaryBlue),
+                );
+              }
+
+              final grouped =
+                  <String, Map<String, List<Map<String, dynamic>>>>{};
+
+              for (var doc in snapshot.data!.docs) {
+                final data = doc.data() as Map<String, dynamic>;
+                final route = data['route'] ?? 'Unknown';
+                final vehicle = data['vehicleType'] ?? 'Unknown';
+                final date =
+                    (data['timestamp'] as Timestamp?)?.toDate() ??
+                    DateTime.now();
+
+                if (selectedVehicle != 'All' && vehicle != selectedVehicle) {
+                  continue;
+                }
+                if (!route.toString().toLowerCase().contains(
+                  searchQuerySurveys,
+                )) {
+                  continue;
+                }
+
+                final monthYear = "${_monthName(date.month)} ${date.year}";
+                grouped.putIfAbsent(route, () => {});
+                grouped[route]!.putIfAbsent(monthYear, () => []);
+                grouped[route]![monthYear]!.add(data);
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                itemCount: grouped.keys.length,
+                itemBuilder: (context, index) {
+                  final route = grouped.keys.elementAt(index);
+                  final routeData = grouped[route]!;
+
+                  // Calculate total anomalies for the route level
+                  int routeAnomalies = 0;
+                  for (var monthData in routeData.values) {
+                    routeAnomalies +=
+                        monthData.where((s) => s['anomalous'] == true).length;
                   }
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: surfaceWhite,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: ExpansionTile(
+                      iconColor: primaryBlue,
+                      leading: Icon(
+                        Icons.alt_route_rounded,
+                        color: primaryBlue,
+                      ),
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              route,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: primaryBlue,
+                              ),
+                            ),
+                          ),
+                          if (routeAnomalies > 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade900,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "⚠️ $routeAnomalies",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      children:
+                          routeData.entries.map((entry) {
+                            return ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 4,
+                              ),
+                              title: Text(
+                                entry.key,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              subtitle: Text(
+                                "${entry.value.length} Total Responses",
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              trailing: const Icon(
+                                Icons.analytics_outlined,
+                                size: 20,
+                              ),
+                              onTap:
+                                  () => _showEnhancedSheet(
+                                    context,
+                                    "Survey Group: $route",
+                                    "",
+                                    {},
+                                    entries: entry.value,
+                                    isSurvey: true,
+                                  ),
+                            );
+                          }).toList(),
+                    ),
+                  );
                 },
-              )
-            ],
+              );
+            },
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
+      ],
+    );
+  }
+
+  // --- COMMON UI HELPERS ---
+
+  Widget _statusBadge(String status) {
+    Color color =
+        status == 'Submitted'
+            ? Colors.green
+            : status == 'Under Review'
+            ? Colors.orange
+            : primaryBlue;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w900,
+          fontSize: 9,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  void _showEnhancedSheet(
+    BuildContext context,
+    String title,
+    String docId,
+    Map<String, dynamic> data, {
+    List<Map<String, dynamic>>? entries,
+    required bool isSurvey,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (_) => Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: primaryBlue,
+                    ),
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child:
+                      isSurvey
+                          ? _buildSurveyDetailList(entries!)
+                          : _buildReportDetailContent(docId, data),
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _buildReportDetailContent(String docId, Map<String, dynamic> report) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _detailBlock("USER INFORMATION", [
+            _rowInfo(Icons.person_outline, "Full Name", report['fullName']),
+            _rowInfo(Icons.email, "Email", report['email']),
+            _rowInfo(
+              Icons.phone_iphone_rounded,
+              "Contact",
+              report['contactNumber'],
+            ),
+          ]),
+          const SizedBox(height: 24),
+          _detailBlock("INCIDENT DATA", [
+            _rowInfo(Icons.commute_rounded, "Vehicle", report['vehicleType']),
+            _rowInfo(Icons.pin_rounded, "Plate", report['plateNumber']),
+            _rowInfo(Icons.calendar_month_rounded, "Date", report['date']),
+          ]),
+          const SizedBox(height: 24),
+          const Text(
+            "DESCRIPTION",
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.black38,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Text(
+              report['details'] ?? 'No additional details.',
+              style: const TextStyle(
+                fontSize: 15,
+                height: 1.5,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          DropdownButtonFormField<String>(
+            value: report['status'] ?? 'Pending',
+            decoration: InputDecoration(
+              labelText: 'Action: Update Status',
+              labelStyle: TextStyle(
+                color: primaryBlue,
+                fontWeight: FontWeight.bold,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              filled: true,
+              fillColor: skyBlueBackground.withValues(alpha: 0.05),
+            ),
+            items:
+                ['Pending', 'Under Review', 'Submitted']
+                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                    .toList(),
+            onChanged: (value) {
+              if (value != null) {
+                FirebaseFirestore.instance
+                    .collection('reports')
+                    .doc(docId)
+                    .update({'status': value});
+                Navigator.pop(context);
+              }
+            },
+          ),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSurveyDetailList(List<Map<String, dynamic>> entries) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: entries.length,
+      itemBuilder: (context, index) {
+        final e = entries[index];
+        bool isAnom = e['anomalous'] == true;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: isAnom ? Colors.red.shade50 : Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isAnom ? Colors.red.shade100 : Colors.grey.shade200,
+            ),
+          ),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: isAnom ? Colors.red.shade900 : primaryBlue,
+              child: const Icon(Icons.person, color: Colors.white, size: 20),
+            ),
+            title: Text(
+              e['name'] ?? 'Anonymous',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(
+              "Paid: ₱${e['fare_given']} | Target: ₱${e['original_fare']}",
+            ),
+            trailing: isAnom
+                ? Icon(Icons.warning_rounded, color: Colors.red.shade900)
+                : const Icon(Icons.check_circle, color: Colors.green),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _detailBlock(String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: Colors.black38,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...children,
+      ],
+    );
+  }
+
+  Widget _rowInfo(IconData icon, String label, String? val) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: primaryBlue),
+          const SizedBox(width: 12),
+          Text(
+            "$label: ",
+            style: const TextStyle(color: Colors.black54, fontSize: 14),
+          ),
+          Expanded(
+            child: Text(
+              val ?? 'N/A',
+              style: TextStyle(
+                color: primaryBlue,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.right,
+            ),
           ),
         ],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
