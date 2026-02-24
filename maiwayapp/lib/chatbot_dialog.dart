@@ -24,9 +24,9 @@ class _ChatbotDialogState extends State<ChatbotDialog>
   late AnimationController _typingAnimationController;
 
   final String _chatBackendUrl =
-      'http://127.0.0.1:5001/chat'; 
+      'https://maiway-q6y5.onrender.com/chat'; 
   final String _dynamicSuggestionsUrl =
-      'http://127.0.0.1:5001/dynamic_suggestions'; 
+      'https://maiway-q6y5.onrender.com/dynamic_suggestions'; 
 
   @override
   void initState() {
