@@ -1,7 +1,7 @@
 # Core backend dependencies (from your list)
 colorama==0.4.6
 joblib==1.5.1
-numpy==2.3.0
+numpy==1.26.4
 pandas==2.3.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
