@@ -22,7 +22,6 @@ nltk       # Natural Language Toolkit
 Pillow     # Image processing (often a dependency for ML/CV libraries)
 requests   # For making HTTP requests (e.g., to external APIs like Gemini)
 google-generativeai # Gemini API (chatbot)
-transformers # Hugging Face BERT etc. (chatbot_model.py)
 python-dotenv # Load .env in Flask apps and chatbot
 
 # PyTorch and related (if you're using PyTorch-based models)
