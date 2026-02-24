@@ -94,7 +94,7 @@ class ChatbotModel:
             )
             print(f"DEBUG: Calling Gemini with query: {user_query}")
             
-            models_to_try = ['gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-pro']
+            models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']
             
             for model_name in models_to_try:
                 try:
