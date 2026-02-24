@@ -65,9 +65,8 @@ class MapScreenController {
     if (prefs.getBool('pref_fastest') == true) selectedPrefs.add('fastest');
     if (prefs.getBool('pref_cheapest') == true) selectedPrefs.add('cheapest');
     if (prefs.getBool('pref_convenient') == true) selectedPrefs.add('convenient');
-    
-    // Return all three preferences by default if none are saved yet
-    return selectedPrefs.isEmpty ? ['fastest', 'cheapest', 'convenient'] : selectedPrefs;
+    // If no toggles are on, use only fastest (never show convenient/cheapest unless user enabled them)
+    return selectedPrefs.isEmpty ? ['fastest'] : selectedPrefs;
   }
 
   // Helper method to get selected modes from SharedPreferences
@@ -81,6 +80,13 @@ class MapScreenController {
     if (prefs.getBool('mode_tricycle') == true) selectedModes.add('tricycle');
     
     return selectedModes.isEmpty ? ['jeepney', 'bus', 'lrt'] : selectedModes;
+  }
+
+  // Helper to get saved passenger type for API (e.g. fare calculation)
+  Future<String> _getPassengerType() async {
+    final prefs = await SharedPreferences.getInstance();
+    final type = prefs.getString('passengerType') ?? prefs.getString('passenger_type') ?? 'Regular';
+    return type.toLowerCase() == 'discounted' ? 'discounted' : 'regular';
   }
 
   Future<void> getCurrentLocation() async {
@@ -171,12 +177,17 @@ class MapScreenController {
     try {
       final selectedPrefs = await _getSelectedPreferences();
       final selectedModes = await _getSelectedModes();
-      
+      final passengerType = await _getPassengerType();
+
+      // Always use Google Hybrid; use saved preferences and modes so routing follows user preference tab
       final response = await RoutingService.getRoute(
         startLocation: originPin!,
         endLocation: destinationPin!,
         mode: selectedPrefs.isNotEmpty ? selectedPrefs[0] : 'fastest',
         modes: selectedModes,
+        preferences: selectedPrefs,
+        passengerType: passengerType,
+        useGoogle: true,
       );
 
       // Use RouteProcessor to process the response

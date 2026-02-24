@@ -1,18 +1,13 @@
 # MaiWay - Multi-Criteria Routing Engine
 
-A Python-based routing engine for commuter apps using GTFS data, tricycle terminals, and fare tables. Features A* pathfinding with custom cost functions for different transport modes (LRT, Bus, Jeep, Tricycle, Walking) and accurate polylines using Mapbox.
+A Python-based routing API for commuter apps. Uses **Google Directions API (transit)** plus MaiWay inference: bus→jeepney substitution, fares, tricycle injection, and segment formatting. Stops and tricycle terminals are loaded from GTFS and GeoJSON for search and fallback logic.
 
-## Features
+## Current approach (Google Hybrid)
 
-- Multi-criteria routing: Fastest, cheapest, and most convenient routes
-- A* pathfinding: Efficient route finding with custom cost functions
-- GTFS integration: Full support for GTFS data (stops, routes, trips, shapes)
-- Tricycle routing: Special handling for tricycle terminals with distance and highway restrictions
-- Fare calculation: Accurate fare computation using distance-based and zone-based tables
-- Mapbox integration: Accurate polylines for all transport modes
-- Route consolidation: Merges consecutive segments for better user experience
-- Transfer optimization: Minimizes unnecessary transfers with penalty system
-- Walking constraints: Limits walking segments for realistic routes
+- **Routing**: Google Directions API (transit + walking) → MaiWay adapter (segment mapping, fares, bus/jeep substitution, three-route synthesis: fastest / cheapest / convenient).
+- **Stops**: GTFS `stops.txt` for `/search-stops` and “walk to nearest stop” fallback.
+- **Tricycle**: Optional first/last-mile injection when origin/destination are near TODA terminals (convenient preference).
+- **Fares**: LRT/bus/jeep tables in `routing_data/fares/`; Mapbox for walking/tricycle polylines when available.
 
 ## Quick Start
 
@@ -51,6 +46,7 @@ python routing.py
 ### Environment Variables
 
 - MAPBOX_TOKEN: Mapbox API key for polyline generation
+- GOOGLE_MAPS_API_KEY or GOOGLE_API_KEY: (Optional) For Google hybrid routing. When set, enable "Use Google Hybrid" in app preferences to use Google Directions API (transit) + MaiWay inference layer
 - DATA_DIR: Directory containing GTFS data files
 - MAX_WALKING_DISTANCE: Maximum walking distance between stops (default: 0.3 km)
 - MAX_TRICYCLE_DISTANCE: Maximum tricycle connection distance (default: 1.5 km)
@@ -89,7 +85,19 @@ POST /route
 {
     "start": {"lat": 14.5837, "lon": 120.9843},
     "end": {"lat": 14.5806, "lon": 120.9866},
-    "mode": "fastest"
+    "mode": "fastest",
+    "use_google": false
+}
+```
+When `use_google: true`, uses Google Directions API (transit) + MaiWay inference layer. Requires GOOGLE_MAPS_API_KEY.
+
+### Google Hybrid (dedicated endpoint)
+```
+POST /route-google
+{
+    "start": {"lat": 14.5837, "lon": 120.9843},
+    "end": {"lat": 14.5806, "lon": 120.9866},
+    "preferences": ["fastest", "cheapest", "convenient"]
 }
 ```
 
@@ -111,9 +119,19 @@ GET /search-stops?q=station
 
 ### Routing Modes
 
-1. Fastest: Optimizes for travel time using mode-specific weights
-2. Cheapest: Optimizes for fare cost with transfer penalties
-3. Convenient: Balances time, cost, and transfer frequency
+1. **Fastest**: Optimizes for shortest distance using mode-weighted kilometers
+   - Uses mode weights: LRT (1.0x) < Bus (1.2x) < Jeep (1.5x)
+   - Prefers faster modes when distances are comparable
+   
+2. **Cheapest**: Optimizes for lowest fare cost with real per-edge pricing
+   - Uses fare tables from `routing_data/fares/*.csv`
+   - Fallback rates: Jeep ₱1.0/km, Bus ₱1.2/km, LRT ₱1.5/km
+   - Small distance component prevents unreasonable detours
+   
+3. **Convenient**: Balances distance, fare, and mode preferences
+   - Mixed scoring: 0.5×distance + 0.5×fare
+   - LRT bonus (-1.5) encourages rail usage
+   - Larger walk radius (1.5km) to reach LRT stations
 
 ### Transport Modes
 
@@ -122,6 +140,67 @@ GET /search-stops?q=station
 - Jeepney: Local jeepney service with Mapbox polylines
 - Tricycle: Local tricycle service with distance restrictions
 - Walking: Pedestrian connections with Mapbox polylines
+
+## Multi-Source Routing
+
+### Overview
+
+The routing engine now uses advanced multi-source routing to intelligently select boarding and alighting stops. Instead of simply choosing the nearest stops, the system:
+
+1. **Builds candidate pools** of forward-facing stops (≤20 per location)
+2. **Filters by progress** - only includes stops that move toward the destination
+3. **Runs integrated A* search** that considers both walking and transit costs
+4. **Validates results** for walking limits and overshoot constraints
+
+### Benefits
+
+- **Better stop selection**: Chooses stops that make sense for the overall journey
+- **Prevents backtracking**: Eliminates routes that go in the wrong direction
+- **True cost optimization**: Weighs walking vs transit costs in one search
+- **Guaranteed differentiation**: Fastest, cheapest, and convenient routes are truly different
+
+### Algorithm Details
+
+#### Candidate Pool Generation
+```python
+# Forward-facing stops within walking distance
+candidates = collect_candidate_stops(
+    origin_lat, origin_lon, dest_lat, dest_lon,
+    stops, max_walk_km=0.8, max_candidates=20
+)
+```
+
+#### Multi-Source A* Search
+```python
+# Generate multiple alternatives for route diversity
+paths = find_route_astar_multi(
+    complete_graph, origin_candidates, dest_candidates,
+    cost_func=make_cost_function(mode), max_k=3
+)
+
+# Select best path based on mode criteria
+if mode == 'fastest':
+    best = min(paths, key=lambda p: total_distance(p))
+elif mode == 'cheapest':  
+    best = min(paths, key=lambda p: total_fare(p))
+else:  # convenient
+    best = min(paths, key=lambda p: convenient_score(p))
+```
+
+#### Validation Layer
+- Total walking distance ≤ `max_total_walk_km` (default: 1.5 km)
+- Path overshoot ≤ 110% of straight-line distance
+- Individual walking segments ≤ `max_walking_to_stop_km` (default: 2.5 km)
+
+### Configuration
+
+New environment variables:
+```bash
+MAX_CANDIDATE_STOPS=20      # Candidate pool size
+BACKTRACK_PENALTY=0.8       # Penalty for regression (minutes/km)
+WALK_SPEED_KMPH=5.0         # Walking speed for time calculations
+MAX_TOTAL_WALK_KM=1.5       # Total walking limit
+```
 
 ## Polyline Generation
 

@@ -8,10 +8,13 @@ class TravelPreferenceScreen extends StatefulWidget {
     String passengerType,
     String? cardType,
   ) onPreferencesSaved;
+  /// When true, this tab is visible; used to reload from storage when user switches to this tab.
+  final bool isVisible;
 
   const TravelPreferenceScreen({
     super.key,
     required this.onPreferencesSaved,
+    this.isVisible = true,
   });
 
   @override
@@ -48,6 +51,14 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(TravelPreferenceScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isVisible && !oldWidget.isVisible) {
+      _loadPreferences();
+    }
   }
 
   Future<void> _loadPreferences() async {

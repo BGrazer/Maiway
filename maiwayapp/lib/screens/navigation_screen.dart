@@ -4,9 +4,8 @@ import 'package:latlong2/latlong.dart';
 import '../models/route_segment.dart';
 import '../models/transport_mode.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:math' as math;
-import '../utils/route_processor.dart';
 import '../utils/polyline_utils.dart';
+import 'package:maiwayapp/survey_page.dart';
 
 Map<String, dynamic> fixMap(dynamic map) {
   if (map is Map<String, dynamic>) return map;
@@ -65,6 +64,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
   bool _loading = true;
   String? _error;
   MapController _mapController = MapController();
+  String _passengerType = 'Regular';
 
   @override
   void didChangeDependencies() {
@@ -77,7 +77,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
       final args = ModalRoute.of(context)?.settings.arguments;
       final map = fixMap(args);
       final route = fixMap(map['route']);
-      final summary = fixMap(map['summary']);
+      _passengerType = (map['passengerType']?.toString() ?? 'Regular').isEmpty ? 'Regular' : map['passengerType'].toString();
       
       // Robustly handle origin and destination
       if (map['origin'] is LatLng) {
@@ -580,7 +580,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                       ],
                     ),
                     
-                    // End trip button for last step
+                    // End trip button for last step → opens Fare Survey, then exits
                     if (_currentStep == _segments.length - 1)
                       Container(
                         width: double.infinity,
@@ -590,7 +590,30 @@ class _NavigationScreenState extends State<NavigationScreen> {
                             foregroundColor: Colors.white,
                             padding: EdgeInsets.symmetric(vertical: 12),
                           ),
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () async {
+                            await showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (ctx) => Dialog(
+                                insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: 480,
+                                      maxHeight: MediaQuery.of(ctx).size.height * 0.88,
+                                    ),
+                                    child: SurveyPage(
+                                      passengerType: _passengerType,
+                                      tripSegments: _segments,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                            if (mounted) Navigator.of(context).pop();
+                          },
                           icon: Icon(Icons.flag),
                           label: Text('End Trip'),
                         ),

@@ -1,6 +1,5 @@
 import 'package:latlong2/latlong.dart';
 import '../models/route_segment.dart';
-import 'package:maiwayapp/models/transport_mode.dart';
 import 'package:maiwayapp/utils/polyline_utils.dart';
 
 /// RouteProcessor parses backend route responses and converts them to frontend data structures.
@@ -59,7 +58,12 @@ class RouteProcessor {
       // Aggregate all segment polylines into a single polyline for the route
       List<LatLng> polylinePoints = [];
       for (final segment in segments) {
-        polylinePoints.addAll(segment.polyline);
+        if (segment.polyline.isNotEmpty) {
+          polylinePoints.addAll(segment.polyline);
+        } else if (segment.fromLat != null && segment.fromLon != null && segment.toLat != null && segment.toLon != null) {
+          polylinePoints.add(LatLng(segment.fromLat!, segment.fromLon!));
+          polylinePoints.add(LatLng(segment.toLat!, segment.toLon!));
+        }
       }
 
       // Debug: Print each segment's polyline and coordinates if available
@@ -218,53 +222,6 @@ class RouteProcessor {
     return stops;
   }
 
-  /// Process new shape format: direct coordinate arrays [[lng, lat], [lng, lat], ...]
-  static List<LatLng> _processNewShapeFormat(List shapes) {
-    final List<LatLng> allPoints = [];
-    
-    print('🟦 _processNewShapeFormat: input shapes length = ${shapes.length}');
-    print('🟦 _processNewShapeFormat: shapes type = ${shapes.runtimeType}');
-    if (shapes.isNotEmpty) {
-      print('🟦 _processNewShapeFormat: first shape type = ${shapes.first.runtimeType}');
-      print('🟦 _processNewShapeFormat: first shape length = ${shapes.first is List ? (shapes.first as List).length : 'N/A'}');
-    }
-    
-    // Handle the case where shapes is a list of coordinate arrays
-    // Each shape is an array of coordinates: [[lng, lat], [lng, lat], ...]
-    for (int i = 0; i < shapes.length; i++) {
-      final shape = shapes[i];
-      if (shape != null && shape is List) {
-        print('🟦 _processNewShapeFormat: processing shape with ${shape.length} coordinates');
-        
-        List<LatLng> shapePoints = PolylineUtils.parsePolyline(shape);
-        
-        // For the first shape, add all points
-        if (i == 0) {
-          allPoints.addAll(shapePoints);
-        } else {
-          // For subsequent shapes, check if the first point matches the last point of previous shape
-          if (shapePoints.isNotEmpty && allPoints.isNotEmpty) {
-            final firstPoint = shapePoints.first;
-            final lastPoint = allPoints.last;
-            
-            // If points are very close (within 1 meter), skip the first point
-            if ((firstPoint.latitude - lastPoint.latitude).abs() < 0.00001 && 
-                (firstPoint.longitude - lastPoint.longitude).abs() < 0.00001) {
-              allPoints.addAll(shapePoints.skip(1));
-            } else {
-              allPoints.addAll(shapePoints);
-            }
-          } else {
-            allPoints.addAll(shapePoints);
-          }
-        }
-      }
-    }
-    
-    print('🟦 _processNewShapeFormat: extracted ${allPoints.length} points');
-    return allPoints;
-  }
-
   /// Process old shape format: [{"coordinates": [[lng, lat], ...]}, ...]
   static List<LatLng> _processOldShapeFormat(List shapes) {
     final List<LatLng> allPoints = [];
@@ -272,10 +229,8 @@ class RouteProcessor {
     for (final shape in shapes) {
       if (shape != null && shape.containsKey('coordinates')) {
         final coordinates = shape['coordinates'] as List? ?? [];
-        if (coordinates != null) {
-          final parsedCoords = PolylineUtils.parsePolyline(coordinates);
-          allPoints.addAll(parsedCoords);
-        }
+        final parsedCoords = PolylineUtils.parsePolyline(coordinates);
+        allPoints.addAll(parsedCoords);
       }
     }
     
@@ -353,35 +308,6 @@ class RouteProcessor {
     }
     
     return allCoordinates;
-  }
-
-  /// Create polyline from route segments when shapes are not available
-  static List<LatLng> _createPolylineFromSegments(List<RouteSegment> segments) {
-    final List<LatLng> allPoints = [];
-    
-    for (int i = 0; i < segments.length; i++) {
-      final segment = segments[i];
-      if (segment.coordinates.isNotEmpty) {
-        if (i == 0) {
-          // For the first segment, add all points
-          allPoints.addAll(segment.coordinates);
-        } else {
-          // For subsequent segments, check if the first point matches the last point of previous segment
-          final firstPoint = segment.coordinates.first;
-          final lastPoint = allPoints.last;
-          
-          // If points are very close (within 1 meter), skip the first point
-          if ((firstPoint.latitude - lastPoint.latitude).abs() < 0.00001 && 
-              (firstPoint.longitude - lastPoint.longitude).abs() < 0.00001) {
-            allPoints.addAll(segment.coordinates.skip(1));
-          } else {
-            allPoints.addAll(segment.coordinates);
-          }
-        }
-      }
-    }
-    
-    return allPoints;
   }
 
   /// Create a simple polyline for routes without detailed shapes

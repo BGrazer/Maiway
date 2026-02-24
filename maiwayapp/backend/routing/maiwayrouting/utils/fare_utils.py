@@ -30,8 +30,12 @@ def calculate_fare(mode: str, distance_km: float, passenger_type: str = 'regular
             else:
                 return 20.0
         elif mode == 'Jeep':
-            # Jeep has fixed fare
-            return 13.0
+            # Jeep has distance-based fare (more realistic pricing)
+            if distance_km <= 4.0:
+                return 13.0  # Base fare for first 4km
+            else:
+                # Additional 2 pesos per km beyond 4km
+                return 13.0 + (distance_km - 4.0) * 2.0
         else:
             # Default fare for unknown modes
             return 10.0

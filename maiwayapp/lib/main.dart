@@ -82,7 +82,10 @@ class _HomeNavigationState extends State<HomeNavigation> {
         passengerType: _passengerType,
         cardType: _cardType,
       ),
-      TravelPreferenceScreen(onPreferencesSaved: _updatePreferences),
+      TravelPreferenceScreen(
+        onPreferencesSaved: _updatePreferences,
+        isVisible: _currentIndex == 1,
+      ),
       const ProfileScreen(),
     ];
   }

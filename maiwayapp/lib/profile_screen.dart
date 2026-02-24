@@ -9,8 +9,6 @@ import 'admin.dart';
 import 'user_report_history_page.dart';
 import 'edit_profile.dart';
 import 'legalities_page.dart';
-import 'transport_policies_page.dart';
-import 'developer_policies_page.dart';
 import 'fare_matrix_page.dart';
 
 class ProfileScreen extends StatefulWidget {

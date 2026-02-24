@@ -2,59 +2,82 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:maiwayapp/services/routing_service.dart';
 
 class GeocodingService {
-  /// Get address from coordinates (reverse geocoding)
-  /// (Optional: implement with Mapbox if needed, or leave as is for now)
+  /// Get address from coordinates (reverse geocoding via backend Google Geocoding API).
   static Future<String> getAddressFromLocation(LatLng location) async {
-    const String mapboxToken = 'pk.eyJ1IjoibWFpd2F5YWRtaW4iLCJhIjoiY21jOG5tdDY1MWZrcTJrcHl4c2lrZTJuaSJ9.fEoTCb7zqrsJuCLOjcabXg';
-    final String url =
-        'https://api.mapbox.com/geocoding/v5/mapbox.places/${location.longitude},${location.latitude}.json?access_token=$mapboxToken&limit=1&country=PH';
     try {
-      final response = await http.get(Uri.parse(url));
+      final url = Uri.parse(
+        '${RoutingService.baseUrl}/places/reverse?lat=${location.latitude}&lng=${location.longitude}',
+      );
+      final response = await http.get(url).timeout(const Duration(seconds: 8));
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final features = data['features'] as List;
-        if (features.isNotEmpty) {
-          return features[0]['place_name'] ?? 'Unknown location';
-        }
+        final data = json.decode(response.body) as Map<String, dynamic>?;
+        final address = data?['address']?.toString();
+        if (address != null && address.isNotEmpty) return address;
       }
-      return 'Unknown location';
-    } catch (e) {
-      return 'Unknown location';
-    }
+    } catch (_) {}
+    return 'Current location';
   }
 
-  /// Get coordinates from address (forward geocoding)
-  /// (Optional: implement with Mapbox if needed, or leave as is for now)
+  /// Get coordinates from address (forward geocoding). Use search + place_id flow for now.
   static Future<LatLng?> getLocationFromAddress(String address) async {
-    // TODO: Replace with Mapbox forward geocoding if needed
     return null;
   }
 
-  /// Search for places matching a query using Mapbox
-  static Future<List<Map<String, dynamic>>> searchPlaces(String query) async {
-    const String mapboxToken = 'pk.eyJ1IjoibWFpd2F5YWRtaW4iLCJhIjoiY21jOG5tdDY1MWZrcTJrcHl4c2lrZTJuaSJ9.fEoTCb7zqrsJuCLOjcabXg';
-    // Manila bounding box: 120.95,14.55,121.02,14.65
-    // Proximity: 120.9842,14.5995 (center of Manila)
-    final String url =
-        'https://api.mapbox.com/geocoding/v5/mapbox.places/${Uri.encodeComponent(query)}.json?access_token=$mapboxToken&autocomplete=true&limit=8&country=PH&bbox=120.95,14.55,121.02,14.65&proximity=120.9842,14.5995';
+  /// Google Places Autocomplete via backend (requires GOOGLE_MAPS_API_KEY in backend .env).
+  /// Returns list of { description, place_id }.
+  static Future<List<Map<String, dynamic>>> searchGooglePlaces(String query) async {
+    if (query.trim().isEmpty) return [];
     try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final features = data['features'] as List;
-        // Only return features with a valid place_name
-        return features.where((feature) => feature['place_name'] != null && feature['place_name'].toString().trim().isNotEmpty).map((feature) => {
-          'name': feature['place_name'],
-          'latitude': (feature['center'] as List)[1] ?? 0.0,
-          'longitude': (feature['center'] as List)[0] ?? 0.0,
-        }).toList();
-      }
-      return [];
-    } catch (e) {
+      final url = Uri.parse(
+        '${RoutingService.baseUrl}/places/autocomplete?q=${Uri.encodeComponent(query.trim())}',
+      );
+      final response = await http.get(url).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return [];
+      final data = json.decode(response.body) as Map<String, dynamic>?;
+      final predictions = data?['predictions'] as List?;
+      if (predictions == null) return [];
+      return predictions
+          .where((e) => e is Map && e['place_id'] != null && (e['description'] ?? '').toString().isNotEmpty)
+          .map((e) => {
+                'description': (e['description'] ?? '').toString(),
+                'place_id': (e['place_id'] ?? '').toString(),
+              })
+          .toList();
+    } catch (_) {
       return [];
     }
+  }
+
+  /// Resolve Google place_id to lat/lng and address via backend.
+  static Future<Map<String, dynamic>?> getLocationFromPlaceId(String placeId) async {
+    if (placeId.isEmpty) return null;
+    try {
+      final url = Uri.parse(
+        '${RoutingService.baseUrl}/places/details?place_id=${Uri.encodeComponent(placeId)}',
+      );
+      final response = await http.get(url).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return null;
+      final data = json.decode(response.body) as Map<String, dynamic>?;
+      if (data == null) return null;
+      final lat = data['lat'];
+      final lng = data['lng'];
+      if (lat == null || lng == null) return null;
+      return {
+        'lat': (lat is num) ? lat.toDouble() : double.tryParse(lat.toString()),
+        'lng': (lng is num) ? lng.toDouble() : double.tryParse(lng.toString()),
+        'formatted_address': (data['formatted_address'] ?? '').toString(),
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Fallback place search when Google returns nothing (e.g. no backend key). Returns empty.
+  static Future<List<Map<String, dynamic>>> searchPlaces(String query) async {
+    return [];
   }
 
   static List<Map<String, dynamic>> _landmarks = [];
@@ -93,23 +116,8 @@ class GeocodingService {
     }).toList();
   }
 
-  /// Check if a location is over water or within [thresholdMeters] of a water body
+  /// Check if a location is over water. No external API; returns false (allow pin).
   static Future<bool> isWaterOrNearWater(LatLng location, {double thresholdMeters = 20}) async {
-    const String mapboxToken = 'pk.eyJ1IjoibWFpd2F5YWRtaW4iLCJhIjoiY21jOG5tdDY1MWZrcTJrcHl4c2lrZTJuaSJ9.fEoTCb7zqrsJuCLOjcabXg';
-    final String url =
-        'https://api.mapbox.com/geocoding/v5/mapbox.places/${location.longitude},${location.latitude}.json?types=water&access_token=$mapboxToken&limit=1';
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final features = data['features'] as List;
-        if (features.isNotEmpty) {
-          final feature = features[0] as Map<String, dynamic>;
-          final distance = (feature['distance'] ?? thresholdMeters + 1) as num;
-          return distance <= thresholdMeters;
-        }
-      }
-    } catch (_) {}
     return false;
   }
 }

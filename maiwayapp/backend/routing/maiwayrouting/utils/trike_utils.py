@@ -1,14 +1,13 @@
 import json
+import logging
 import os
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
 from ..utils.geo_utils import haversine_distance
 import requests
-try:
-    import polyline as _poly
-except ImportError:  # graceful degradation if polyline not installed
-    _poly = None
+
+logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------
 #  Configuration constants – tweak via env if necessary
@@ -18,8 +17,10 @@ TRIKE_CATCHMENT_KM = 0.7   # user must be within 400 m of a terminal
 # The ride should be *useful*: at least 0.5 km long (else walking is faster)
 # but we still cap it at 2 km so the segment stays short-haul.
 
-TRIKE_MIN_DISTANCE_KM = 0.1   # min ride distance to boarding stop
+TRIKE_MIN_DISTANCE_KM = 0.5   # min ride distance to boarding stop
 TRIKE_MAX_DISTANCE_KM = 2.0   # max ride distance to boarding stop
+# Only suggest tricycle when it saves at least this much walking vs going directly on foot
+TRIKE_MIN_SAVING_KM = 0.2    # 200 m: deny if walk-to-terminal >= direct walk; allow if ≥200 m shorter
 TRIKE_FLAT_FARE = 21.0       # PHP flat fare (₱16 base → ₱21 total)
 TRIKE_SPEED_KMPH = 30.0      # assumed average speed on local roads
 
@@ -31,12 +32,13 @@ MAPBOX_TOKEN = os.getenv('MAPBOX_TOKEN')
 
 def _mapbox_directions(lat1: float, lon1: float, lat2: float, lon2: float) -> Optional[List[List[float]]]:
     """Return a list of [lon, lat] pairs from Mapbox Directions API or None."""
-    if not MAPBOX_TOKEN or _poly is None:
+    if not MAPBOX_TOKEN:
         return None
     try:
         url = f"https://api.mapbox.com/directions/v5/mapbox/driving/{lon1},{lat1};{lon2},{lat2}"
         resp = requests.get(url, params={
-            'geometries': 'polyline6',
+            # Use geojson so we don't depend on the `polyline` package.
+            'geometries': 'geojson',
             'overview': 'full',
             'access_token': MAPBOX_TOKEN,
         }, timeout=8)
@@ -45,12 +47,12 @@ def _mapbox_directions(lat1: float, lon1: float, lat2: float, lon2: float) -> Op
         routes = data.get('routes')
         if not routes:
             return None
-        geom = routes[0].get('geometry')
-        if not geom:
+        geom = routes[0].get('geometry') or {}
+        coords = geom.get('coordinates')
+        if not coords or not isinstance(coords, list):
             return None
-        coords = _poly.decode(geom, precision=6)
-        # decode returns (lat, lon)
-        return [[lon, lat] for lat, lon in coords]
+        # Mapbox GeoJSON coordinates are [lon, lat]
+        return coords
     except Exception:
         return None
 
@@ -86,11 +88,13 @@ def load_trike_terminals(geojson_path: str = DEFAULT_GEOJSON_PATH) -> List[Dict]
                 continue
             props = feat.get("properties", {}) or {}
             tid = props.get("terminal_id") or props.get("id") or f"TERM_{len(out)+1}"
+            # Support both "name" and "Name" so real toda names (e.g. Luktoda Toda) are used
+            name = (props.get("name") or props.get("Name") or "").strip() or f"Trike Terminal {tid}"
             out.append({
                 "id": str(tid),
                 "lat": float(lat),
                 "lon": float(lon),
-                "name": props.get("name", f"Trike Terminal {tid}")
+                "name": name,
             })
         return out
     except Exception:
@@ -139,7 +143,10 @@ def build_trike_segment(origin: Dict, dest: Dict) -> Dict:
         seg["polyline"] = poly
         seg["polyline_source"] = "mapbox_driving"
     else:
-        seg["polyline"] = [[origin["lon"], origin["lat"]], [dest["lon"], dest["lat"]]]
-        seg["polyline_source"] = "straight_line"
+        # Intentionally do not fallback to a straight line (misleading on map).
+        # If Mapbox fails, leave polyline empty and let the caller/UI handle it.
+        seg["polyline"] = []
+        seg["polyline_source"] = "mapbox_missing"
+        logger.warning("Failed to fetch Mapbox tricycle polyline; leaving polyline empty.")
 
-    return seg 
+    return seg

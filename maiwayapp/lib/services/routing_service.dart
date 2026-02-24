@@ -6,23 +6,15 @@ import 'package:flutter/foundation.dart';
 /// RoutingService handles all backend API calls for routing, stop search, and health checks.
 /// It expects the backend to return route responses with keys: segments, shapes, summary, fare_breakdown.
 class RoutingService {
-  // QUICK FIX: Using static URL to ensure consistent IP address
-  static const String baseUrl =
-      'https://maiway-backend-production.up.railway.app/routing'; // Your IP address
+  /// Backend URL. On web we use localhost so the browser can reach Flask on the same machine
+  /// (avoids Windows Firewall blocking 192.168.x.x:5000). For mobile/emulator use your PC's LAN IP.
+  static String get baseUrl =>
+      kIsWeb ? 'http://localhost:5000' : 'http://192.168.10.192:5000';
 
-  // ALTERNATIVE IP: If the above doesn't work, try this one:
-  // static const String baseUrl = 'http://192.168.225.1:5000'; // Alternative IP
-
-  // Alternative: Dynamic URL detection (commented out for now)
-  // static String get baseUrl {
-  //   // Check if running on web first
-  //   if (kIsWeb) {
-  //     return 'http://localhost:5000';
-  //   }
-  //
-  //   // For mobile platforms, use your computer's IP address
-  //   return 'http://172.20.96.139:5000'; // Your computer's IP address
-  // }
+  /// RFR (fare prediction) backend URL. Runs on port 5002 when using py main.py locally.
+  /// Same host as baseUrl, different port. Use this for /predict_fare so the survey connects locally.
+  static String get rfrBaseUrl =>
+      kIsWeb ? 'http://localhost:5002' : 'http://192.168.10.192:5002';
 
   // Health check with timeout
   static Future<bool> checkHealth() async {
@@ -48,6 +40,9 @@ class RoutingService {
   /// - shapes: List of [lon, lat] coordinates
   /// - summary: Map with total_cost, total_distance, etc.
   /// - fare_breakdown: Map of mode to fare
+  ///
+  /// Uses Google Directions API (transit) + MaiWay inference layer. No local routing engine.
+  /// Requires GOOGLE_MAPS_API_KEY on the backend.
   static Future<Map<String, dynamic>?> getRoute({
     required LatLng startLocation,
     required LatLng endLocation,
@@ -55,10 +50,11 @@ class RoutingService {
     required List<String> modes,
     String passengerType = 'regular',
     List<String> preferences = const ['fastest', 'cheapest', 'convenient'],
+    bool useGoogle = true,
   }) async {
     try {
       final url = Uri.parse('$baseUrl/route');
-      print('[ROUTE] URL: $url');
+      print('[ROUTE] URL: $url (useGoogle: $useGoogle)');
       final requestBody = {
         'start': {
           'lat': startLocation.latitude,
@@ -69,6 +65,7 @@ class RoutingService {
         'modes': modes,
         'passenger_type': passengerType,
         'preferences': preferences,
+        if (useGoogle) 'use_google': true,
       };
       print('[ROUTE] REQUEST BODY: ' + json.encode(requestBody));
       final response = await http
@@ -80,7 +77,7 @@ class RoutingService {
             },
             body: json.encode(requestBody),
           )
-          .timeout(const Duration(seconds: 45)); // Increased timeout
+          .timeout(const Duration(seconds: 120)); // increased to 120s to avoid frontend timeout
       print('[ROUTE] RESPONSE: ${response.statusCode} ${response.body}');
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;

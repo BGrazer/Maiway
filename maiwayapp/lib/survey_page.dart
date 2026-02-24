@@ -3,17 +3,37 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/services.dart'
-    show rootBundle, FilteringTextInputFormatter;
+import 'package:flutter/services.dart' show FilteringTextInputFormatter;
+import 'package:maiwayapp/models/route_segment.dart';
+import 'package:maiwayapp/services/routing_service.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+/// One step in a step-by-step fare survey (Jeep or Bus only; used with RFR /predict_fare backend).
+/// Route = leg you took (e.g. Manila City Hall to Padre Faura).
+/// Route name of vehicle = bus/jeep route name in parentheses (e.g. Biñan - Plaza Lawton).
+class SurveyStep {
+  final String routeLeg;           // Route you took: fromStop to toStop
+  final String routeNameOfVehicle; // Route name of vehicle (e.g. Biñan - Plaza Lawton)
+  final double distanceKm;
+  final String vehicleType;        // Jeep or Bus only (RFR backend)
+
+  SurveyStep({
+    required this.routeLeg,
+    required this.routeNameOfVehicle,
+    required this.distanceKm,
+    required this.vehicleType,
+  });
+}
 
 class SurveyPage extends StatefulWidget {
-  final String transportMode;
   final String passengerType;
+  /// When provided (e.g. from End Trip), survey is pre-filled and step-by-step by segment.
+  final List<RouteSegment>? tripSegments;
 
   const SurveyPage({
     super.key,
-    required this.transportMode,
     required this.passengerType,
+    this.tripSegments,
   });
 
   @override
@@ -21,42 +41,73 @@ class SurveyPage extends StatefulWidget {
 }
 
 class _SurveyPageState extends State<SurveyPage> {
-  String? _fareFeedback;
-  String? _selectedVehicleType;
-  final TextEditingController _chargedFareController = TextEditingController();
-  final TextEditingController _distanceController = TextEditingController();
-  final TextEditingController _routeController = TextEditingController();
+  late List<SurveyStep> _steps;
+  int _currentStepIndex = 0;
+  final List<String?> _fareFeedback = []; // 'yes' | 'no' per step
+  final List<TextEditingController> _chargedFareControllers = [];
 
   List<String> predefinedRoutes = [];
 
   @override
   void initState() {
     super.initState();
-    _distanceController.text = "0.0";
-    _selectedVehicleType = widget.transportMode;
-    loadRoutesFromJson(widget.transportMode);
+    _buildSteps();
   }
 
-  Future<void> loadRoutesFromJson(String vehicleType) async {
-    final String fileName =
-        vehicleType == 'Bus' ? 'assets/Bus_routes.json' : 'assets/Jeep_routes.json';
-
-    final String response = await rootBundle.loadString(fileName);
-    final data = json.decode(response);
-
-    setState(() {
-      final key = vehicleType == 'Bus' ? 'RoutedBuses' : 'RoutedJeeps';
-      predefinedRoutes = List<String>.from(
-        data[key].map((item) => item['route']),
-      );
-    });
+  void _buildSteps() {
+    if (widget.tripSegments != null && widget.tripSegments!.isNotEmpty) {
+      // Only Jeep and Bus segments (survey + predict_fare are connected to RFR backend, which has Jeep/Bus models only)
+      final transportSegments = widget.tripSegments!
+          .where((s) {
+            final m = s.mode.name.toLowerCase();
+            return m == 'jeep' || m == 'jeepney' || m == 'bus';
+          })
+          .toList();
+      if (transportSegments.isEmpty) {
+        _steps = [];
+      } else {
+        _steps = transportSegments.map((seg) {
+          final modeName = seg.mode.name.toLowerCase();
+          final vehicle = (modeName == 'bus') ? 'Bus' : 'Jeep';
+          // Route name of vehicle = bus/jeep route name from GeoJSON (e.g. Biñan - Plaza Lawton)
+          final routeNameOfVehicle = (seg.name.trim().isNotEmpty && seg.name != 'Unnamed Segment')
+              ? _sanitizeLocationName(seg.name)
+              : '—';
+          // Route you took = leg from stop to stop (e.g. Manila City Hall to Padre Faura)
+          String routeLeg = _sanitizeLocationName('${seg.fromStop} to ${seg.toStop}');
+          if (routeLeg.isEmpty || routeLeg.contains('.geojson') || routeLeg == routeNameOfVehicle) {
+            routeLeg = 'Segment start to Segment end';
+          }
+          // Backend usually sends segment distance in km; if > 100 assume meters
+          final distanceKm = seg.distance >= 0
+              ? (seg.distance > 100 ? seg.distance / 1000.0 : seg.distance)
+              : 0.0;
+          return SurveyStep(
+            routeLeg: routeLeg,
+            routeNameOfVehicle: routeNameOfVehicle,
+            distanceKm: distanceKm,
+            vehicleType: vehicle,
+          );
+        }).toList();
+        for (var i = 0; i < _steps.length; i++) {
+          _fareFeedback.add(null);
+          _chargedFareControllers.add(TextEditingController());
+        }
+      }
+    } else {
+      _steps = [
+        SurveyStep(routeLeg: '', routeNameOfVehicle: '—', distanceKm: 0.0, vehicleType: 'Jeep'),
+      ];
+      _fareFeedback.add(null);
+      _chargedFareControllers.add(TextEditingController());
+    }
   }
 
   @override
   void dispose() {
-    _chargedFareController.dispose();
-    _distanceController.dispose();
-    _routeController.dispose();
+    for (final c in _chargedFareControllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -74,6 +125,7 @@ class _SurveyPageState extends State<SurveyPage> {
     required double difference,
     required bool isAnomalous,
     required String route,
+    String? routeLeg,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -89,119 +141,126 @@ class _SurveyPageState extends State<SurveyPage> {
       'fare_difference': smartRound(difference),
       'anomalous': isAnomalous,
       'route': route,
+      if (routeLeg != null && routeLeg.isNotEmpty) 'route_leg': routeLeg,
       'timestamp': FieldValue.serverTimestamp(),
     };
 
     await FirebaseFirestore.instance.collection('surveys').add(surveyData);
   }
 
-  Future<void> _submitSurvey() async {
-    if (_fareFeedback == null ||
-        _distanceController.text.isEmpty ||
-        _routeController.text.isEmpty) {
+  /// Replace "unknown location" with a fallback so we always show a name.
+  static String _sanitizeLocationName(String name) {
+    if (name.trim().isEmpty) return 'Current location';
+    final lower = name.toLowerCase();
+    if (lower.contains('unknown location')) {
+      return name.replaceAll(RegExp(r'unknown\s*location', caseSensitive: false), 'Current location').trim();
+    }
+    return name.trim();
+  }
+
+  void _skip() {
+    Navigator.of(context).pop();
+  }
+
+  SurveyStep get _currentStep => _steps[_currentStepIndex];
+
+  Future<void> _submitCurrentStep() async {
+    final feedback = _fareFeedback[_currentStepIndex];
+    if (feedback == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required fields')),
+        const SnackBar(content: Text('Please answer: were you charged the right amount?')),
       );
       return;
     }
 
-    final distance = double.tryParse(_distanceController.text);
-    if (distance == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Invalid distance input')));
-      return;
-    }
-
-    final route = _routeController.text.trim();
-    final vehicleType = _selectedVehicleType ?? widget.transportMode;
+    final step = _currentStep;
+    final distance = step.distanceKm;
+    // Save route name of vehicle for Admin Reports (second field in survey), not the route leg
+    final routeForReports = step.routeNameOfVehicle;
+    final routeLeg = step.routeLeg;
+    final vehicleType = step.vehicleType;
     final passengerType = widget.passengerType;
     final isDiscounted = passengerType.toLowerCase() == 'discounted';
 
-    if (_chargedFareController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the charged fare')),
-      );
-      return;
+    double chargedFare = 0.0;
+    if (feedback == 'no') {
+      final controller = _chargedFareControllers[_currentStepIndex];
+      if (controller.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter the charged fare')),
+        );
+        return;
+      }
+      chargedFare = double.tryParse(controller.text.trim()) ?? 0.0;
+      if (chargedFare <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter a valid fare')),
+        );
+        return;
+      }
     }
 
-    final chargedFare = double.tryParse(_chargedFareController.text);
-    if (chargedFare == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Invalid fare input')));
-      return;
-    }
-
-    if (_fareFeedback == 'yes') {
+    if (feedback == 'yes') {
       await pushSurveyToFirestore(
         distance: distance,
         vehicleType: vehicleType,
         passengerType: passengerType,
-        fareGiven: chargedFare,
-        predictedFare: chargedFare,
+        fareGiven: 0.0,
+        predictedFare: 0.0,
         difference: 0.0,
         isAnomalous: false,
-        route: route,
+        route: routeForReports,
+        routeLeg: routeLeg,
       );
+      if (mounted) _showThankYou(route: routeForReports, distance: distance, vehicleType: vehicleType, fare: 0.0);
+      return;
+    }
 
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Thank you!"),
-          content: Text(
-            "Your response has been recorded.\n\n"
-            "Route: $route\n"
-            "Distance: $distance km\n"
-            "Vehicle: $vehicleType\n"
-            "Passenger Type: $passengerType\n"
-            "Fare: ₱${smartRound(chargedFare).toStringAsFixed(2)}",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              child: const Text("OK"),
+    if (feedback == 'no') {
+      // Try local RFR (port 5002) first when running py main.py; fallback to production
+      final urls = [
+        Uri.parse('${RoutingService.rfrBaseUrl}/predict_fare'),
+        Uri.parse('https://maiway-backend-production.up.railway.app/predict_fare'),
+      ];
+      http.Response? response;
+      for (final url in urls) {
+        try {
+          response = await http
+              .post(
+                url,
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode({
+                  'vehicle_type': vehicleType,
+                  'passenger_type': passengerType,
+                  'distance_km': distance,
+                  'charged_fare': chargedFare,
+                  'discounted': isDiscounted,
+                }),
+              )
+              .timeout(const Duration(seconds: 10));
+          if (response.statusCode == 200) break;
+        } catch (_) {
+          response = null;
+          continue;
+        }
+      }
+      if (response == null || response.statusCode != 200) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Failed to connect to server. Make sure the RFR backend is running (py main.py starts it on port 5002).',
+              ),
             ),
-          ],
-        ),
-      );
-    } else if (_fareFeedback == 'no') {
-      final url = Uri.parse("https://maiway-backend-production.up.railway.app/predict_fare");
-
+          );
+        }
+        return;
+      }
       try {
-        final response = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            "vehicle_type": vehicleType,
-            "passenger_type": passengerType,
-            "distance_km": distance,
-            "charged_fare": chargedFare,
-            "discounted": isDiscounted,
-          }),
-        );
-
         final data = jsonDecode(response.body);
         final predictedFare = data['predicted_fare'].toDouble();
         final difference = data['difference'].toDouble();
         final isAnomalous = data['is_anomalous'] ?? false;
-
-        final roundedChargedFare = smartRound(chargedFare);
-        final roundedPredictedFare = smartRound(predictedFare);
-        final roundedDifference = smartRound(difference);
-
-        String alert;
-        if (roundedChargedFare == roundedPredictedFare) {
-          alert = " Fare is just right.";
-        } else if (roundedChargedFare < roundedPredictedFare) {
-          alert =
-              " You have saved ₱${roundedDifference.toStringAsFixed(2)}.\nThe original fare is ₱${roundedPredictedFare.toStringAsFixed(2)}.";
-        } else {
-          alert = " ALERT: Overpricing Detected!";
-        }
 
         await pushSurveyToFirestore(
           distance: distance,
@@ -211,183 +270,258 @@ class _SurveyPageState extends State<SurveyPage> {
           predictedFare: predictedFare,
           difference: difference,
           isAnomalous: isAnomalous,
-          route: route,
+          route: routeForReports,
+          routeLeg: routeLeg,
         );
 
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Fare Validation Result"),
-            content: Text(
-              "Route: $route\n"
-              "Distance: $distance km\n"
-              "Predicted Fare: ₱${roundedPredictedFare.toStringAsFixed(2)}\n"
-              "Charged Fare: ₱${roundedChargedFare.toStringAsFixed(2)}\n"
-              "Difference: ₱${roundedDifference.toStringAsFixed(2)}\n\n"
-              "$alert",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                child: const Text("OK"),
+        final roundedCharged = smartRound(chargedFare);
+        final roundedPredicted = smartRound(predictedFare);
+        final roundedDiff = smartRound(difference);
+        String alert;
+        if (roundedCharged == roundedPredicted) {
+          alert = 'Fare is just right.';
+        } else if (roundedCharged < roundedPredicted) {
+          alert = 'You saved ₱${roundedDiff.toStringAsFixed(2)}. Original fare ₱${roundedPredicted.toStringAsFixed(2)}.';
+        } else {
+          alert = 'ALERT: Overpricing detected.';
+        }
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Fare validation'),
+              content: Text(
+                'Route: $routeForReports\n'
+                'Distance: $distance km\n'
+                'Predicted: ₱${roundedPredicted.toStringAsFixed(2)}\n'
+                'Charged: ₱${roundedCharged.toStringAsFixed(2)}\n'
+                'Difference: ₱${roundedDiff.toStringAsFixed(2)}\n\n$alert',
               ),
-            ],
-          ),
-        );
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _advanceOrFinish();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
       } catch (e) {
-        print("Error connecting to backend: $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to connect to server')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Server error: ${e.toString()}')),
+          );
+        }
       }
+    }
+  }
+
+  void _showThankYou({required String route, required double distance, required String vehicleType, required double fare}) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Thank you!'),
+        content: Text(
+          'Your response has been recorded.\n\n'
+          'Route: $route\n'
+          'Distance: $distance km\n'
+          'Vehicle: $vehicleType\n'
+          'Passenger: ${widget.passengerType}\n'
+          'Fare: ₱${smartRound(fare).toStringAsFixed(2)}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _advanceOrFinish();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _advanceOrFinish() {
+    if (_currentStepIndex < _steps.length - 1) {
+      setState(() => _currentStepIndex++);
+    } else {
+      Navigator.of(context).pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Fare Survey",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            RawAutocomplete<String>(
-              textEditingController: _routeController,
-              focusNode: FocusNode(),
-              optionsBuilder: (TextEditingValue textEditingValue) {
-                if (textEditingValue.text.isEmpty) {
-                  return const Iterable<String>.empty();
-                }
-                return predefinedRoutes.where(
-                  (route) => route.toLowerCase().startsWith(
-                        textEditingValue.text.toLowerCase(),
-                      ),
-                );
-              },
-              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                return TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  decoration: const InputDecoration(
-                    labelText: "Route",
-                    hintText: "Type or select a route",
-                  ),
-                );
-              },
-              optionsViewBuilder: (context, onSelected, options) {
-                return Align(
-                  alignment: Alignment.topLeft,
-                  child: Material(
-                    elevation: 4.0,
-                    child: SizedBox(
-                      height: 200,
-                      child: ListView.builder(
-                        padding: EdgeInsets.zero,
-                        itemCount: options.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          final String option = options.elementAt(index);
-                          return ListTile(
-                            title: Text(option),
-                            onTap: () => onSelected(option),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 12),
-
-            TextField(
-              controller: _distanceController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-              ],
-              decoration: const InputDecoration(
-                labelText: "Distance (km)",
-                hintText: "Enter estimated distance",
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            DropdownButtonFormField<String>(
-              value: _selectedVehicleType,
-              items: ['Jeep', 'Bus']
-                  .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedVehicleType = value;
-                  _routeController.clear();
-                  loadRoutesFromJson(value ?? 'Jeep');
-                });
-              },
-              decoration: const InputDecoration(labelText: "Vehicle Type"),
-            ),
-
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Text("Passenger Type: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(widget.passengerType),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text("Do you feel you were charged the right amount?"),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text("Yes"),
-                    value: 'yes',
-                    groupValue: _fareFeedback,
-                    onChanged: (value) => setState(() => _fareFeedback = value),
-                  ),
-                ),
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text("No"),
-                    value: 'no',
-                    groupValue: _fareFeedback,
-                    onChanged: (value) => setState(() => _fareFeedback = value),
-                  ),
-                ),
-              ],
-            ),
-
-            if (_fareFeedback == 'yes' || _fareFeedback == 'no') ...[
-              const SizedBox(height: 20),
-              const Text("How much was the charged fare?"),
-              TextField(
-                controller: _chargedFareController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(hintText: "Enter fare in PHP"),
+    if (_steps.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text('Fare Survey'),
+          backgroundColor: const Color(0xFF6699CC),
+          foregroundColor: Colors.white,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('No jeep or bus segments to survey.'),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Done'),
               ),
             ],
+          ),
+        ),
+      );
+    }
 
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _submitSurvey,
-              child: const Text("Submit"),
+    final step = _currentStep;
+    final isMultiStep = _steps.length > 1;
+
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text(isMultiStep ? 'Fare Survey (${_currentStepIndex + 1} of ${_steps.length})' : 'Fare Survey'),
+        backgroundColor: const Color(0xFF6699CC),
+        foregroundColor: Colors.white,
+        actions: [
+          TextButton(
+            onPressed: _skip,
+            child: const Text('Skip', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Route you took (e.g. Manila City Hall to Padre Faura)
+                    _sectionLabel('Route you took'),
+                    const SizedBox(height: 6),
+                    _readOnlyChip(step.routeLeg.isEmpty ? '—' : step.routeLeg),
+                    const SizedBox(height: 16),
+
+                    // Route name of vehicle (e.g. Biñan - Plaza Lawton) — the part in parentheses
+                    _sectionLabel('Route name of vehicle'),
+                    const SizedBox(height: 6),
+                    _readOnlyChip(step.routeNameOfVehicle),
+                    const SizedBox(height: 16),
+
+                    // Distance
+                    _sectionLabel('Distance'),
+                    const SizedBox(height: 6),
+                    _readOnlyChip('${step.distanceKm.toStringAsFixed(2)} km'),
+                    const SizedBox(height: 16),
+
+                    // Vehicle type (Bus/Jeep)
+                    _sectionLabel('Vehicle type'),
+                    const SizedBox(height: 6),
+                    _readOnlyChip(step.vehicleType),
+                    const SizedBox(height: 16),
+
+                    // Passenger type
+                    _sectionLabel('Passenger type'),
+                    const SizedBox(height: 6),
+                    _readOnlyChip(widget.passengerType),
+                    const SizedBox(height: 24),
+
+                    // Yes / No
+                    _sectionLabel('Do you feel you were charged the right amount?'),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('Yes'),
+                            value: 'yes',
+                            groupValue: _fareFeedback[_currentStepIndex],
+                            onChanged: (value) => setState(() => _fareFeedback[_currentStepIndex] = value),
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('No'),
+                            value: 'no',
+                            groupValue: _fareFeedback[_currentStepIndex],
+                            onChanged: (value) => setState(() => _fareFeedback[_currentStepIndex] = value),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_fareFeedback[_currentStepIndex] == 'no') ...[
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _chargedFareControllers[_currentStepIndex],
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Charged fare (₱)',
+                          hintText: 'Enter amount in PHP',
+                          border: OutlineInputBorder(),
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _submitCurrentStep,
+                  icon: const Icon(Icons.check),
+                  label: Text(_currentStepIndex < _steps.length - 1 ? 'Submit & Next' : 'Submit'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6699CC),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.montserrat(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: Colors.grey.shade700,
+      ),
+    );
+  }
+
+  Widget _readOnlyChip(String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Text(
+        value,
+        style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w500),
       ),
     );
   }

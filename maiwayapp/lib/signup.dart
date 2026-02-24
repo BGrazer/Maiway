@@ -42,7 +42,7 @@ class _SignupPageState extends State<SignupPage> {
     }
 
     try {
-      final userCredential = await authService.value.createAccount(
+      await authService.value.createAccount(
         email: controllerEmail.text.trim(),
         password: controllerPassword.text.trim(),
         name: controllerName.text.trim(),

@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/routing_service.dart';
 import '../utils/route_processor.dart';
 import '../models/route_segment.dart';
-import '../models/transport_mode.dart';
-import '../screens/navigation_screen.dart';
-import '../services/geocoding_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maiwayapp/utils/polyline_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -73,10 +69,8 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     if (prefs.getBool('pref_convenient') == true)
       selectedPrefs.add('convenient');
 
-    // Return all three preferences by default if none are saved yet
-    return selectedPrefs.isEmpty
-        ? ['fastest', 'cheapest', 'convenient']
-        : selectedPrefs;
+    // If no preference toggles are on, show only fastest (never show convenient/cheapest unless user enabled them)
+    return selectedPrefs.isEmpty ? ['fastest'] : selectedPrefs;
   }
 
   // Helper method to get selected modes from SharedPreferences
@@ -90,6 +84,13 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     if (prefs.getBool('mode_tricycle') == true) selectedModes.add('tricycle');
 
     return selectedModes.isEmpty ? ['jeepney', 'bus', 'lrt'] : selectedModes;
+  }
+
+  // Helper to get saved passenger type for API (fare calculation)
+  Future<String> _getPassengerType() async {
+    final prefs = await SharedPreferences.getInstance();
+    final type = prefs.getString('passengerType') ?? prefs.getString('passenger_type') ?? 'Regular';
+    return type.toLowerCase() == 'discounted' ? 'discounted' : 'regular';
   }
 
   /// Fetches all selected route alternatives from the backend and processes them for display.
@@ -206,17 +207,18 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       if (prefs.getBool('pref_convenient') == true)
         selectedPrefs.add('convenient');
 
-      // Use all preferences if none are saved
-      if (selectedPrefs.isEmpty) {
-        selectedPrefs = ['fastest', 'cheapest', 'convenient'];
-      }
+      if (selectedPrefs.isEmpty) selectedPrefs = ['fastest'];
 
+      final passengerType = await _getPassengerType();
+      // Use saved preferences and modes so routing follows the preference tab
       final response = await RoutingService.getRoute(
         startLocation: _originLocation,
         endLocation: _destinationLocation,
         mode: mode,
         modes: modes,
         preferences: selectedPrefs,
+        passengerType: passengerType,
+        useGoogle: true,
       );
 
       print('🟦 $mode RAW RESPONSE: $response');
@@ -291,14 +293,26 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
 
       List<LatLng> polylinePoints = [];
       for (final seg in segments) {
-        if (seg.polyline.isEmpty) continue;
+        List<LatLng> segPoints = seg.polyline;
+        if (segPoints.isEmpty || segPoints.length < 2) {
+          // Use from_stop → to_stop so route-mode map matches navigation (no wrong/missing line)
+          if (seg.fromLat != null && seg.fromLon != null && seg.toLat != null && seg.toLon != null) {
+            segPoints = [
+              LatLng(seg.fromLat!, seg.fromLon!),
+              LatLng(seg.toLat!, seg.toLon!),
+            ];
+          } else {
+            debugPrint('⚠︎ skip segment ${seg.mode}: no polyline and no from/to coords');
+            continue;
+          }
+        }
         if (polylinePoints.isNotEmpty &&
-            polylinePoints.last.latitude == seg.polyline.first.latitude &&
-            polylinePoints.last.longitude == seg.polyline.first.longitude) {
-          // Same vertex – append the rest (skip duplicate)
-          polylinePoints.addAll(seg.polyline.skip(1));
+            segPoints.isNotEmpty &&
+            polylinePoints.last.latitude == segPoints.first.latitude &&
+            polylinePoints.last.longitude == segPoints.first.longitude) {
+          polylinePoints.addAll(segPoints.skip(1));
         } else {
-          polylinePoints.addAll(seg.polyline);
+          polylinePoints.addAll(segPoints);
         }
       }
       // Fallback if empty
@@ -353,32 +367,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     );
   }
 
-  void _onRouteSelected(int index) {
-    setState(() {
-      _selectedRouteIndex = index;
-
-      // Update polyline color and points
-      if (_routes.isNotEmpty && index < _routes.length) {
-        final selectedRoute = _routes[index];
-        final polylinePoints = robustPolyline(
-          selectedRoute['polylinePoints'],
-          _originLocation,
-          _destinationLocation,
-        );
-        print(
-          '🟦 Route selected: ${selectedRoute['title']} with ${polylinePoints.length} points',
-        );
-        _polylines = [
-          Polyline(
-            points: polylinePoints,
-            strokeWidth: 4.0,
-            color: selectedRoute['color'],
-          ),
-        ];
-      }
-    });
-  }
-
   // Helper to list ALL non-walking transport modes encountered, comma-separated
   String _collectModes(List<RouteSegment> segments) {
     final List<String> modes = [];
@@ -429,7 +417,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
     }
   }
 
-  void _startTrip() {
+  Future<void> _startTrip() async {
     if (_routes.isEmpty ||
         _selectedRouteIndex < 0 ||
         _selectedRouteIndex >= _routes.length) {
@@ -460,6 +448,9 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       '🟦 Starting trip with ${segments.length} segments and ${polylinePoints.length} polyline points',
     );
 
+    final passengerType = await _getPassengerType();
+    final passengerTypeLabel = passengerType == 'discounted' ? 'Discounted' : 'Regular';
+
     Navigator.pushNamed(
       context,
       '/navigation',
@@ -469,6 +460,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
         'destination': _destinationLocation,
         'polyline': polylinePoints,
         'summary': selectedRoute['routeData']?['summary'] ?? {},
+        'passengerType': passengerTypeLabel,
       },
     ).then((result) {
       if (result != null &&
@@ -648,16 +640,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                             ],
                           ),
                         ),
-                        // Swap Button
-                        IconButton(
-                          icon: Icon(
-                            Icons.swap_vert,
-                            color: const Color(0xFF6699CC),
-                          ),
-                          onPressed: () {
-                            // Handle swap locations
-                          },
-                        ),
                       ],
                     ),
                   ),
@@ -796,7 +778,6 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
 
   Widget _buildRouteCard(Map<String, dynamic> route, int index) {
     final isSelected = index == _selectedRouteIndex;
-    final routeData = route['routeData'] as Map<String, dynamic>?;
     final segments = route['segments'] as List<RouteSegment>? ?? [];
     final totalCost = route['totalCost'] as double? ?? 0.0;
 
@@ -812,13 +793,13 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
       modeCount[mode] = (modeCount[mode] ?? 0) + 1;
     }
 
-    // Estimate time (rough calculation: 30 km/h for transit, 5 km/h for walking)
-    double estimatedTime = 0.0;
+    // Estimate time (rough: 5 km/h walking, 30 km/h transit)
+    double estimatedTimeMin = 0.0;
     for (final segment in segments) {
       if (segment.mode.name.toLowerCase() == 'walking') {
-        estimatedTime += segment.distance / 5.0; // 5 km/h walking
+        estimatedTimeMin += segment.distance / 5.0 * 60; // hours -> min
       } else {
-        estimatedTime += segment.distance / 30.0; // 30 km/h transit
+        estimatedTimeMin += segment.distance / 30.0 * 60;
       }
     }
 
@@ -879,6 +860,14 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                       Colors.blue,
                     ),
                   ),
+                  Expanded(
+                    child: _buildStatItem(
+                      Icons.schedule,
+                      '~${estimatedTimeMin.round()} min',
+                      'Est. time',
+                      Colors.orange,
+                    ),
+                  ),
                 ],
               ),
 
@@ -925,7 +914,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
                               ),
                               SizedBox(width: 4),
                               Text(
-                                '$mode ($count)',
+                                '$mode · ₱${fare.toStringAsFixed(0)} ($count)',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,

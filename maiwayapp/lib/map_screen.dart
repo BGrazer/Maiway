@@ -7,7 +7,6 @@ import 'package:maiwayapp/search_sheet.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:maiwayapp/chatbot_dialog.dart';
-import 'package:maiwayapp/survey_page.dart' as my_survey;
 import 'package:maiwayapp/controllers/map_screen_controller.dart';
 import 'package:maiwayapp/services/geocoding_service.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
@@ -36,6 +35,9 @@ class _MapScreenState extends State<MapScreen>
   late final List<LatLng> _manilaBoundary;
   bool _isPinningMode = false;
   bool _isPinningOrigin = true;
+  /// Only show CurrentLocationLayer when permission is granted so the map
+  /// stays interactive (pan/pin) when the user denies location.
+  bool _locationPermissionGranted = false;
 
   // Confirm the pin positioned at the map center and return to SearchSheet
   Future<void> _confirmPinAndReturnToSearch() async {
@@ -81,8 +83,22 @@ class _MapScreenState extends State<MapScreen>
       },
       setState: () => setState(() {}),
     );
-    _controller.getCurrentLocation();
     _manilaBoundary = getManilaBoundary();
+    // Decide whether to show the location layer so map never freezes when denied
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      final granted = permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always;
+      if (mounted) {
+        setState(() => _locationPermissionGranted = granted);
+      }
+      if (granted) {
+        _controller.getCurrentLocation();
+      }
+    });
   }
 
   @override
@@ -147,34 +163,6 @@ class _MapScreenState extends State<MapScreen>
       builder: (BuildContext context) {
         return const ChatbotDialog();
       },
-    );
-  }
-
-  void _openSurveyPopup() {
-    final selectedMode =
-        widget.selectedModes.isNotEmpty ? widget.selectedModes.first : 'Jeep';
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder:
-          (context) => Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-              top: 20,
-              left: 20,
-              right: 20,
-            ),
-            child: my_survey.SurveyPage(
-              transportMode: selectedMode,
-              passengerType: widget.passengerType,
-              //  REMOVE distanceKm — let SurveyPage handle it itself
-            ),
-          ),
     );
   }
 
@@ -286,7 +274,7 @@ class _MapScreenState extends State<MapScreen>
             ),
             children: [
               openStreetMapTileLayer,
-              const CurrentLocationLayer(),
+              if (_locationPermissionGranted) const CurrentLocationLayer(),
               // Outline of Manila city boundary (no fill)
               if (_manilaBoundary.isNotEmpty)
                 PolylineLayer(
@@ -431,16 +419,6 @@ class _MapScreenState extends State<MapScreen>
           ),
 
           // Buttons
-          Positioned(
-            bottom: 90,
-            left: 20,
-            child: FloatingActionButton(
-              heroTag: 'survey_button',
-              onPressed: _openSurveyPopup,
-              tooltip: 'Open Survey Page',
-              child: const Icon(Icons.feedback),
-            ),
-          ),
           Positioned(
             bottom: 150,
             right: 20,
