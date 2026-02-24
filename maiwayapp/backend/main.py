@@ -70,6 +70,24 @@ def run_analysis():
     analyze_route_with_reference_model()
     return jsonify({"message": "Crowd analysis triggered and logged."})
 
+# --- ROUTING ENDPOINT ---
+@app.route('/route', methods=['POST', 'OPTIONS'])
+def route():
+    if request.method == 'OPTIONS':
+        return '', 200
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        # Forward to routing service on port 5000
+        routing_url = 'http://localhost:5000/route'
+        response = requests.post(routing_url, json=data, timeout=30)
+        return jsonify(response.json()), response.status_code
+    except requests.exceptions.ConnectionError:
+        return jsonify({'error': 'Routing service unavailable'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # --- PLACES API ROUTES ---
 MANILA_BOUNDS = {
     'low': {'latitude': 14.557, 'longitude': 120.9371},
@@ -184,4 +202,5 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     print(f"Starting server on port {port}", flush=True)
     print("Menu", flush=True)
+    print("Note: Routing service should be running on port 5000", flush=True)
     app.run(host='0.0.0.0', port=port, debug=False)

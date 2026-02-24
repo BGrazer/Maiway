@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from google.generativeai import configure, GenerativeModel  # type: ignore
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -94,20 +95,10 @@ class ChatbotModel:
             )
             print(f"DEBUG: Calling Gemini with query: {user_query}")
             
-            models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']
-            
-            for model_name in models_to_try:
-                try:
-                    print(f"DEBUG: Trying model: {model_name}")
-                    model = GenerativeModel(model_name)
-                    response = model.generate_content(prompt)
-                    print(f"DEBUG: Success with {model_name}! Response: {response.text}")
-                    return response.text
-                except Exception as model_error:
-                    print(f"DEBUG: Model {model_name} failed: {model_error}")
-                    continue
-            
-            return "Subukan po muli mamaya."
+            model = GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            print(f"DEBUG: Success! Response: {response.text}")
+            return response.text
         except Exception as e:
             print(f"Gemini Error: {type(e).__name__}: {e}")
             import traceback
