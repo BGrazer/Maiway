@@ -6,6 +6,14 @@ import asyncio
 
 chatbot = None
 
+def init_chatbot():
+    global chatbot
+    if chatbot is None:
+        print("DEBUG: Initializing ChatbotModel...")
+        chatbot = ChatbotModel()
+        print("DEBUG: ChatbotModel initialized.")
+    return chatbot
+
 def create_app():
     """
     Factory function to create and configure the Flask app.
