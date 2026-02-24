@@ -1,20 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:flutter/foundation.dart';
 
 /// RoutingService handles all backend API calls for routing, stop search, and health checks.
 /// It expects the backend to return route responses with keys: segments, shapes, summary, fare_breakdown.
 class RoutingService {
-  /// Backend URL. On web we use localhost so the browser can reach Flask on the same machine
-  /// (avoids Windows Firewall blocking 192.168.x.x:5000). For mobile/emulator use your PC's LAN IP.
-  static String get baseUrl =>
-      kIsWeb ? 'http://localhost:5000' : 'http://192.168.10.192:5000';
+  /// Backend URL - using Render hosting
+  static const String baseUrl = 'https://maiway-q6y5.onrender.com';
 
-  /// RFR (fare prediction) backend URL. Runs on port 5002 when using py main.py locally.
-  /// Same host as baseUrl, different port. Use this for /predict_fare so the survey connects locally.
-  static String get rfrBaseUrl =>
-      kIsWeb ? 'http://localhost:5002' : 'http://192.168.10.192:5002';
+  /// RFR (fare prediction) backend URL - same Render host
+  static const String rfrBaseUrl = 'https://maiway-q6y5.onrender.com';
 
   // Health check with timeout
   static Future<bool> checkHealth() async {
@@ -67,7 +62,7 @@ class RoutingService {
         'preferences': preferences,
         if (useGoogle) 'use_google': true,
       };
-      print('[ROUTE] REQUEST BODY: ' + json.encode(requestBody));
+      print('[ROUTE] REQUEST BODY: ${json.encode(requestBody)}');
       final response = await http
           .post(
             url,
