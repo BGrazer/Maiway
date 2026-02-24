@@ -70,6 +70,43 @@ def _is_walking_only(route: Dict) -> bool:
     return True
 
 
+def _route_allowed_by_modes(route: Dict, allowed_modes: List[str]) -> bool:
+    """
+    True if the route uses only modes allowed by the user's travel preferences.
+    Walking is always allowed since first/last mile walking is unavoidable.
+    """
+    allowed = {str(m).strip().lower() for m in (allowed_modes or [])}
+    if not allowed:
+        return True
+
+    for seg in route.get("segments", []):
+        mode_raw = str(seg.get("mode") or "").strip().lower()
+        if not mode_raw:
+            continue
+        if mode_raw in {"walking", "walk"}:
+            continue
+        if mode_raw in {"bus"}:
+            if "bus" not in allowed:
+                return False
+            continue
+        if mode_raw in {"jeep", "jeepney"}:
+            if "jeepney" not in allowed and "jeep" not in allowed:
+                return False
+            continue
+        if mode_raw in {"lrt", "rail", "subway", "metro", "tram", "train"}:
+            if "lrt" not in allowed:
+                return False
+            continue
+        if mode_raw in {"tricycle"}:
+            if "tricycle" not in allowed:
+                return False
+            continue
+        # Unknown transit mode: be conservative and treat it as disallowed
+        return False
+
+    return True
+
+
 def _random_offset_m(lat: float, lon: float, radius_m: float = PERTURB_RADIUS_M) -> Tuple[float, float]:
     """Return (lat', lon') a random point within radius_m meters of (lat, lon)."""
     import math
@@ -639,10 +676,15 @@ def _route_signature_match(existing: List[Dict], new_segs: List[Dict]) -> bool:
 def synthesize_three_routes(
     google_routes: List[Dict],
     bus_jeep_substitute_fn=None,
+    allowed_modes: Optional[List[str]] = None,
 ) -> Dict[str, Dict]:
     """
     Ensure we have exactly three routes: fastest, cheapest, convenient.
     When Google returns 1 or 2, synthesize variants via bus→jeep substitution.
+    Pure walking routes are only used when *all* routes are walking-only; if at
+    least one route has transit, fastest/cheapest/convenient are chosen from the
+    transit-capable set so we don't surface "walk 2 km for ₱0" as the main
+    alternatives when real transit exists.
     """
     result = {"fastest": {}, "cheapest": {}, "convenient": {}}
     if not google_routes:
@@ -657,11 +699,23 @@ def synthesize_three_routes(
             if variant and not _route_signature_match(augmented, variant.get("segments", [])):
                 augmented.append(variant)
 
+    # Enforce user travel-preference mode filtering (walking always allowed).
+    if allowed_modes:
+        augmented = [r for r in augmented if _route_allowed_by_modes(r, allowed_modes)]
+
+    if not augmented:
+        return result
+
+    # Prefer routes that actually use transit; fall back to walking-only set
+    # only when *every* candidate is walking-only.
+    transit_candidates = [r for r in augmented if not _is_walking_only(r)]
+    ranking_pool = transit_candidates or augmented
+
     # Rank by time, fare, convenience
-    by_time = sorted(augmented, key=lambda x: x.get("total_time_min", float("inf")))
-    by_fare = sorted(augmented, key=lambda x: x.get("total_cost", float("inf")))
+    by_time = sorted(ranking_pool, key=lambda x: x.get("total_time_min", float("inf")))
+    by_fare = sorted(ranking_pool, key=lambda x: x.get("total_cost", float("inf")))
     by_convenience = sorted(
-        augmented,
+        ranking_pool,
         key=lambda x: (
             -len([s for s in x.get("segments", []) if s.get("mode") not in ("Walking",)]),  # fewer transit legs = more convenient
             x.get("total_time_min", float("inf")),
@@ -799,6 +853,24 @@ def _strip_trailing_walk_to_destination(
     return segs, removed_cost, removed_dist
 
 
+def _strip_leading_walk_to_first_transit(segs: List[Dict]) -> Tuple[List[Dict], float, float]:
+    """
+    Remove leading walking segments up to the first transit leg. This is used when
+    injecting first-mile tricycle so we don't keep the original "walk to stop"
+    segment(s) in addition to walk→terminal + trike→stop.
+    Returns (stripped_segs, cost_removed, dist_removed).
+    """
+    removed_cost = 0.0
+    removed_dist = 0.0
+    out = list(segs)
+    while out and str(out[0].get("mode", "")).lower() == "walking":
+        first = out[0]
+        removed_cost += first.get("fare", 0) or 0.0
+        removed_dist += first.get("distance", 0) or 0.0
+        out = out[1:]
+    return out, removed_cost, removed_dist
+
+
 # Spatial awareness: use terminal only when it's favorable (on the way, short walk).
 WALK_TERMINAL_TO_DEST_MAX_KM = 0.4   # max walk from terminal to dest to use terminal
 TERMINAL_DETOUR_MAX_RATIO = 1.25     # max ratio (last_stop→terminal)/(last_stop→dest) to use terminal
@@ -859,6 +931,12 @@ def _inject_tricycle_convenient(
                 and walk_km_to_terminal < direct_origin_to_stop
                 and walk_saving_km >= TRIKE_MIN_SAVING_KM
             ):
+                # Remove existing "walk to first stop" segments; the injected
+                # walk→terminal + trike→first_stop replaces them.
+                segs, removed_cost, removed_dist = _strip_leading_walk_to_first_transit(segs)
+                total_cost -= removed_cost
+                total_dist -= removed_dist
+
                 # Walk origin → terminal
                 walk_poly = _call_mapbox_walking_polyline(origin_lat, origin_lon, terminal["lat"], terminal["lon"])
                 if not walk_poly:
@@ -1015,7 +1093,7 @@ def find_routes_google_hybrid(
         fare_type,
         stops=stops,
     )
-    synthesized = synthesize_three_routes(google_routes, bus_jeep_substitute_fn)
+    synthesized = synthesize_three_routes(google_routes, bus_jeep_substitute_fn, allowed_modes=modes)
 
     # If all three are the same route, try perturbed O/D to get different options
     if _all_three_identical(synthesized) and google_routes:
@@ -1041,7 +1119,7 @@ def find_routes_google_hybrid(
                 if not _route_signature_match(google_routes, r.get("segments", [])):
                     google_routes.append(r)
             if len(google_routes) > 1:
-                synthesized = synthesize_three_routes(google_routes, bus_jeep_substitute_fn)
+                synthesized = synthesize_three_routes(google_routes, bus_jeep_substitute_fn, allowed_modes=modes)
                 logger.info("Perturb+re-anchor added variety: %s unique routes", len(google_routes))
 
     # Tricycle injection for convenient route only when user has tricycle in travel preferences

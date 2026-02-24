@@ -40,6 +40,8 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
 
   late ScrollController _scrollController;
 
+  static const int _minSelectedModes = 2;
+
   @override
   void initState() {
     super.initState();
@@ -80,9 +82,38 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
       if (_passengerType == 'Discounted') {
         _cardType = 'Student Discount';
       }
+
+      _enforceMinimumSelections();
     });
 
     _scrollToBottom();
+  }
+
+  int _countSelected(Map<String, bool> map) {
+    return map.values.where((v) => v == true).length;
+  }
+
+  void _showBlocked(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  void _enforceMinimumSelections() {
+    // Travel Preferences: at least one must be enabled.
+    if (_countSelected(_preferences) < 1) {
+      _preferences['Fastest'] = true;
+    }
+
+    // Mode Priority: at least two must be enabled.
+    if (_countSelected(_modes) < _minSelectedModes) {
+      // Keep any existing selections and add safe defaults until we reach min.
+      final defaults = ['Bus', 'LRT-1', 'Jeep', 'Tricycle'];
+      for (final k in defaults) {
+        if (_countSelected(_modes) >= _minSelectedModes) break;
+        _modes[k] = true;
+      }
+    }
   }
 
   Future<void> _savePreferences() async {
@@ -192,7 +223,13 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
                   value: entry.value,
                   onChanged: (bool value) {
                     setState(() {
+                      // Block turning off the last enabled preference.
+                      if (value == false && _countSelected(_preferences) <= 1) {
+                        _showBlocked('At least one travel preference must be selected.');
+                        return;
+                      }
                       _preferences[entry.key] = value;
+                      _enforceMinimumSelections();
                     });
                   },
                   activeColor: Colors.green,
@@ -213,7 +250,14 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
                 value: entry.value,
                 onChanged: (bool? value) {
                   setState(() {
-                    _modes[entry.key] = value!;
+                    final next = value ?? false;
+                    // Block turning off a mode if it would drop below min selections.
+                    if (next == false && _modes[entry.key] == true && _countSelected(_modes) <= _minSelectedModes) {
+                      _showBlocked('Please select at least $_minSelectedModes transport modes.');
+                      return;
+                    }
+                    _modes[entry.key] = next;
+                    _enforceMinimumSelections();
                   });
                 },
                 checkColor: Colors.white,
