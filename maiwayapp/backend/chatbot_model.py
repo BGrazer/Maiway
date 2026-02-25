@@ -93,28 +93,36 @@ class ChatbotModel:
             )
             print(f"DEBUG: Calling Gemini with query: {user_query}")
             
-            # Use the correct v1 API endpoint
-            url = f"https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={self.gemini_api_key}"
-            headers = {"Content-Type": "application/json"}
-            data = {
-                "contents": [{"parts": [{"text": prompt}]}]
-            }
+            # List of model endpoints to try
+            endpoints = [
+                ("v1beta", "gemini-1.5-flash"),
+                ("v1beta", "gemini-1.5-pro"),
+                ("v1", "gemini-1.5-flash"),
+                ("v1", "gemini-1.5-pro"),
+            ]
             
-            response = requests.post(url, headers=headers, json=data, timeout=30)
+            for api_version, model_name in endpoints:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/{api_version}/models/{model_name}:generateContent?key={self.gemini_api_key}"
+                    headers = {"Content-Type": "application/json"}
+                    data = {"contents": [{"parts": [{"text": prompt}]}]}
+                    
+                    response = requests.post(url, headers=headers, json=data, timeout=30)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        if 'candidates' in result and len(result['candidates']) > 0:
+                            text = result['candidates'][0]['content']['parts'][0]['text']
+                            print(f"DEBUG: Success with {api_version}/{model_name}! Response: {text}")
+                            return text
+                    print(f"DEBUG: {api_version}/{model_name} returned {response.status_code}")
+                except Exception as e:
+                    print(f"DEBUG: {api_version}/{model_name} error: {e}")
+                    continue
             
-            if response.status_code == 200:
-                result = response.json()
-                if 'candidates' in result and len(result['candidates']) > 0:
-                    text = result['candidates'][0]['content']['parts'][0]['text']
-                    print(f"DEBUG: Success! Response: {text}")
-                    return text
-            
-            print(f"DEBUG: API Error {response.status_code}: {response.text}")
             return "Subukan po muli mamaya."
         except Exception as e:
             print(f"Gemini Error: {type(e).__name__}: {e}")
-            import traceback
-            traceback.print_exc()
             return "Subukan po muli mamaya."
 
     def get_matching_questions(self, query_text, limit=5):
