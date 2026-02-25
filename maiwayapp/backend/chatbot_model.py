@@ -93,22 +93,35 @@ class ChatbotModel:
             )
             print(f"DEBUG: Calling Gemini with query: {user_query}")
             
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={self.gemini_api_key}"
-            headers = {"Content-Type": "application/json"}
-            data = {
-                "contents": [{"parts": [{"text": prompt}]}]
-            }
+            # Try multiple model endpoints
+            models_to_try = [
+                "gemini-1.5-flash-002",
+                "gemini-1.5-pro-002",
+                "gemini-1.0-pro"
+            ]
             
-            response = requests.post(url, headers=headers, json=data, timeout=30)
-            
-            if response.status_code == 200:
-                result = response.json()
-                if 'candidates' in result and len(result['candidates']) > 0:
-                    text = result['candidates'][0]['content']['parts'][0]['text']
-                    print(f"DEBUG: Success! Response: {text}")
-                    return text
-            else:
-                print(f"DEBUG: API Error {response.status_code}: {response.text}")
+            for model_name in models_to_try:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.gemini_api_key}"
+                    headers = {"Content-Type": "application/json"}
+                    data = {
+                        "contents": [{"parts": [{"text": prompt}]}]
+                    }
+                    
+                    response = requests.post(url, headers=headers, json=data, timeout=30)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        if 'candidates' in result and len(result['candidates']) > 0:
+                            text = result['candidates'][0]['content']['parts'][0]['text']
+                            print(f"DEBUG: Success with {model_name}! Response: {text}")
+                            return text
+                    else:
+                        print(f"DEBUG: Model {model_name} failed: {response.status_code}")
+                        continue
+                except Exception as e:
+                    print(f"DEBUG: Model {model_name} error: {e}")
+                    continue
             
             return "Subukan po muli mamaya."
         except Exception as e:
