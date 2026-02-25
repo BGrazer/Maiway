@@ -105,11 +105,9 @@ class ChatbotModel:
             
             # Try different model names
             models_to_try = [
-                ("v1beta", "gemini-1.5-flash-latest"),
-                ("v1beta", "gemini-1.5-pro-latest"),
-                ("v1beta", "gemini-pro"),
-                ("v1", "gemini-1.5-flash-latest"),
-                ("v1", "gemini-pro"),
+                ("v1beta", "gemini-2.5-flash"),
+                ("v1beta", "gemini-flash-latest"),
+                ("v1beta", "gemini-pro-latest"),
             ]
             
             for api_version, model_name in models_to_try:
