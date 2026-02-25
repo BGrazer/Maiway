@@ -2,10 +2,9 @@ import json
 import os
 import re
 import numpy as np
+import requests
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from google.generativeai import configure, GenerativeModel  # type: ignore
-import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,7 +29,6 @@ class ChatbotModel:
 
         self.gemini_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         if self.gemini_api_key:
-            configure(api_key=self.gemini_api_key)
             self.client = True
         else:
             self.client = None
@@ -84,7 +82,7 @@ class ChatbotModel:
 
     async def _get_gemini_response(self, user_query):
         try:
-            if not self.client:
+            if not self.client or not self.gemini_api_key:
                 print("ERROR: No Gemini API key found")
                 return "Subukan po muli mamaya."
             
@@ -95,18 +93,22 @@ class ChatbotModel:
             )
             print(f"DEBUG: Calling Gemini with query: {user_query}")
             
-            model = genai.GenerativeModel('gemini-pro')  # type: ignore
-            response = model.generate_content(prompt)
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_api_key}"
+            headers = {"Content-Type": "application/json"}
+            data = {
+                "contents": [{"parts": [{"text": prompt}]}]
+            }
             
-            if hasattr(response, 'text'):
-                print(f"DEBUG: Success! Response: {response.text}")
-                return response.text
-            elif response.candidates:
-                first_candidate = response.candidates[0]
-                if hasattr(first_candidate, 'content') and hasattr(first_candidate.content, 'parts') and first_candidate.content.parts:
-                    response_text = first_candidate.content.parts[0].text
-                    print(f"DEBUG: Success! Response: {response_text}")
-                    return response_text
+            response = requests.post(url, headers=headers, json=data, timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if 'candidates' in result and len(result['candidates']) > 0:
+                    text = result['candidates'][0]['content']['parts'][0]['text']
+                    print(f"DEBUG: Success! Response: {text}")
+                    return text
+            else:
+                print(f"DEBUG: API Error {response.status_code}: {response.text}")
             
             return "Subukan po muli mamaya."
         except Exception as e:
