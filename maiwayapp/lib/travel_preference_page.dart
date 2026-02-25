@@ -7,8 +7,8 @@ class TravelPreferenceScreen extends StatefulWidget {
     List<String> modes,
     String passengerType,
     String? cardType,
-  ) onPreferencesSaved;
-  /// When true, this tab is visible; used to reload from storage when user switches to this tab.
+  )
+  onPreferencesSaved;
   final bool isVisible;
 
   const TravelPreferenceScreen({
@@ -22,6 +22,10 @@ class TravelPreferenceScreen extends StatefulWidget {
 }
 
 class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
+  // Theme Colors
+  final Color primaryBlue = const Color(0xFF1A5276);
+  final Color skyBlueBackground = const Color(0xFF91C9F1);
+
   final Map<String, bool> _preferences = {
     'Fastest': true,
     'Cheapest': false,
@@ -38,29 +42,10 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
   String _passengerType = 'Regular';
   String? _cardType;
 
-  late ScrollController _scrollController;
-
-  static const int _minSelectedModes = 2;
-
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
     _loadPreferences();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(TravelPreferenceScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isVisible && !oldWidget.isVisible) {
-      _loadPreferences();
-    }
   }
 
   Future<void> _loadPreferences() async {
@@ -68,288 +53,287 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
     setState(() {
       _passengerType = prefs.getString('passengerType') ?? 'Regular';
       _cardType = prefs.getString('cardType');
-
-      for (var key in _preferences.keys) {
-        final backendKey = _prefKeyFor(key);
-        _preferences[key] = prefs.getBool(backendKey) ?? _preferences[key]!;
-      }
-
-      for (var key in _modes.keys) {
-        final backendKey = _modeKeyFor(key);
-        _modes[key] = prefs.getBool(backendKey) ?? _modes[key]!;
-      }
-
-      if (_passengerType == 'Discounted') {
-        _cardType = 'Student Discount';
-      }
-
-      _enforceMinimumSelections();
+      _preferences.forEach((key, _) {
+        _preferences[key] =
+            prefs.getBool(_prefKeyFor(key)) ?? _preferences[key]!;
+      });
+      _modes.forEach((key, _) {
+        _modes[key] = prefs.getBool(_modeKeyFor(key)) ?? _modes[key]!;
+      });
     });
-
-    _scrollToBottom();
-  }
-
-  int _countSelected(Map<String, bool> map) {
-    return map.values.where((v) => v == true).length;
-  }
-
-  void _showBlocked(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  void _enforceMinimumSelections() {
-    // Travel Preferences: at least one must be enabled.
-    if (_countSelected(_preferences) < 1) {
-      _preferences['Fastest'] = true;
-    }
-
-    // Mode Priority: at least two must be enabled.
-    if (_countSelected(_modes) < _minSelectedModes) {
-      // Keep any existing selections and add safe defaults until we reach min.
-      final defaults = ['Bus', 'LRT-1', 'Jeep', 'Tricycle'];
-      for (final k in defaults) {
-        if (_countSelected(_modes) >= _minSelectedModes) break;
-        _modes[k] = true;
-      }
-    }
   }
 
   Future<void> _savePreferences() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('passengerType', _passengerType);
     if (_cardType != null) await prefs.setString('cardType', _cardType!);
-
     for (var entry in _preferences.entries) {
       await prefs.setBool(_prefKeyFor(entry.key), entry.value);
     }
-
     for (var entry in _modes.entries) {
       await prefs.setBool(_modeKeyFor(entry.key), entry.value);
     }
-
-    // Also store passenger type in new naming just in case
-    await prefs.setString('passenger_type', _passengerType);
   }
 
-  Future<void> _scrollToBottom() async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  // Mapping helpers
-  String _prefKeyFor(String display) {
-    switch (display) {
-      case 'Fastest':
-        return 'pref_fastest';
-      case 'Cheapest':
-        return 'pref_cheapest';
-      case 'Convenient':
-        return 'pref_convenient';
-      default:
-        return 'pref_${display.toLowerCase()}';
-    }
-  }
-
-  String _modeKeyFor(String display) {
-    switch (display) {
-      case 'Jeep':
-        return 'mode_jeepney';
-      case 'Bus':
-        return 'mode_bus';
-      case 'LRT-1':
-        return 'mode_lrt';
-      case 'Tricycle':
-        return 'mode_tricycle';
-      default:
-        return 'mode_${display.toLowerCase()}';
-    }
-  }
+  String _prefKeyFor(String display) => 'pref_${display.toLowerCase()}';
+  String _modeKeyFor(String display) =>
+      'mode_${display.toLowerCase().replaceAll('-', '')}';
 
   @override
   Widget build(BuildContext context) {
-    final isTrainSelected = _modes['LRT-1'] == true || _modes['Train'] == true;
+    final isTrainSelected = _modes['LRT-1'] == true;
 
     return Scaffold(
+      backgroundColor: skyBlueBackground,
       appBar: AppBar(
-        title: const Text('PREFERENCE'),
-        backgroundColor: const Color(0xFF6699CC),
+        title: Text(
+          'Travel Preference',
+          style: TextStyle(color: primaryBlue, fontWeight: FontWeight.w900),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 2,
       ),
-      body: SafeArea(
-        child: ListView(
-          controller: _scrollController,
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // <--- BOTTOM SPACE ADDED
-          children: [
-            const _SectionHeader(title: 'Passenger Type'),
-            Column(
-              children: ['Regular', 'Discounted'].map((type) {
-                return RadioListTile<String>(
-                  dense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  title: Text(type, style: const TextStyle(fontSize: 13)),
-                  value: type,
-                  groupValue: _passengerType,
-                  onChanged: (String? value) {
-                    setState(() {
-                      _passengerType = value!;
-                      if (_passengerType == 'Discounted') {
-                        _cardType = 'Student Discount';
-                      } else {
-                        _cardType = null;
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
+      // MOVED HERE: This ensures the button is always visible above the nav bar
+      bottomNavigationBar: _buildFixedBottomButton(),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        children: [
+          _buildSectionTitle('PASSENGER PROFILE'),
+          _buildPassengerTypeSelector(),
 
-            const _SectionHeader(title: 'Travel Preferences'),
-            ..._preferences.entries.map((entry) {
-              return ListTile(
-                dense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-                title: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(entry.key, style: const TextStyle(fontSize: 13)),
-                ),
-                trailing: Switch(
-                  value: entry.value,
-                  onChanged: (bool value) {
-                    setState(() {
-                      // Block turning off the last enabled preference.
-                      if (value == false && _countSelected(_preferences) <= 1) {
-                        _showBlocked('At least one travel preference must be selected.');
-                        return;
-                      }
-                      _preferences[entry.key] = value;
-                      _enforceMinimumSelections();
-                    });
-                  },
-                  activeColor: Colors.green,
-                ),
-              );
-            }).toList(),
+          const SizedBox(height: 24),
+          _buildSectionTitle('PRIORITIZE BY'),
+          _buildVerticalPreferenceList(),
 
-            const _SectionHeader(title: 'Mode Priority'),
-            ..._modes.entries.map((entry) {
-              return CheckboxListTile(
-                dense: true,
-                controlAffinity: ListTileControlAffinity.trailing,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-                title: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(entry.key, style: const TextStyle(fontSize: 13)),
-                ),
-                value: entry.value,
-                onChanged: (bool? value) {
-                  setState(() {
-                    final next = value ?? false;
-                    // Block turning off a mode if it would drop below min selections.
-                    if (next == false && _modes[entry.key] == true && _countSelected(_modes) <= _minSelectedModes) {
-                      _showBlocked('Please select at least $_minSelectedModes transport modes.');
-                      return;
-                    }
-                    _modes[entry.key] = next;
-                    _enforceMinimumSelections();
-                  });
-                },
-                checkColor: Colors.white,
-                activeColor: Colors.green,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              );
-            }).toList(),
+          const SizedBox(height: 24),
+          _buildSectionTitle('TRANSPORT MODES'),
+          _buildVerticalModeList(),
 
-            if (isTrainSelected) ...[
-              const _SectionHeader(title: 'LRT/Train Card Type'),
-              if (_passengerType == 'Discounted')
-                ListTile(
-                  dense: true,
-                  title: const Text('Student Discount', style: TextStyle(fontSize: 13)),
-                  trailing: const Icon(Icons.lock, size: 16),
-                )
-              else
-                Column(
-                  children: ['Single Journey Card', 'Stored Value Card (Beep Card)']
-                      .map((type) {
-                    return RadioListTile<String>(
-                      dense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      title: Text(type, style: const TextStyle(fontSize: 13)),
-                      value: type,
-                      groupValue: _cardType,
-                      onChanged: (String? value) {
-                        setState(() {
-                          _cardType = value;
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-            ],
-
-            const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  await _savePreferences();
-
-                  final selectedPreferences = _preferences.entries
-                      .where((e) => e.value)
-                      .map((e) => e.key)
-                      .toList();
-
-                  final selectedModes = _modes.entries
-                      .where((e) => e.value)
-                      .map((e) => e.key)
-                      .toList();
-
-                  widget.onPreferencesSaved(
-                    selectedPreferences,
-                    selectedModes,
-                    _passengerType,
-                    _cardType,
-                  );
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Preferences saved.")),
-                  );
-                },
-                icon: const Icon(Icons.check),
-                label: const Text("Apply Preferences"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ),
+          if (isTrainSelected) ...[
+            const SizedBox(height: 24),
+            _buildSectionTitle('TRAIN CARD TYPE'),
+            _buildTrainCardSelector(),
           ],
+        ],
+      ),
+    );
+  }
+
+  // --- UI BUILDING BLOCKS ---
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 12),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          color: primaryBlue,
+          letterSpacing: 1.2,
         ),
       ),
     );
   }
-}
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
+  Widget _buildPassengerTypeSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+      ),
+      child: Row(
+        children:
+            ['Regular', 'Discounted'].map((type) {
+              bool isSelected = _passengerType == type;
+              return Expanded(
+                child: GestureDetector(
+                  onTap:
+                      () => setState(() {
+                        _passengerType = type;
+                        _cardType =
+                            (type == 'Discounted') ? 'Student Discount' : null;
+                      }),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: isSelected ? primaryBlue : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      type,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : primaryBlue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+      ),
+    );
+  }
 
-  const _SectionHeader({required this.title});
+  Widget _buildVerticalPreferenceList() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+      ),
+      child: Column(
+        children:
+            _preferences.keys.map((pref) {
+              return SwitchListTile(
+                title: Text(
+                  pref,
+                  style: TextStyle(
+                    color: primaryBlue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                value: _preferences[pref]!,
+                activeColor: Colors.green,
+                onChanged: (val) => setState(() => _preferences[pref] = val),
+              );
+            }).toList(),
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+  Widget _buildVerticalModeList() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+      ),
+      child: Column(
+        children:
+            _modes.keys.map((mode) {
+              return CheckboxListTile(
+                title: Text(
+                  mode,
+                  style: TextStyle(
+                    color: primaryBlue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                value: _modes[mode],
+                activeColor: primaryBlue,
+                onChanged: (val) => setState(() => _modes[mode] = val!),
+              );
+            }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildTrainCardSelector() {
+    if (_passengerType == 'Discounted') {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: primaryBlue,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.white),
+            SizedBox(width: 12),
+            Text(
+              "Automatic Student Discount Applied",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+      ),
+      child: Column(
+        children:
+            ['Single Journey Card', 'Stored Value Card (Beep)'].map((type) {
+              return RadioListTile<String>(
+                title: Text(
+                  type,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                value: type,
+                groupValue: _cardType,
+                activeColor: primaryBlue,
+                onChanged: (v) => setState(() => _cardType = v),
+              );
+            }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildFixedBottomButton() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20)],
+      ),
+      child: SafeArea(
+        top: false,
+        child: ElevatedButton(
+          onPressed: () async {
+            await _savePreferences();
+            final selectedPrefs =
+                _preferences.entries
+                    .where((e) => e.value)
+                    .map((e) => e.key)
+                    .toList();
+            final selectedModes =
+                _modes.entries.where((e) => e.value).map((e) => e.key).toList();
+            widget.onPreferencesSaved(
+              selectedPrefs,
+              selectedModes,
+              _passengerType,
+              _cardType,
+            );
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Preferences Saved Successfully!"),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryBlue,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(double.infinity, 56),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 0,
+          ),
+          child: const Text(
+            "APPLY PREFERENCES",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+            ),
+          ),
+        ),
       ),
     );
   }

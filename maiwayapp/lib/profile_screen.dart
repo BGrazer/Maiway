@@ -19,6 +19,16 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  // Flattering Darker Blue Palette
+  final Color primaryBlue = const Color(0xFF1A5276);
+  final Color slateBackground = const Color.fromARGB(
+    255,
+    145,
+    201,
+    241,
+  ); // A more "flattering" muted blue
+  final Color accentBlue = const Color(0xFF3F7399);
+
   bool isAdmin = false;
   late Future<DocumentSnapshot<Map<String, dynamic>>> userData;
 
@@ -50,13 +60,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      // AppBar removed to make scrollable content start at top
+      backgroundColor: slateBackground, // Updated darker blue background
       body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         future: userData,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator(color: primaryBlue));
           }
 
           final data = snapshot.data!.data() ?? {};
@@ -65,55 +74,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final initials = _getInitials(fullName);
 
           return SafeArea(
+            bottom: false, // Allows spacer to handle the bottom nav
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 30),
+                  // FIXED: Cleaner Header Title
                   const Text(
                     'Profile',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A5276),
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: const Color(0xFF4C7B8D),
-                        child: Text(
-                          initials,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            fullName,
+                  const SizedBox(height: 24),
+
+                  // YOUR ORIGINAL LOGIC: Re-styled Header
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 35,
+                          backgroundColor: primaryBlue,
+                          child: Text(
+                            initials,
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 22,
+                              color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(
-                            contactNumber,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                fullName,
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1A5276),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                contactNumber,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 30),
-                  const SectionHeader(title: 'Account'),
+
+                  const SizedBox(height: 32),
+                  _sectionTitle('ACCOUNT'),
+
                   _buildSettingsTile(
-                    icon: Icons.person,
+                    icon: Icons.person_rounded,
                     title: 'Edit Profile',
                     onTap: () {
                       Navigator.push(
@@ -136,19 +171,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
                   _buildSettingsTile(
-                    icon: Icons.lock,
+                    icon: Icons.vpn_key_rounded,
                     title: 'Change Password',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ChangePasswordScreen(),
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ChangePasswordScreen(),
+                          ),
                         ),
-                      );
-                    },
                   ),
                   _buildSettingsTile(
-                    icon: Icons.place,
+                    icon: Icons.map_rounded,
                     title: 'Travel History',
                     onTap: () {
                       final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -163,59 +197,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
                   _buildSettingsTile(
-                    icon: Icons.outlined_flag,
+                    icon: Icons.report_problem_rounded,
                     title: 'Report History',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => UserReportHistoryPage(),
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => UserReportHistoryPage(),
+                          ),
                         ),
-                      );
-                    },
                   ),
-                  const SectionHeader(title: 'About'),
+
+                  const SizedBox(height: 24),
+                  _sectionTitle('INFORMATION'),
+
                   _buildSettingsTile(
-                    icon: Icons.description,
-                    title: 'Legalities and Policies of Transportations',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LegalitiesPage(),
+                    icon: Icons.gavel_rounded,
+                    title: 'Legalities and Policies',
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LegalitiesPage(),
+                          ),
                         ),
-                      );
-                    },
                   ),
                   _buildSettingsTile(
-                    icon: Icons.help_outline,
-                    title: 'Fare Matrices of all Transportations',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FareMatrixPage(),
+                    icon: Icons.table_chart_rounded,
+                    title: 'Fare Matrices',
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const FareMatrixPage(),
+                          ),
                         ),
-                      );
-                    },
                   ),
-                  const SectionHeader(title: ''),
+
+                  const SizedBox(height: 24),
+                  _sectionTitle('ACTIONS'),
+
                   if (isAdmin)
                     _buildSettingsTile(
                       icon: Icons.admin_panel_settings,
-                      title: 'Admin Mode',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AdminScreen(),
+                      title: 'Admin Dashboard',
+                      onTap:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AdminScreen(),
+                            ),
                           ),
-                        );
-                      },
                     ),
+
                   _buildSettingsTile(
-                    icon: Icons.logout,
+                    icon: Icons.logout_rounded,
                     title: 'Logout',
+                    iconColor: Colors.red.shade700,
                     onTap: () async {
                       await FirebaseAuth.instance.signOut();
                       Navigator.pushAndRemoveUntil(
@@ -225,6 +263,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
+
+                  const SizedBox(height: 120),
                 ],
               ),
             ),
@@ -241,45 +281,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
+  Widget _sectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 12),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w900,
+          color: Color(0xFF1A5276),
+          letterSpacing: 1.5,
+        ),
+      ),
+    );
+  }
+
   Widget _buildSettingsTile({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    Color? iconColor,
   }) {
-    return ListTile(
-      dense: true,
-      leading: Icon(icon, size: 20),
-      title: Text(title, style: const TextStyle(fontSize: 13)),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
-    );
-  }
-}
-
-class SectionHeader extends StatelessWidget {
-  final String title;
-  const SectionHeader({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        leading: Icon(icon, color: iconColor ?? primaryBlue),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF2D3436),
           ),
         ),
-        const Divider(
-          height: 5,
-          thickness: 1,
-          indent: 20,
-          endIndent: 20,
-          color: Colors.black,
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          size: 22,
+          color: Colors.black26,
         ),
-      ],
+        onTap: onTap,
+      ),
     );
   }
 }
