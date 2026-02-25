@@ -93,15 +93,26 @@ class ChatbotModel:
             )
             print(f"DEBUG: Calling Gemini with query: {user_query}")
             
-            # List of model endpoints to try
-            endpoints = [
-                ("v1beta", "gemini-1.5-flash"),
-                ("v1beta", "gemini-1.5-pro"),
-                ("v1", "gemini-1.5-flash"),
-                ("v1", "gemini-1.5-pro"),
+            # Try to list available models first
+            try:
+                list_url = f"https://generativelanguage.googleapis.com/v1beta/models?key={self.gemini_api_key}"
+                list_response = requests.get(list_url, timeout=10)
+                if list_response.status_code == 200:
+                    models_data = list_response.json()
+                    print(f"DEBUG: Available models: {[m.get('name') for m in models_data.get('models', [])]}")
+            except Exception as e:
+                print(f"DEBUG: Could not list models: {e}")
+            
+            # Try different model names
+            models_to_try = [
+                ("v1beta", "gemini-1.5-flash-latest"),
+                ("v1beta", "gemini-1.5-pro-latest"),
+                ("v1beta", "gemini-pro"),
+                ("v1", "gemini-1.5-flash-latest"),
+                ("v1", "gemini-pro"),
             ]
             
-            for api_version, model_name in endpoints:
+            for api_version, model_name in models_to_try:
                 try:
                     url = f"https://generativelanguage.googleapis.com/{api_version}/models/{model_name}:generateContent?key={self.gemini_api_key}"
                     headers = {"Content-Type": "application/json"}
@@ -115,7 +126,7 @@ class ChatbotModel:
                             text = result['candidates'][0]['content']['parts'][0]['text']
                             print(f"DEBUG: Success with {api_version}/{model_name}! Response: {text}")
                             return text
-                    print(f"DEBUG: {api_version}/{model_name} returned {response.status_code}")
+                    print(f"DEBUG: {api_version}/{model_name} returned {response.status_code}: {response.text[:200]}")
                 except Exception as e:
                     print(f"DEBUG: {api_version}/{model_name} error: {e}")
                     continue
