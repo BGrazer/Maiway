@@ -95,10 +95,13 @@ class ChatbotModel:
             )
             print(f"DEBUG: Calling Gemini with query: {user_query}")
             
-            model = genai.GenerativeModel('gemini-2.0-flash-exp')  # type: ignore
-            response = await model.generate_content_async(prompt)
+            model = genai.GenerativeModel('gemini-1.5-flash')  # type: ignore
+            response = model.generate_content(prompt)
             
-            if response.candidates:
+            if hasattr(response, 'text'):
+                print(f"DEBUG: Success! Response: {response.text}")
+                return response.text
+            elif response.candidates:
                 first_candidate = response.candidates[0]
                 if hasattr(first_candidate, 'content') and hasattr(first_candidate.content, 'parts') and first_candidate.content.parts:
                     response_text = first_candidate.content.parts[0].text
