@@ -7,13 +7,43 @@ from flask_cors import CORS
 from asgiref.wsgi import WsgiToAsgi
 import requests
 
+# Add routing directory to path
+routing_path = os.path.join(os.path.dirname(__file__), 'routing')
+if os.path.exists(routing_path):
+    sys.path.insert(0, routing_path)
+
 # Import your custom logic
 import rfr
 import chatbot as chatbot_module
 from crowd_analysis import analyze_route_with_reference_model
 
+# Import routing components
+try:
+    from maiwayrouting.core_route_service import UnifiedRouteService  # type: ignore
+    from maiwayrouting.config import config  # type: ignore
+    from maiwayrouting.loaders.fares import load_fares  # type: ignore
+    from maiwayrouting.google_adapter import find_routes_google_hybrid  # type: ignore
+    from maiwayrouting.bus_jeep_overlap import create_bus_jeep_substitute_fn  # type: ignore
+    ROUTING_AVAILABLE = True
+except Exception as e:
+    print(f"Warning: Routing not available: {e}", flush=True)
+    ROUTING_AVAILABLE = False
+
 app = Flask(__name__)
 CORS(app)
+
+# Initialize routing service
+route_service = None
+fare_tables = {}
+
+if ROUTING_AVAILABLE:
+    try:
+        config.validate()
+        route_service = UnifiedRouteService(config.data_dir)
+        fare_tables = load_fares(config.data_dir)
+        print("Routing service initialized", flush=True)
+    except Exception as e:
+        print(f"Routing init failed: {e}", flush=True)
 
 # Initialize chatbot
 print("Starting MAIWAY Unified Backend...", flush=True)
@@ -79,14 +109,109 @@ def route():
         data = request.json
         if not data:
             return jsonify({'error': 'No data provided'}), 400
-        # Forward to routing service on port 5000
-        routing_url = 'http://localhost:5000/route'
-        response = requests.post(routing_url, json=data, timeout=30)
-        return jsonify(response.json()), response.status_code
-    except requests.exceptions.ConnectionError:
-        return jsonify({'error': 'Routing service unavailable'}), 503
+        
+        if not ROUTING_AVAILABLE or not route_service:
+            return jsonify({'error': 'Routing not available'}), 503
+        
+        start_coords = data.get('start', {})
+        end_coords = data.get('end', {})
+        preferences = data.get('preferences', ['fastest'])
+        modes = data.get('modes', ['jeepney', 'bus', 'lrt', 'walking'])
+        passenger_type = data.get('passenger_type', 'regular')
+        
+        if not start_coords or not end_coords:
+            return jsonify({'error': 'Start and end coordinates required'}), 400
+        
+        start_lat = float(start_coords.get('lat', 0))
+        start_lon = float(start_coords.get('lon', 0))
+        end_lat = float(end_coords.get('lat', 0))
+        end_lon = float(end_coords.get('lon', 0))
+        
+        bus_jeep_fn = create_bus_jeep_substitute_fn(passenger_type)
+        stops_raw = getattr(route_service, "stops", None) or []
+        stops = list(stops_raw.values()) if isinstance(stops_raw, dict) else (stops_raw or [])
+        trike_terminals = getattr(route_service, "trike_terminals", None) or []
+        
+        result = find_routes_google_hybrid(
+            start_lat, start_lon, end_lat, end_lon,
+            fare_type=passenger_type,
+            preferences=preferences,
+            bus_jeep_substitute_fn=bus_jeep_fn,
+            stops=stops,
+            fare_tables=fare_tables,
+            trike_terminals=trike_terminals,
+            modes=modes,
+        )
+        
+        if any(isinstance(result.get(p), dict) and (result.get(p) or {}).get('segments') for p in preferences):
+            response = format_route_response(result, preferences)
+            key = data.get('mode', preferences[0])
+            selected_segments = response.get(key, []) or []
+            return jsonify({
+                key: selected_segments,
+                'summary': response.get('summary', {}),
+                'stops': response.get('stops', []),
+            })
+        
+        key = data.get('mode', preferences[0])
+        return jsonify({
+            key: [],
+            'summary': {'fare_breakdown': {}, 'total_cost': 0.0, 'total_distance': 0.0},
+            'stops': [],
+        }), 200
     except Exception as e:
+        print(f"Route error: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+def format_route_response(result, preferences):
+    mode_map = {'Jeep': 'jeepney', 'Bus': 'bus', 'LRT': 'lrt', 'Walking': 'walking', 'Tricycle': 'tricycle'}
+    out = {p: [] for p in preferences}
+    all_stops = set()
+    summary = {'total_cost': 0.0, 'total_distance': 0.0, 'fare_breakdown': {}}
+    
+    for pref in preferences:
+        route = result.get(pref)
+        if not isinstance(route, dict) or not route.get('segments'):
+            continue
+        segments = []
+        for seg in route['segments']:
+            mode = mode_map.get((seg.get('mode', '') or '').capitalize(), (seg.get('mode', '') or '').lower())
+            from_stop = seg.get('from_stop', {})
+            to_stop = seg.get('to_stop', {})
+            
+            from_name = from_stop.get('name', 'Origin') if isinstance(from_stop, dict) else str(from_stop)
+            to_name = to_stop.get('name', 'Destination') if isinstance(to_stop, dict) else str(to_stop)
+            from_lat = from_stop.get('lat', 0) if isinstance(from_stop, dict) else 0
+            from_lon = from_stop.get('lon', 0) if isinstance(from_stop, dict) else 0
+            to_lat = to_stop.get('lat', 0) if isinstance(to_stop, dict) else 0
+            to_lon = to_stop.get('lon', 0) if isinstance(to_stop, dict) else 0
+            
+            segment_obj = {
+                'mode': mode,
+                'instruction': seg.get('instruction', f'Take {mode}'),
+                'name': seg.get('name', mode.capitalize()),
+                'distance': seg.get('distance', 0.0),
+                'fare': seg.get('fare', 0.0),
+                'from_stop': {'name': from_name, 'lat': from_lat, 'lon': from_lon},
+                'to_stop': {'name': to_name, 'lat': to_lat, 'lon': to_lon},
+                'detailed_instructions': seg.get('detailed_instructions', [])
+            }
+            if seg.get('polyline'):
+                segment_obj['polyline'] = seg['polyline']
+            segments.append(segment_obj)
+            
+            if mode not in summary['fare_breakdown']:
+                summary['fare_breakdown'][mode] = 0.0
+            summary['fare_breakdown'][mode] += seg.get('fare', 0.0)
+            summary['total_cost'] += seg.get('fare', 0.0)
+            summary['total_distance'] += seg.get('distance', 0.0)
+        out[pref] = segments
+    
+    out['summary'] = summary  # type: ignore
+    out['stops'] = []  # type: ignore
+    return out
 
 # --- PLACES API ROUTES ---
 MANILA_BOUNDS = {
@@ -200,7 +325,7 @@ def places_reverse():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
-    print(f"Starting server on port {port}", flush=True)
+    print(f"Starting unified server on port {port}", flush=True)
+    print("Services: Chatbot ✓ | RFR ✓ | Routing ✓ | Places API ✓", flush=True)
     print("Menu", flush=True)
-    print("Note: Routing service should be running on port 5000", flush=True)
     app.run(host='0.0.0.0', port=port, debug=False)
