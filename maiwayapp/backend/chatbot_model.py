@@ -95,7 +95,7 @@ class ChatbotModel:
             )
             print(f"DEBUG: Calling Gemini with query: {user_query}")
             
-            model = genai.GenerativeModel('gemini-1.5-flash')  # type: ignore
+            model = genai.GenerativeModel('gemini-pro')  # type: ignore
             response = model.generate_content(prompt)
             
             if hasattr(response, 'text'):
