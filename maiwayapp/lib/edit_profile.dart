@@ -57,16 +57,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final name = _nameController.text.trim();
       final contactNumber = '+63${_contactNumberController.text.trim()}';
 
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'name': name,
-        'contactNumber': contactNumber,
-      });
+      await FirebaseFirestore.instance.collection('users').doc(uid).set(
+        {'name': name, 'contactNumber': contactNumber},
+        SetOptions(merge: true),
+      ); // merge: true prevents overwriting other existing data
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Profile updated successfully'),
           backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
         ),
       );
       Navigator.pop(context);
@@ -123,7 +122,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: slateBackground, // Updated to your custom Sky Blue
+      backgroundColor: slateBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

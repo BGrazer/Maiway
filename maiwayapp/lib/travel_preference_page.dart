@@ -9,11 +9,13 @@ class TravelPreferenceScreen extends StatefulWidget {
     String? cardType,
   )
   onPreferencesSaved;
+  final VoidCallback onApply;
   final bool isVisible;
 
   const TravelPreferenceScreen({
     super.key,
     required this.onPreferencesSaved,
+    required this.onApply,
     this.isVisible = true,
   });
 
@@ -22,7 +24,6 @@ class TravelPreferenceScreen extends StatefulWidget {
 }
 
 class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
-  // Theme Colors
   final Color primaryBlue = const Color(0xFF1A5276);
   final Color skyBlueBackground = const Color(0xFF91C9F1);
 
@@ -83,44 +84,169 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
   Widget build(BuildContext context) {
     final isTrainSelected = _modes['LRT-1'] == true;
 
-    return Scaffold(
-      backgroundColor: skyBlueBackground,
-      appBar: AppBar(
-        title: Text(
-          'Travel Preference',
-          style: TextStyle(color: primaryBlue, fontWeight: FontWeight.w900),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 2,
-      ),
-      // MOVED HERE: This ensures the button is always visible above the nav bar
-      bottomNavigationBar: _buildFixedBottomButton(),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+    return Container(
+      color: skyBlueBackground,
+      child: Column(
         children: [
-          _buildSectionTitle('PASSENGER PROFILE'),
-          _buildPassengerTypeSelector(),
+          // Custom Header
+          Container(
+            padding: const EdgeInsets.only(top: 20, bottom: 20),
+            width: double.infinity,
+            color: const Color(0xFF1A5276),
+            child: const Text(
+              'TRAVEL PREFERENCE',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
 
-          const SizedBox(height: 24),
-          _buildSectionTitle('PRIORITIZE BY'),
-          _buildVerticalPreferenceList(),
+          // Scrollable Content
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              children: [
+                _buildSectionTitle('PASSENGER PROFILE'),
+                _buildPassengerProfileCards(),
+                const SizedBox(height: 24),
+                _buildSectionTitle('PRIORITIZE BY'),
+                _buildVerticalPreferenceList(),
+                const SizedBox(height: 24),
+                _buildSectionTitle('TRANSPORT MODES'),
+                _buildVerticalModeList(),
+                if (isTrainSelected) ...[
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('TRAIN CARD TYPE'),
+                  _buildTrainCardSelector(),
+                ],
+                const SizedBox(height: 40), // Space before the button
+              ],
+            ),
+          ),
 
-          const SizedBox(height: 24),
-          _buildSectionTitle('TRANSPORT MODES'),
-          _buildVerticalModeList(),
+          // FLOATING BUTTON (No white background, sits just above nav bar)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              20,
+              0,
+              20,
+              100,
+            ), // Pushed up by 100 to stay above main nav bar
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: () async {
+                  await _savePreferences();
+                  final selectedPrefs =
+                      _preferences.entries
+                          .where((e) => e.value)
+                          .map((e) => e.key)
+                          .toList();
+                  final selectedModes =
+                      _modes.entries
+                          .where((e) => e.value)
+                          .map((e) => e.key)
+                          .toList();
 
-          if (isTrainSelected) ...[
-            const SizedBox(height: 24),
-            _buildSectionTitle('TRAIN CARD TYPE'),
-            _buildTrainCardSelector(),
-          ],
+                  widget.onPreferencesSaved(
+                    selectedPrefs,
+                    selectedModes,
+                    _passengerType,
+                    _cardType,
+                  );
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Preferences Saved Successfully!"),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+
+                  widget.onApply();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryBlue,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  "APPLY PREFERENCES",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // --- UI BUILDING BLOCKS ---
+  // --- REUSED UI COMPONENTS ---
+
+  Widget _profileOptionCard(String type, IconData icon) {
+    bool isSelected = _passengerType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap:
+            () => setState(() {
+              _passengerType = type;
+              _cardType = (type == 'Discounted') ? 'Student Discount' : null;
+            }),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          decoration: BoxDecoration(
+            color: isSelected ? primaryBlue : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [const BoxShadow(color: Colors.black12, blurRadius: 10)],
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? Colors.white : primaryBlue,
+                size: 28,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                type,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : primaryBlue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPassengerProfileCards() {
+    return Row(
+      children: [
+        _profileOptionCard('Regular', Icons.person_outline),
+        const SizedBox(width: 15),
+        _profileOptionCard('Discounted', Icons.badge_outlined),
+      ],
+    );
+  }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
@@ -137,53 +263,12 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
     );
   }
 
-  Widget _buildPassengerTypeSelector() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
-      ),
-      child: Row(
-        children:
-            ['Regular', 'Discounted'].map((type) {
-              bool isSelected = _passengerType == type;
-              return Expanded(
-                child: GestureDetector(
-                  onTap:
-                      () => setState(() {
-                        _passengerType = type;
-                        _cardType =
-                            (type == 'Discounted') ? 'Student Discount' : null;
-                      }),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      color: isSelected ? primaryBlue : Colors.transparent,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      type,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : primaryBlue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-      ),
-    );
-  }
-
   Widget _buildVerticalPreferenceList() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+        boxShadow: [const BoxShadow(color: Colors.black12, blurRadius: 10)],
       ),
       child: Column(
         children:
@@ -210,7 +295,7 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+        boxShadow: [const BoxShadow(color: Colors.black12, blurRadius: 10)],
       ),
       child: Column(
         children:
@@ -244,11 +329,13 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
           children: [
             Icon(Icons.info_outline, color: Colors.white),
             SizedBox(width: 12),
-            Text(
-              "Automatic Student Discount Applied",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Text(
+                "Special Discount Applied",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -259,7 +346,7 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+        boxShadow: [const BoxShadow(color: Colors.black12, blurRadius: 10)],
       ),
       child: Column(
         children:
@@ -278,62 +365,6 @@ class _TravelPreferenceScreenState extends State<TravelPreferenceScreen> {
                 onChanged: (v) => setState(() => _cardType = v),
               );
             }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildFixedBottomButton() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20)],
-      ),
-      child: SafeArea(
-        top: false,
-        child: ElevatedButton(
-          onPressed: () async {
-            await _savePreferences();
-            final selectedPrefs =
-                _preferences.entries
-                    .where((e) => e.value)
-                    .map((e) => e.key)
-                    .toList();
-            final selectedModes =
-                _modes.entries.where((e) => e.value).map((e) => e.key).toList();
-            widget.onPreferencesSaved(
-              selectedPrefs,
-              selectedModes,
-              _passengerType,
-              _cardType,
-            );
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Preferences Saved Successfully!"),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryBlue,
-            foregroundColor: Colors.white,
-            minimumSize: const Size(double.infinity, 56),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: 0,
-          ),
-          child: const Text(
-            "APPLY PREFERENCES",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.1,
-            ),
-          ),
-        ),
       ),
     );
   }

@@ -238,62 +238,165 @@ class _SearchSheetState extends State<SearchSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         children: [
+          // Drag Handle
           Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 10,
-              left: 16,
-              right: 16,
-              bottom: 10,
-            ),
-            color: const Color(0xFF6699CC),
-            child: const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'MAIWAY',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
-              ),
+            margin: const EdgeInsets.only(top: 12),
+            width: 48,
+            height: 5,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
-          Padding(
+          // Gradient Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6699CC), Color(0xFF4A7BA7)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF6699CC).withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.explore,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'MAIWAY',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 3,
+                          ),
+                        ),
+                        Text(
+                          'Navigate Manila',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Where would you like to go?',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.95),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Input Card
+          Container(
+            margin: const EdgeInsets.fromLTRB(20, 16, 20, 12),
             padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
             child: Row(
               children: [
                 Column(
                   children: [
-                    Container(width: 12, height: 12, decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle)),
-                    Container(width: 2, height: 40, color: Colors.grey[300]),
-                    Container(width: 12, height: 12, decoration: BoxDecoration(color: Colors.grey[400], shape: BoxShape.circle)),
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6699CC),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF6699CC).withOpacity(0.3), width: 3),
+                      ),
+                    ),
+                    Container(
+                      width: 3,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [const Color(0xFF6699CC), Colors.grey[300]!],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: Colors.red[600],
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.red[200]!, width: 3),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 18),
                 Expanded(
                   child: Column(
                     children: [
                       TextField(
                         controller: _originController,
-                        decoration: _dec('Where you start'),
+                        decoration: _dec('Starting point', Icons.trip_origin, _isSelectingOrigin),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                         onTap: () => setState(() => _isSelectingOrigin = true),
                         onChanged: (v) {
                           setState(() => _isSelectingOrigin = true);
                           _debouncedSearch(v);
                         },
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       TextField(
                         controller: _destinationController,
-                        decoration: _dec('Where to?'),
+                        decoration: _dec('Where to?', Icons.location_on, !_isSelectingOrigin),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                         onTap: () => setState(() => _isSelectingOrigin = false),
                         onChanged: (v) {
                           setState(() => _isSelectingOrigin = false);
@@ -306,39 +409,178 @@ class _SearchSheetState extends State<SearchSheet> {
               ],
             ),
           ),
+          // Quick Actions
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
               children: [
-                ListTile(
-                  leading: Icon(Icons.location_pin, color: Colors.grey[600]),
-                  title: const Text('Pin location on Map'),
-                  onTap: _pinLocationOnMap,
+                Expanded(
+                  child: _buildActionButton(
+                    Icons.push_pin_outlined,
+                    'Pin on Map',
+                    const Color(0xFF6699CC),
+                    _pinLocationOnMap,
+                  ),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.my_location, color: Colors.blue),
-                  title: const Text('Use current location'),
-                  onTap: _useCurrentLocation,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildActionButton(
+                    Icons.my_location_rounded,
+                    'Current Location',
+                    const Color(0xFF34A853),
+                    _useCurrentLocation,
+                  ),
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          if (_searchResults.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Icon(Icons.search_rounded, size: 18, color: Colors.grey[600]),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Search Results',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey[700],
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6699CC).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${_searchResults.length}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF6699CC),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 8),
+          // Search Results
           if (_isSearching)
-            const Expanded(child: Center(child: CircularProgressIndicator()))
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6699CC)),
+                      strokeWidth: 3,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Searching...',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+            )
           else if (_searchResults.isNotEmpty)
             Expanded(
               child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                 itemCount: _searchResults.length,
                 itemBuilder: (ctx, idx) {
                   final r = _searchResults[idx];
-                  return ListTile(
-                    leading: Icon(
-                      r['type'] == 'stop' ? Icons.directions_bus : Icons.location_on,
-                      color: r['type'] == 'stop' ? Colors.orange : Colors.grey[600],
+                  final isStop = r['type'] == 'stop';
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    title: Text(r['name']),
-                    subtitle: Text(r['address']),
-                    onTap: () => _selectLocation(r),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => _selectLocation(r),
+                        child: Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: isStop
+                                        ? [Colors.orange[400]!, Colors.orange[600]!]
+                                        : [const Color(0xFF6699CC), const Color(0xFF4A7BA7)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (isStop ? Colors.orange : const Color(0xFF6699CC)).withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  isStop ? Icons.directions_bus_rounded : Icons.location_on_rounded,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      r['name'],
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 15,
+                                        color: Color(0xFF1A1A1A),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      r['address'],
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey[400]),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   );
                 },
               ),
@@ -349,9 +591,31 @@ class _SearchSheetState extends State<SearchSheet> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.search, size: 64, color: Colors.grey[400]),
-                    const SizedBox(height: 16),
-                    const Text('Search for locations', style: TextStyle(color: Colors.grey)),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.search_rounded, size: 48, color: Colors.grey[400]),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Search for locations in Manila',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Type an address, landmark, or place',
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -361,17 +625,76 @@ class _SearchSheetState extends State<SearchSheet> {
     );
   }
 
-  InputDecoration _dec(String hint) => InputDecoration(
+  Widget _buildActionButton(IconData icon, String title, Color color, VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _dec(String hint, IconData icon, bool isActive) => InputDecoration(
         hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 15),
+        prefixIcon: Icon(
+          icon,
+          size: 20,
+          color: isActive ? const Color(0xFF6699CC) : Colors.grey[400],
+        ),
+        filled: true,
+        fillColor: isActive ? const Color(0xFF6699CC).withOpacity(0.05) : Colors.grey[50],
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey[200]!, width: 1),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey[200]!, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.blue),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF6699CC), width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       );
 
   @override

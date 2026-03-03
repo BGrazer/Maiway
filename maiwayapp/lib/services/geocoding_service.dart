@@ -28,7 +28,9 @@ class GeocodingService {
 
   /// Google Places Autocomplete via backend (requires GOOGLE_MAPS_API_KEY in backend .env).
   /// Returns list of { description, place_id }.
-  static Future<List<Map<String, dynamic>>> searchGooglePlaces(String query) async {
+  static Future<List<Map<String, dynamic>>> searchGooglePlaces(
+    String query,
+  ) async {
     if (query.trim().isEmpty) return [];
     try {
       final url = Uri.parse(
@@ -40,11 +42,18 @@ class GeocodingService {
       final predictions = data?['predictions'] as List?;
       if (predictions == null) return [];
       return predictions
-          .where((e) => e is Map && e['place_id'] != null && (e['description'] ?? '').toString().isNotEmpty)
-          .map((e) => {
-                'description': (e['description'] ?? '').toString(),
-                'place_id': (e['place_id'] ?? '').toString(),
-              })
+          .where(
+            (e) =>
+                e is Map &&
+                e['place_id'] != null &&
+                (e['description'] ?? '').toString().isNotEmpty,
+          )
+          .map(
+            (e) => {
+              'description': (e['description'] ?? '').toString(),
+              'place_id': (e['place_id'] ?? '').toString(),
+            },
+          )
           .toList();
     } catch (_) {
       return [];
@@ -52,7 +61,9 @@ class GeocodingService {
   }
 
   /// Resolve Google place_id to lat/lng and address via backend.
-  static Future<Map<String, dynamic>?> getLocationFromPlaceId(String placeId) async {
+  static Future<Map<String, dynamic>?> getLocationFromPlaceId(
+    String placeId,
+  ) async {
     if (placeId.isEmpty) return null;
     try {
       final url = Uri.parse(
@@ -89,16 +100,17 @@ class GeocodingService {
       final data = await rootBundle.loadString('assets/landmarks.geojson');
       final geojson = json.decode(data);
       if (geojson is Map && geojson['features'] is List) {
-        _landmarks = (geojson['features'] as List).map<Map<String, dynamic>>((feature) {
-          final props = feature['properties'] ?? {};
-          final geom = feature['geometry'] ?? {};
-          final coords = geom['coordinates'] ?? [0.0, 0.0];
-          return {
-            'name': props['name'] ?? '',
-            'latitude': coords[1],
-            'longitude': coords[0],
-          };
-        }).toList();
+        _landmarks =
+            (geojson['features'] as List).map<Map<String, dynamic>>((feature) {
+              final props = feature['properties'] ?? {};
+              final geom = feature['geometry'] ?? {};
+              final coords = geom['coordinates'] ?? [0.0, 0.0];
+              return {
+                'name': props['name'] ?? '',
+                'latitude': coords[1],
+                'longitude': coords[0],
+              };
+            }).toList();
       }
       _landmarksLoaded = true;
     } catch (e) {
@@ -106,7 +118,9 @@ class GeocodingService {
     }
   }
 
-  static Future<List<Map<String, dynamic>>> searchLandmarks(String query) async {
+  static Future<List<Map<String, dynamic>>> searchLandmarks(
+    String query,
+  ) async {
     await _loadLandmarks();
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return [];
@@ -117,7 +131,10 @@ class GeocodingService {
   }
 
   /// Check if a location is over water. No external API; returns false (allow pin).
-  static Future<bool> isWaterOrNearWater(LatLng location, {double thresholdMeters = 20}) async {
+  static Future<bool> isWaterOrNearWater(
+    LatLng location, {
+    double thresholdMeters = 20,
+  }) async {
     return false;
   }
 }

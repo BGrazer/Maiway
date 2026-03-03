@@ -288,24 +288,117 @@ class _SurveyPageState extends State<SurveyPage> {
         if (mounted) {
           showDialog(
             context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Fare validation'),
-              content: Text(
-                'Route: $routeForReports\n'
-                'Distance: $distance km\n'
-                'Predicted: ₱${roundedPredicted.toStringAsFixed(2)}\n'
-                'Charged: ₱${roundedCharged.toStringAsFixed(2)}\n'
-                'Difference: ₱${roundedDiff.toStringAsFixed(2)}\n\n$alert',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _advanceOrFinish();
-                  },
-                  child: const Text('OK'),
+            barrierDismissible: false,
+            builder: (ctx) => Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              child: Container(
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Colors.white, Color(0xFFF8FBFF)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
                 ),
-              ],
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: roundedCharged > roundedPredicted
+                              ? [Colors.red[400]!, Colors.red[600]!]
+                              : [const Color(0xFF34A853), const Color(0xFF2D8E47)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: (roundedCharged > roundedPredicted ? Colors.red : const Color(0xFF34A853)).withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        roundedCharged > roundedPredicted ? Icons.warning_rounded : Icons.check_circle_rounded,
+                        color: Colors.white,
+                        size: 48,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Fare Validation',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      alert,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: roundedCharged > roundedPredicted ? Colors.red[700] : const Color(0xFF34A853),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey[200]!),
+                      ),
+                      child: Column(
+                        children: [
+                          _validationRow(Icons.route_rounded, 'Route', routeForReports),
+                          const SizedBox(height: 12),
+                          _validationRow(Icons.straighten_rounded, 'Distance', '$distance km'),
+                          const Divider(height: 24),
+                          _validationRow(Icons.attach_money_rounded, 'Predicted', '₱${roundedPredicted.toStringAsFixed(2)}'),
+                          const SizedBox(height: 12),
+                          _validationRow(Icons.payment_rounded, 'Charged', '₱${roundedCharged.toStringAsFixed(2)}'),
+                          const SizedBox(height: 12),
+                          _validationRow(
+                            roundedCharged > roundedPredicted ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                            'Difference',
+                            '₱${roundedDiff.toStringAsFixed(2)}',
+                            color: roundedCharged > roundedPredicted ? Colors.red : const Color(0xFF34A853),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _advanceOrFinish();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6699CC),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Continue',
+                          style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         }
@@ -322,26 +415,137 @@ class _SurveyPageState extends State<SurveyPage> {
   void _showThankYou({required String route, required double distance, required String vehicleType, required double fare}) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Thank you!'),
-        content: Text(
-          'Your response has been recorded.\n\n'
-          'Route: $route\n'
-          'Distance: $distance km\n'
-          'Vehicle: $vehicleType\n'
-          'Passenger: ${widget.passengerType}\n'
-          'Fare: ₱${smartRound(fare).toStringAsFixed(2)}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _advanceOrFinish();
-            },
-            child: const Text('OK'),
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Colors.white, Color(0xFFF0F9FF)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: BorderRadius.circular(24),
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6699CC), Color(0xFF4A7BA7)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6699CC).withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.thumb_up_rounded, color: Colors.white, size: 48),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Thank You!',
+                style: GoogleFonts.montserrat(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1A1A1A),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Your response has been recorded',
+                style: GoogleFonts.montserrat(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6699CC).withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF6699CC).withOpacity(0.2)),
+                ),
+                child: Column(
+                  children: [
+                    _validationRow(Icons.route_rounded, 'Route', route),
+                    const SizedBox(height: 12),
+                    _validationRow(Icons.straighten_rounded, 'Distance', '$distance km'),
+                    const SizedBox(height: 12),
+                    _validationRow(Icons.directions_bus_rounded, 'Vehicle', vehicleType),
+                    const SizedBox(height: 12),
+                    _validationRow(Icons.person_outline_rounded, 'Passenger', widget.passengerType),
+                    if (fare > 0) const SizedBox(height: 12),
+                    if (fare > 0) _validationRow(Icons.attach_money_rounded, 'Fare', '₱${smartRound(fare).toStringAsFixed(2)}'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _advanceOrFinish();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6699CC),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Continue',
+                    style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _validationRow(IconData icon, String label, String value, {Color? color}) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: color ?? const Color(0xFF6699CC)),
+        const SizedBox(width: 12),
+        Text(
+          '$label:',
+          style: GoogleFonts.montserrat(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[700],
+          ),
+        ),
+        const Spacer(),
+        Flexible(
+          child: Text(
+            value,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: color ?? const Color(0xFF1A1A1A),
+            ),
+            textAlign: TextAlign.right,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 
