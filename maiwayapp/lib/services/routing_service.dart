@@ -6,7 +6,7 @@ import 'package:latlong2/latlong.dart';
 /// It expects the backend to return route responses with keys: segments, shapes, summary, fare_breakdown.
 class RoutingService {
   /// Backend URL - using Render hosting
-  static const String baseUrl = 'https://maiway-q6y5.onrender.com';
+  static const String baseUrl = 'http://127.0.0.1:5000';
 
   /// RFR (fare prediction) backend URL - same Render host
   static const String rfrBaseUrl = 'https://maiway-q6y5.onrender.com';

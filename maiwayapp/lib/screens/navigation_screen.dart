@@ -182,6 +182,14 @@ class _NavigationScreenState extends State<NavigationScreen> {
             padding: const EdgeInsets.all(50),
           ),
         );
+      } else if (_fullPolyline.isNotEmpty) {
+        // Fallback to full polyline if segment polyline is empty
+        _mapController.fitCamera(
+          CameraFit.coordinates(
+            coordinates: _fullPolyline,
+            padding: const EdgeInsets.all(50),
+          ),
+        );
       }
     }
   }
