@@ -90,6 +90,16 @@ class RouteProcessor {
 
       // Process fare breakdown
       final Map<String, double> fareBreakdown = _processFareBreakdown(summary);
+
+      // Prefer frontend‑computed totals from segments so cards always match the
+      // per‑step view, even if backend summaries drift.
+      double computedTotalCost = 0.0;
+      double computedTotalDistance = 0.0;
+      for (final seg in segments) {
+        computedTotalCost += seg.fare;
+        computedTotalDistance += seg.distance;
+      }
+
       final double totalTimeMin =
           summary?['total_time_min']?.toDouble() ?? 0.0;
 
@@ -98,16 +108,16 @@ class RouteProcessor {
         'routeData': {
           'segments': segments,
           'stops': stops,
-          'total_cost': summary?['total_cost'] ?? 0,
-          'total_distance': summary?['total_distance'] ?? 0,
+          'total_cost': computedTotalCost,
+          'total_distance': computedTotalDistance,
           'route_segments': routeSegments,
           'fare_breakdown': fareBreakdown,
         },
         'polylinePoints': polylinePoints,
         'segments': segments,
         'stops': stops,
-        'totalCost': summary?['total_cost']?.toDouble() ?? 0.0,
-        'totalDistance': summary?['total_distance']?.toDouble() ?? 0.0,
+        'totalCost': computedTotalCost,
+        'totalDistance': computedTotalDistance,
         'totalTimeMin': totalTimeMin,
         'fareBreakdown': fareBreakdown,
         'summary': summary,
