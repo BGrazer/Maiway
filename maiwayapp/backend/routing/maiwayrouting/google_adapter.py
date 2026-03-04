@@ -21,12 +21,20 @@ logger = logging.getLogger(__name__)
 # Keep a module-level fallback so the adapter can remain stateless for callers.
 FARE_TABLES: Dict[str, Any] = {}
 
-# Max walk distance (km) to a transit stop when fallback "walk then transit" is used
-WALK_TO_TRANSIT_MAX_KM = 1.5
+# Max walk distance (km) to a transit stop when fallback "walk then transit" is used.
+# Slightly more aggressive so we are willing to walk a bit farther to reach transit.
+WALK_TO_TRANSIT_MAX_KM = 2.0
 
-# Perturb origin/destination by this radius (m) when we need different route options
-# Use 500m so we get meaningfully different routes; override with env PERTURB_RADIUS_M.
-PERTURB_RADIUS_M = 500
+# Maximum distance (km) for which a pure walking route is still acceptable
+# when the ENTIRE route is walking-only. Mixed routes (walk + transit) are
+# always allowed. We keep trivial walks (<= 0.9 km) but reject longer
+# walking-only routes so "fastest" still uses transit when it exists.
+WALK_ONLY_MAX_KM = 0.9
+
+# Perturb origin/destination by this radius (m) when we need different route options.
+# Use a slightly larger default (1.5 km) so Google is more likely to surface
+# different corridors; override with env PERTURB_RADIUS_M if needed.
+PERTURB_RADIUS_M = 1500
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -117,6 +125,31 @@ def _random_offset_m(lat: float, lon: float, radius_m: float = PERTURB_RADIUS_M)
     dlat = d_deg * math.cos(angle)
     dlon = d_deg * math.sin(angle) / max(0.1, math.cos(math.radians(lat)))
     return (lat + dlat, lon + dlon)
+
+
+def _biased_offset_towards(
+    start_lat: float,
+    start_lon: float,
+    end_lat: float,
+    end_lon: float,
+    radius_m: float = PERTURB_RADIUS_M,
+) -> Tuple[float, float]:
+    """
+    Return a perturbed point that is biased in the general direction of the
+    destination but still within roughly radius_m of the original.
+    """
+    import math
+    import random
+
+    # Step a small fraction (10–30%) of the way toward the destination.
+    frac = random.uniform(0.1, 0.3)
+    base_lat = start_lat + (end_lat - start_lat) * frac
+    base_lon = start_lon + (end_lon - start_lon) * frac
+
+    # Then add a smaller random jitter around that biased point.
+    jitter_radius = radius_m * 0.5
+    jlat, jlon = _random_offset_m(base_lat, base_lon, jitter_radius)
+    return (jlat, jlon)
 
 
 def _re_anchor_route(
@@ -651,7 +684,21 @@ def fetch_google_routes(
                             "total_time_min": total_time_min,
                         })
                         logger.info("Added walk-to-transit fallback route to %s", stop_name)
-    return routes
+
+    # Final filter:
+    # - If at least one route has transit, drop long walking-only routes so cards
+    #   don't show "walk X km" when real transit exists.
+    # - If *all* routes are walking-only, keep them all (be aggressive in
+    #   returning something instead of "no route found").
+    has_transit = any(not _is_walking_only(r) for r in routes)
+    filtered: List[Dict] = []
+    for r in routes:
+        dist_km = float(r.get("total_distance", 0.0) or 0.0)
+        if has_transit and _is_walking_only(r) and dist_km > WALK_ONLY_MAX_KM:
+            continue
+        filtered.append(r)
+
+    return filtered
 
 
 def _stop_name_safe(stop: Any) -> str:
@@ -711,9 +758,52 @@ def synthesize_three_routes(
     transit_candidates = [r for r in augmented if not _is_walking_only(r)]
     ranking_pool = transit_candidates or augmented
 
+    def _uses_mode(route: Dict, mode_names: Tuple[str, ...]) -> bool:
+        """Return True if any segment in route uses one of the given modes."""
+        names = {m.lower() for m in mode_names}
+        for s in route.get("segments", []):
+            m = str(s.get("mode", "")).strip().lower()
+            if m in names:
+                return True
+        return False
+
+    def _uses_jeep(route: Dict) -> bool:
+        """True if route contains any jeep/jeepney segment."""
+        return _uses_mode(route, ("jeep", "jeepney"))
+
+    def _uses_bus(route: Dict) -> bool:
+        """True if route contains any bus segment."""
+        return _uses_mode(route, ("bus",))
+
+    def _uses_jeep_or_bus(route: Dict) -> bool:
+        """True if route contains jeepney or bus."""
+        return _uses_jeep(route) or _uses_bus(route)
+
+    def _uses_lrt_or_trike(route: Dict) -> bool:
+        """True if route contains any LRT/train or tricycle segment."""
+        return _uses_mode(
+            route,
+            ("lrt", "rail", "subway", "metro", "tram", "train", "tricycle"),
+        )
+
     # Rank by time, fare, convenience
     by_time = sorted(ranking_pool, key=lambda x: x.get("total_time_min", float("inf")))
-    by_fare = sorted(ranking_pool, key=lambda x: x.get("total_cost", float("inf")))
+    # For cheapest, strongly prefer jeep/bus:
+    #   1) routes that have jeep or bus and NO LRT/trike
+    #   2) otherwise, any route without LRT/trike
+    #   3) as a last resort, all routes.
+    cheapest_pool = (
+        [r for r in ranking_pool if _uses_jeep_or_bus(r) and not _uses_lrt_or_trike(r)]
+        or [r for r in ranking_pool if not _uses_lrt_or_trike(r)]
+        or ranking_pool
+    )
+    by_fare = sorted(
+        cheapest_pool,
+        key=lambda x: (
+            x.get("total_cost", float("inf")),
+            0 if _uses_jeep(x) else 1,
+        ),
+    )
     by_convenience = sorted(
         ranking_pool,
         key=lambda x: (
@@ -722,7 +812,13 @@ def synthesize_three_routes(
         ),
     )
 
-    result["fastest"] = _route_to_response(by_time[0]) if by_time else {}
+    # Fastest: pick the quickest route that actually has segments
+    fastest_route_raw = None
+    for r in by_time:
+        if isinstance(r, dict) and r.get("segments"):
+            fastest_route_raw = r
+            break
+    result["fastest"] = _route_to_response(fastest_route_raw) if fastest_route_raw else {}
     result["cheapest"] = _route_to_response(by_fare[0]) if by_fare else {}
     result["convenient"] = _route_to_response(by_convenience[0]) if by_convenience else {}
 
@@ -734,13 +830,33 @@ def synthesize_three_routes(
                 result["cheapest"] = cand
                 break
 
-    # If convenient == fastest, use next
-    if result["convenient"] and result["fastest"] and _same_route(result["convenient"], result["fastest"]):
-        for r in by_convenience[1:]:
+    # If convenient == fastest or convenient == cheapest, walk down the convenience ranking
+    if result["convenient"]:
+        new_convenient = result["convenient"]
+        for r in by_convenience:
             cand = _route_to_response(r)
-            if cand and not _same_route(cand, result["fastest"]):
-                result["convenient"] = cand
-                break
+            if not cand:
+                continue
+            if result["fastest"] and _same_route(cand, result["fastest"]):
+                continue
+            if result["cheapest"] and _same_route(cand, result["cheapest"]):
+                continue
+            new_convenient = cand
+            break
+        result["convenient"] = new_convenient
+
+    # Safety net: if fastest ended up empty but we have a cheapest or
+    # convenient route with segments, reuse the lowest-time one so the user
+    # never sees a blank "Fastest Route" card when transit exists.
+    if not (isinstance(result["fastest"], dict) and result["fastest"].get("segments")):
+        candidates = []
+        for label in ("cheapest", "convenient"):
+            r = result.get(label)
+            if isinstance(r, dict) and r.get("segments"):
+                candidates.append(r)
+        if candidates:
+            best = min(candidates, key=lambda x: x.get("total_time_min", float("inf")))
+            result["fastest"] = best
 
     return result
 
@@ -752,13 +868,16 @@ def _route_to_response(route: Dict) -> Dict:
         return {}
     total_cost = sum(s.get("fare", 0) for s in segs)
     total_dist = sum(s.get("distance", 0) for s in segs)
+    total_time = float(route.get("total_time_min", 0.0) or 0.0)
     return {
         "segments": segs,
         "total_distance": total_dist,
         "total_cost": total_cost,
+        "total_time_min": total_time,
         "summary": {
             "total_distance": total_dist,
             "total_cost": total_cost,
+            "total_time_min": total_time,
             "fare_breakdown": _fare_breakdown(segs),
         },
         "stops": _extract_stops(segs),
@@ -1059,6 +1178,21 @@ def _all_three_identical(synthesized: Dict[str, Dict]) -> bool:
     return _same_route(f, c) and _same_route(c, v)
 
 
+def _distinct_route_count(synthesized: Dict[str, Dict]) -> int:
+    """
+    Number of distinct routes among fastest/cheapest/convenient (0–3), based on
+    segment signatures. Used to decide when to perturb for more variety.
+    """
+    labels = ["fastest", "cheapest", "convenient"]
+    routes = [synthesized.get(l) for l in labels if isinstance(synthesized.get(l), dict) and synthesized.get(l, {}).get("segments")]
+    if not routes:
+        return 0
+    unique = []
+    for r in routes:
+        if not any(_same_route(r, u) for u in unique):
+            unique.append(r)
+    return len(unique)
+
 def find_routes_google_hybrid(
     start_lat: float, start_lon: float,
     end_lat: float, end_lon: float,
@@ -1095,22 +1229,52 @@ def find_routes_google_hybrid(
     )
     synthesized = synthesize_three_routes(google_routes, bus_jeep_substitute_fn, allowed_modes=modes)
 
-    # If all three are the same route, try perturbed O/D to get different options
-    if _all_three_identical(synthesized) and google_routes:
+    def _has_any_segments(synth: Dict[str, Any]) -> bool:
+        """True if at least one preference has non-empty segments."""
+        for pref in preferences:
+            route_pref = synth.get(pref)
+            if isinstance(route_pref, dict) and route_pref.get("segments"):
+                return True
+        return False
+
+    # If mode filtering (e.g. only bus+tricycle) eliminated all candidates, relax
+    # the filter and fall back to any transit route Google can provide so the
+    # user still sees a route instead of "no routes found".
+    if google_routes and not _has_any_segments(synthesized):
+        synthesized = synthesize_three_routes(google_routes, bus_jeep_substitute_fn, allowed_modes=None)
+
+    def _has_fastest_segments(synth: Dict[str, Any]) -> bool:
+        f = synth.get("fastest")
+        return isinstance(f, dict) and bool(f.get("segments"))
+
+    # If we ended up with fewer than 3 distinct routes between fastest/cheapest/
+    # convenient (or no usable fastest route), try perturbed origin/destination
+    # to get more varied options and then re-synthesize. This makes the engine
+    # more aggressive in searching for alternate corridors, especially when
+    # Google initially returns very similar options.
+    if (google_routes and (_distinct_route_count(synthesized) < 3 or not _has_fastest_segments(synthesized))):
         radius_m = float(os.getenv("PERTURB_RADIUS_M", PERTURB_RADIUS_M))
         if radius_m > 0:
             extra = []
             # Perturbed origin, same destination
-            o_lat, o_lon = _random_offset_m(start_lat, start_lon, radius_m)
+            o_lat, o_lon = _biased_offset_towards(start_lat, start_lon, end_lat, end_lon, radius_m)
             routes_perturb_o = fetch_google_routes(o_lat, o_lon, end_lat, end_lon, fare_type, stops=stops)
             for r in routes_perturb_o:
                 reanchored = _re_anchor_route(r, start_lat, start_lon, end_lat, end_lon)
                 if not _route_signature_match(extra, reanchored.get("segments", [])):
                     extra.append(reanchored)
-            # Same origin, perturbed destination
-            d_lat, d_lon = _random_offset_m(end_lat, end_lon, radius_m)
+            # Same origin, perturbed destination (biased back toward origin)
+            d_lat, d_lon = _biased_offset_towards(end_lat, end_lon, start_lat, start_lon, radius_m)
             routes_perturb_d = fetch_google_routes(start_lat, start_lon, d_lat, d_lon, fare_type, stops=stops)
             for r in routes_perturb_d:
+                reanchored = _re_anchor_route(r, start_lat, start_lon, end_lat, end_lon)
+                if not _route_signature_match(extra, reanchored.get("segments", [])):
+                    extra.append(reanchored)
+            # Perturb both origin and destination for even more variety
+            od_lat, od_lon = _biased_offset_towards(start_lat, start_lon, end_lat, end_lon, radius_m)
+            dd_lat, dd_lon = _biased_offset_towards(end_lat, end_lon, start_lat, start_lon, radius_m)
+            routes_perturb_both = fetch_google_routes(od_lat, od_lon, dd_lat, dd_lon, fare_type, stops=stops)
+            for r in routes_perturb_both:
                 reanchored = _re_anchor_route(r, start_lat, start_lon, end_lat, end_lon)
                 if not _route_signature_match(extra, reanchored.get("segments", [])):
                     extra.append(reanchored)

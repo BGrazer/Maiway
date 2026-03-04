@@ -7,7 +7,6 @@ import '../utils/route_processor.dart';
 import '../models/route_segment.dart';
 import '../models/transport_mode.dart'; // Ensure this is imported for colors
 import 'package:google_fonts/google_fonts.dart';
-import 'package:maiwayapp/utils/polyline_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -71,9 +70,16 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
   Future<List<String>> _getSelectedModes() async {
     final prefs = await SharedPreferences.getInstance();
     List<String> selectedModes = [];
-    if (prefs.getBool('mode_jeepney') == true) selectedModes.add('jeepney');
+    // Support both legacy keys (mode_jeepney/mode_lrt) and UI keys (mode_jeep/mode_lrt1)
+    if (prefs.getBool('mode_jeepney') == true ||
+        prefs.getBool('mode_jeep') == true) {
+      selectedModes.add('jeepney');
+    }
     if (prefs.getBool('mode_bus') == true) selectedModes.add('bus');
-    if (prefs.getBool('mode_lrt') == true) selectedModes.add('lrt');
+    if (prefs.getBool('mode_lrt') == true ||
+        prefs.getBool('mode_lrt1') == true) {
+      selectedModes.add('lrt');
+    }
     if (prefs.getBool('mode_tricycle') == true) selectedModes.add('tricycle');
     return selectedModes.isEmpty ? ['jeepney', 'bus', 'lrt'] : selectedModes;
   }
@@ -424,6 +430,7 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
   Widget _buildRouteCard(Map<String, dynamic> route, int index) {
     final isSelected = index == _selectedRouteIndex;
     final color = route['color'] as Color;
+    final String routeType = (route['type'] ?? '').toString();
 
     return GestureDetector(
       onTap: () {
@@ -478,7 +485,9 @@ class _RouteModeScreenState extends State<RouteModeScreen> {
               ),
             ),
             Text(
-              '${(route['totalDistance'] / 1000).toStringAsFixed(1)} km · ~20 min',
+              routeType == 'convenient'
+                  ? '${(route['totalDistance'] as double).toStringAsFixed(1)} km'
+                  : '${(route['totalDistance'] as double).toStringAsFixed(1)} km · ~${(route['totalTimeMin'] as double).round()} min',
               style: GoogleFonts.montserrat(
                 fontSize: 12,
                 color: Colors.grey[600],

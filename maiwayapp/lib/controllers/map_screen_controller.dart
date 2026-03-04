@@ -73,12 +73,19 @@ class MapScreenController {
   Future<List<String>> _getSelectedModes() async {
     final prefs = await SharedPreferences.getInstance();
     List<String> selectedModes = [];
-    
-    if (prefs.getBool('mode_jeepney') == true) selectedModes.add('jeepney');
+
+    // Support both legacy keys (mode_jeepney/mode_lrt) and UI keys (mode_jeep/mode_lrt1)
+    if (prefs.getBool('mode_jeepney') == true ||
+        prefs.getBool('mode_jeep') == true) {
+      selectedModes.add('jeepney');
+    }
     if (prefs.getBool('mode_bus') == true) selectedModes.add('bus');
-    if (prefs.getBool('mode_lrt') == true) selectedModes.add('lrt');
+    if (prefs.getBool('mode_lrt') == true ||
+        prefs.getBool('mode_lrt1') == true) {
+      selectedModes.add('lrt');
+    }
     if (prefs.getBool('mode_tricycle') == true) selectedModes.add('tricycle');
-    
+
     return selectedModes.isEmpty ? ['jeepney', 'bus', 'lrt'] : selectedModes;
   }
 

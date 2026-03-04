@@ -90,6 +90,8 @@ class RouteProcessor {
 
       // Process fare breakdown
       final Map<String, double> fareBreakdown = _processFareBreakdown(summary);
+      final double totalTimeMin =
+          summary?['total_time_min']?.toDouble() ?? 0.0;
 
       return {
         'success': true,
@@ -106,6 +108,7 @@ class RouteProcessor {
         'stops': stops,
         'totalCost': summary?['total_cost']?.toDouble() ?? 0.0,
         'totalDistance': summary?['total_distance']?.toDouble() ?? 0.0,
+        'totalTimeMin': totalTimeMin,
         'fareBreakdown': fareBreakdown,
         'summary': summary,
       };

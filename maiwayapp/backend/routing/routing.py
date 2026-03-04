@@ -161,11 +161,14 @@ def route():
                 response = clean_nan_values(response)
                 key = data.get('mode', preferences[0])
                 selected_segments = response.get(key, []) or []
+                raw_route = result.get(key) or {}
+                total_time_min = float(raw_route.get("total_time_min", 0.0) or 0.0)
                 out = {
                     key: selected_segments,
                     "summary": {
                         "total_cost": sum(seg.get("fare", 0.0) for seg in selected_segments),
                         "total_distance": sum(seg.get("distance", 0.0) for seg in selected_segments),
+                        "total_time_min": total_time_min,
                         "fare_breakdown": calculate_fare_breakdown(selected_segments),
                     },
                     "stops": response.get("stops", []),
@@ -175,7 +178,12 @@ def route():
             key = data.get('mode', preferences[0])
             return jsonify({
                 key: [],
-                "summary": {"fare_breakdown": {}, "total_cost": 0.0, "total_distance": 0.0},
+                "summary": {
+                    "fare_breakdown": {},
+                    "total_cost": 0.0,
+                    "total_distance": 0.0,
+                    "total_time_min": 0.0,
+                },
                 "stops": [],
             }), 200
         except Exception as e:
@@ -183,7 +191,12 @@ def route():
             return jsonify({
                 'error': str(e),
                 (data.get('mode') or preferences[0]): [],
-                "summary": {"fare_breakdown": {}, "total_cost": 0.0, "total_distance": 0.0},
+                "summary": {
+                    "fare_breakdown": {},
+                    "total_cost": 0.0,
+                    "total_distance": 0.0,
+                    "total_time_min": 0.0,
+                },
                 "stops": [],
             }), 200
 
@@ -695,7 +708,11 @@ def places_reverse():
     if not address:
         address = _reverse_geocode_mapbox(lat, lng)
 
-    return jsonify({'address': address or 'Current location'}), 200
+    # Fallback: show a human-readable pinned coordinate instead of a vague label
+    if not address:
+        address = f"Lat: {lat:.4f}, Lng: {lng:.4f}"
+
+    return jsonify({'address': address}), 200
 
 
 if __name__ == '__main__':
